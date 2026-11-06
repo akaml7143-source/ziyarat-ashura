@@ -1,4 +1,5 @@
 name: Build Ziyarat Ashura APK
+
 on:
   workflow_dispatch:
   push:
@@ -8,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -30,68 +32,48 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path("android/app/build.gradle.kts")
-          if not p.exists():
+
+          if p.exists():
+              is_kts = True
+          else:
               p = Path("android/app/build.gradle")
+              is_kts = False
+
+          if not p.exists():
+              raise SystemExit("Android Gradle file not found")
 
           s = p.read_text()
 
-          if p.name.endswith(".kts"):
-              s = s.replace(
-                  "compileOptions {",
-                  "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
-                  1
-              )
-              dep = '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")'
+          if is_kts:
+              setting = "isCoreLibraryDesugaringEnabled = true"
+              dependency = '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")'
           else:
-              s = s.replace(
-                  "compileOptions {",
-                  "compileOptions {\n        coreLibraryDesugaringEnabled true",
-                  1
-              )
-              dep = "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
+              setting = "coreLibraryDesugaringEnabled true"
+              dependency = "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
 
-          if "coreLibraryDesugaring(" not in s and "coreLibraryDesugaring '" not in s:
-              if "dependencies {" in s:
-                  s = s.replace("dependencies {", "dependencies {\n" + dep, 1)
+          if setting not in s:
+              s, count = re.subn(
+                  r'compileOptions\s*\{',
+                  lambda m: m.group(0) + '\n        ' + setting,
+                  s,
+                  count=1
+              )
+              if count == 0:
+                  raise SystemExit("compileOptions block not found")
+
+          if "coreLibraryDesugaring" not in s:
+              match = re.search(r'(?m)^dependencies\s*\{', s)
+              if match:
+                  pos = match.end()
+                  s = s[:pos] + '\n' + dependency + s[pos:]
               else:
-                  s += "\n\ndependencies {\n" + dep + "\n}\n"
+                  s += '\n\ndependencies {\n' + dependency + '\n}\n'
 
           p.write_text(s)
-          PY
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p = Path("android/app/build.gradle.kts")
-          if p.exists():
-              s = p.read_text()
-              s = s.replace(
-                  "compileOptions {",
-                  "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
-                  1
-              )
-              s = s.replace(
-                  "dependencies {",
-                  'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")',
-                  1
-              )
-              p.write_text(s)
-          else:
-              p = Path("android/app/build.gradle")
-              s = p.read_text()
-              s = s.replace(
-                  "compileOptions {",
-                  "compileOptions {\n        coreLibraryDesugaringEnabled true",
-                  1
-              )
-              s = s.replace(
-                  "dependencies {",
-                  "dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'",
-                  1
-              )
-              p.write_text(s)
+          print("Desugaring configured successfully")
           PY
 
       - name: Get dependencies
