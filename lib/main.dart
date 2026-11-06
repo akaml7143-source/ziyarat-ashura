@@ -175,7 +175,7 @@ class WelcomeScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/imam_hussain_shrine.png', fit: BoxFit.cover),
+          Image.asset('assets/wallpaper_1326_1793992364813.jpg', fit: BoxFit.cover),
           Container(color: Colors.black.withValues(alpha: 0.38)),
           SafeArea(
             child: Padding(
