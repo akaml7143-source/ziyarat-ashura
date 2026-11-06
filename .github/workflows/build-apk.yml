@@ -4,29 +4,72 @@ on:
   push:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+
       - name: Create Android platform
         run: flutter create --platforms=android .
+
+      - name: Enable Core Library Desugaring
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/build.gradle.kts")
+          if p.exists():
+              s = p.read_text()
+              s = s.replace(
+                  "compileOptions {",
+                  "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
+                  1
+              )
+              s = s.replace(
+                  "dependencies {",
+                  'dependencies {\n    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")',
+                  1
+              )
+              p.write_text(s)
+          else:
+              p = Path("android/app/build.gradle")
+              s = p.read_text()
+              s = s.replace(
+                  "compileOptions {",
+                  "compileOptions {\n        coreLibraryDesugaringEnabled true",
+                  1
+              )
+              s = s.replace(
+                  "dependencies {",
+                  "dependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'",
+                  1
+              )
+              p.write_text(s)
+          PY
+
       - name: Get dependencies
         run: flutter pub get
+
       - name: Generate App Icon
         run: dart run flutter_launcher_icons
+
       - name: Build APK
         run: flutter build apk --release
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
