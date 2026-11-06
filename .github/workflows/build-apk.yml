@@ -32,6 +32,39 @@ jobs:
           from pathlib import Path
 
           p = Path("android/app/build.gradle.kts")
+          if not p.exists():
+              p = Path("android/app/build.gradle")
+
+          s = p.read_text()
+
+          if p.name.endswith(".kts"):
+              s = s.replace(
+                  "compileOptions {",
+                  "compileOptions {\n        isCoreLibraryDesugaringEnabled = true",
+                  1
+              )
+              dep = '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")'
+          else:
+              s = s.replace(
+                  "compileOptions {",
+                  "compileOptions {\n        coreLibraryDesugaringEnabled true",
+                  1
+              )
+              dep = "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
+
+          if "coreLibraryDesugaring(" not in s and "coreLibraryDesugaring '" not in s:
+              if "dependencies {" in s:
+                  s = s.replace("dependencies {", "dependencies {\n" + dep, 1)
+              else:
+                  s += "\n\ndependencies {\n" + dep + "\n}\n"
+
+          p.write_text(s)
+          PY
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/build.gradle.kts")
           if p.exists():
               s = p.read_text()
               s = s.replace(
