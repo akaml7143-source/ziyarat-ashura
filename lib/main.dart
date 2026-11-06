@@ -1,4 +1,3 @@
-Image.asset('assets/wallpaper_1326_1793992364813.jpg')
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
