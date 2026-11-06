@@ -1,3 +1,4 @@
+
 name: ziyarat_ashura
 description: تطبيق زيارة عاشوراء وفضلها
 publish_to: 'none'
@@ -23,8 +24,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
   assets:
     - assets/wallpaper_1326_1793992364813.jpg
+    - assets/ashura_icon.png
+
+  fonts:
+    - family: Amiri
+      fonts:
+        - asset: Amiri-Regular.ttf
+
+    - family: AmiriQuran
+      fonts:
+        - asset: AmiriQuran.ttf
 
 flutter_launcher_icons:
   android: true
