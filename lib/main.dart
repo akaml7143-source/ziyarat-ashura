@@ -33,6 +33,12 @@ Future<bool> askNotificationPermission() async {
   return await android?.requestNotificationsPermission() ?? true;
 }
 
+Future<bool> askExactAlarmPermission() async {
+  final android = notifications.resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.requestExactAlarmsPermission() ?? false;
+}
+
 Future<void> scheduleDailyReminder(int hour, int minute) async {
   final now = tz.TZDateTime.now(tz.local);
   var scheduled = tz.TZDateTime(
@@ -55,7 +61,7 @@ Future<void> scheduleDailyReminder(int hour, int minute) async {
     'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
     scheduled,
     details,
-    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     matchDateTimeComponents: DateTimeComponents.time,
   );
 }
@@ -96,7 +102,7 @@ class _AshuraAppState extends State<AshuraApp> {
     setState(() {
       isDarkMode = prefs.getBool('ashura_dark') ?? true;
       fontSize = prefs.getDouble('ashura_font') ?? 20;
-      entered = false;
+      entered = prefs.getBool('ashura_entered') ?? false;
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
       selectedFont = savedFont == 'AmiriQuran' ? 'AmiriQuran' : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
@@ -143,6 +149,8 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> enterApp() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('ashura_entered', true);
     if (mounted) setState(() => entered = true);
   }
 
@@ -224,11 +232,7 @@ class WelcomeScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-  'assets/wallpaper_1326_1793992364813.jpg',
-  fit: BoxFit.cover,
-),
-Container(color: Colors.black.withValues(alpha: 0.38)),
+          Image.asset('assets/wallpaper_1326_1793992364813.jpg', fit: BoxFit.cover),
           Container(color: Colors.black.withValues(alpha: 0.38)),
           SafeArea(
             child: Padding(
@@ -325,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       ZiyaratPage(fontSize: widget.fontSize),
       FavorsPage(fontSize: widget.fontSize),
-      FarVisitPage(fontSize: widget.fontSize),
+      ListeningPage(fontSize: widget.fontSize),
       NoticePage(fontSize: widget.fontSize),
     ];
     return Scaffold(
@@ -364,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'فضل الزيارة'),
-          BottomNavigationBarItem(icon: Icon(Icons.place), label: 'من بعيد'),
+          BottomNavigationBarItem(icon: Icon(Icons.headphones), label: 'استماع الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_active), label: 'إشعار'),
         ],
       ),
@@ -711,102 +715,102 @@ class _CounterWidgetState extends State<CounterWidget> {
 class FavorsPage extends StatelessWidget {
   final double fontSize;
   const FavorsPage({super.key, required this.fontSize});
-
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: 'زيارة عاشوراء وآثارها العجيبة عند الأئمة (ع) والعلماء الكبار',
+          title: 'فضل وعظمة زيارة عاشوراء',
           fontSize: fontSize,
           highlight: true,
-          content: r'''قد وردت روايات كثيرة حول زيارة عاشوراء. وقد علم الإمام الباقر (عليه السلام) هذه الزيارة لأحد أصحابه وهو علقمة بن محمد الحضري.
-
-إن زيارة عاشوراء تعتبر من الأدعية التي أكد الأئمة المعصومون (عليهم السلام) والعلماء الكبار على مواظبتها، وأن لها آثاراً بناءة وفريدة على الأفراد.''',
+          content: 'ورد في رواية علقمة عن الإمام الباقر عليه السلام في فضل هذه الزيارة: «فإنك إذا قلت ذلك فقد دعوت بما يدعو به زوّاره من الملائكة...»\n\nالمصدر: كامل الزيارات، ومصباح المتهجد.',
         ),
         const SizedBox(height: 12),
         SectionCard(
-          title: 'ثواب قراءة زيارة عاشوراء في كلام الأئمة المعصومين (عليهم السلام)',
+          title: 'زيارة الإمام الحسين عليه السلام',
           fontSize: fontSize,
-          highlight: true,
-          content: r'''1- قال الإمام محمد الباقر (ع) لعلقمة بن محمد الحضري الذي سأل عن كيفية زيارة الإمام الحسين (ع) من بعيد:
-
-"بعد أن تشير إليه بالسلام فتصلي ركعتين ثم تقرأ زيارة عاشوراء. فإذا قرأت هذه الزيارة فقد دعوته بما يدعوه به كل ملك يريد زيارته، وكتب الله لك ألف ألف حسنة، وحط عنك ألف ألف سيئة، ورفع لك ألف ألف ضعف. أنت مثل أولئك الذين بذلوا مهجهم دون الإمام. حتى أنك تشارك في درجاتهم". (كامل الزيارات - ص 74).
-
-2- قال الإمام الصادق (عليه السلام) لأحد أصحابه، صفوان، عن آثار زيارة عاشوراء:
-
-"تَعَاهَدْ هَذِهِ الزِّيَارَةَ وَادْعُ بِهَذَا الدُّعَاءِ وَزُرْ بِهِ فَإِنِّي ضَامِنٌ عَلَى اللَّهِ تَعَالَى لِكُلِّ مَنْ زَارَ بِهَذِهِ الزِّيَارَةِ وَدَعَا بِهَذَا الدُّعَاءِ مِنْ قُرْبٍ أَوْ بُعْدٍ أَنَّ زِيَارَتَهُ مَقْبُولَةٌ وَسَعْيَهُ مَشْكُورٌ وَسَلَامَهُ وَاصِلٌ غَيْرُ مَحْجُوبٍ وَحَاجَتَهُ مَقْضِيَّةٌ مِنَ اللَّهِ بَالِغاً مَا بَلَغَتْ وَلَا يُخَيِّبُهُ فَإِنَّ اللَّهَ لَا يُخْلِفُ الْمِيعَادَ". (بحار الأنوار، ج 98، ص 300).
-
-3- جاء في رواية أخرى عن الإمام الباقر (عليه السلام):
-
-"لو يعلم الناس ما في زيارة الحسين (عليه السلام) من الفضل لماتوا شوقاً إليه، وتقطّعت أنفسهم عليه حسرات". (بحار الأنوار - ج 101 - ص 18).
-
-4- قال الإمام الصادق (عليه السلام) أيضاً:
-
-"أقسم الله تعالى أنه من قرأ هذه الزيارة والدعاء، فإنه -تعالى- سيقبل زيارته ودعاءه ويقضي حاجته، ويعتقه من النار ويسكنه الجنة ويرزقه الشفاعة ومساعدة الناس".
-
-5- جاء في كتاب مفاتيح الجنان وقبل نص زيارة عاشوراء حديث عن الإمام الباقر عليه السلام في ثواب هذه الزيارة فيقول:
-
-"إن هذا الدعاء دعاء تدعو به الملائكة، ويكتب الله لك مائة ألف ألف درجة، وتكون كمن استشهد مع الحسين عليه السلام. وكتب لك ثواب زيارة كل نبي ورسول، وثواب زيارة كل من زار الحسين (عليه السلام) من يوم استشهاده".
-
-6- جاء في كتاب مفاتيح الجنان قبل زيارة الجامعة الكبيرة وبعد دعاء العلقمة كلام عن إمام الزمان (ع) الموجه للسيد الرشتي هكذا:
-
-"لماذا لا تقوم بقراءة زيارة عاشوراء؟: عاشوراء، عاشوراء، عاشوراء".''',
-        ),
-        const SizedBox(height: 12),
-        SectionCard(
-          title: 'فضل قراءة زيارة عاشوراء في أقوال علماء وكبار الدين',
-          fontSize: fontSize,
-          highlight: true,
-          content: r'''1- روى العلامة الشيخ عبد الهادي الحائري المازندراني عن أبيه الحاج ملا أبو الحسن أنني رأيت الحاج ميرزا علي نقي الطباطبائي في المنام بعد وفاته فقلت له: "هل لك أمنية"؟ قال: "لي أمنية واحدة، وهي عدم زيارتي لقراءة زيارة عاشوراء كل يوم في الدنيا".
-
-وكان من عادة السيد أن يؤدي قراءة زيارة عاشوراء طوال العقد الأول من شهر محرم الحرام، ولكن بعد وفاته ندم على عدم تمكنه من أداء قراءتها طوال العام.
-
-2- يقول آية الله الشبيري الزنجاني أحد مراجع التقليد:
-
-"لقد أصبحت إحدى عيني ابن السيد الحاج سيد محمد البجنوردي عمياء بسبب حالة مرضية، وحسب الأطباء، وحتى الأطباء في الخارج، ومع تقدم الحالة، فإن عينه الأخرى سوف تصبح عمياء أيضاً. ولكن الرجل شفي. وقد رأى أحد أقاربه سيد الشهداء في المنام، فقال له: لقد أخذنا من الله سلامة عينه الأخرى لأنه استمر في قراءة زيارة عاشوراء".
-
-3- يقول المرجع الكبير آية الله العظمى بهجت (ره) عن زيارة عاشوراء:
-
-"إن زيارة عاشوراء من الأحاديث القدسية، وهذه الأمور هي التي دفعت علماءنا الكبار وأساتذتنا، أن يقيدوا أنفسهم على قراءتها على الرغم من كثرة انشغالاتهم العلمية وكثرة المراجعات إليهم، بحيث أن أستاذنا المرحوم الحاج الشيخ محمد حسين الأصفهاني، طلب من الله تعالى أن لا يقبض روحه في آخر عمره، إلا وهو في حالة قراءة زيارة عاشوراء؛ فاستجاب الله دعاءه، وقبض الله روحه بعد أن انتهى من قراءة هذه الزيارة".
-
-4- روى المرحوم الشهيد دستغيب (رحمه الله) قصة عن فضل قراءة زيارة عاشوراء هكذا:
-
-"رأى أحد علماء النجف سيدنا عزرائيل في المنام قبل نحو مئة عام، فسلم عليه، ثم سأله: من أين أنت؟ قال ملك الموت: من شيراز! لقد أخذت روح المرحوم ميرزا إبراهيم المحلاتي. فسأل الشيخ: في أي وضع كانت روحه؟ قال عزرائيل: في خير الأحوال وخير حدائق البرزخ. وضع الله ألف ملك لتنفيذ أوامر الشيخ. سأل العالم: ما هذه النعم؟ قال: من أجل قراءة زيارة عاشوراء".
-
-ويقال إن المرحوم الميرزا إبراهيم المحلاتي لم يترك قراءة زيارة عاشوراء طوال الثلاثين سنة الأخيرة من حياته، وكان كل يوم لا يستطيع فيه القيام بها بسبب المرض أو غيره من الأسباب يعين نائباً عنه.
-
-5- روي عن العارف الكبير المرحوم آية الله ميرزا سيد علي آقا قاضي (رحمه الله) (معلم آية الله بهجت والعلامة الطباطبائي) أنه بعد وفاته رآه شخص في المنام وسأله: "أي العمل أهم هناك؟".
-
-قال: "قراءة زيارة عاشوراء، وأنا نادم لأني قرأت زيارة عاشوراء في كل يوم مرة واحدة ولم أقرأه مرتين!".
-
-وكان المرحوم القاضي رحمه الله يقول: "كل ما عندي فهو من سيد الشهداء عليه السلام والقرآن".''',
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'تنبيه: نُقلت النصوص والمراجع كما وردت في المادة المرسلة، ويُستحسن مراجعة ألفاظ الروايات وأرقام الصفحات في مصادرها قبل اعتمادها للنشر.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey, height: 1.7),
+          content: 'زيارة الإمام الحسين عليه السلام من القرب أو البعد بابٌ للتوجّه والسلام وإحياء ذكرى نهضته المباركة. ويمكن قراءة الزيارة من المنزل مع استحضار النية والتوجّه إلى الله تعالى.',
         ),
       ],
     );
   }
 }
 
-class FarVisitPage extends StatelessWidget {
+class ListeningPage extends StatelessWidget {
   final double fontSize;
-  const FarVisitPage({super.key, required this.fontSize});
+  const ListeningPage({super.key, required this.fontSize});
+
+  static const List<String> readers = [
+    'الشيخ شبر معله',
+    'الشيخ باقر المقدسي',
+    'الرادود باسم الكربلائي',
+    'الرادود أحمد الفتلاوي',
+    'الرادود محمد باقر الخاقاني',
+    'الرادود أبا ذر الحلواجي',
+    'الحاج علي الكعبي',
+    'الحاج مهدي سماواتي',
+    'الحاج محمود كريمي',
+    'الرادود عمار الكناني',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        SectionCard(
-          title: 'الزيارة من بعيد',
-          fontSize: fontSize,
-          highlight: true,
-          content: 'يمكنك التوجّه إلى جهة مرقد الإمام الحسين عليه السلام، ثم تستحضر الزيارة وتقول:\n\nالسَّلَامُ عَلَيْكَ يَا أَبَا عَبْدِ اللهِ، السَّلَامُ عَلَيْكَ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ.\n\nثم اقرأ نص زيارة عاشوراء في قسم «الزيارة المباركة».',
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Image.asset(
+            'assets/wallpaper_1326_1793992364813.jpg',
+            height: 190,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'استماع زيارة عاشوراء',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: fontSize + 3, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'اختر القارئ من القائمة التالية',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        const SizedBox(height: 12),
+        ...List.generate(readers.length, (index) {
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 5),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Text('${index + 1}',
+                    style: const TextStyle(color: Colors.white)),
+              ),
+              title: Text(readers[index],
+                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+              trailing: IconButton(
+                tooltip: 'ملف الصوت غير متوفر حالياً',
+                icon: const Icon(Icons.play_circle_fill, color: gold, size: 32),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('أضف تسجيل هذا القارئ إلى ملفات التطبيق لتشغيله دون إنترنت.'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        }),
+        const SizedBox(height: 10),
+        const Text(
+          'ملاحظة: أُضيفت أسماء القرّاء، وسيعمل التشغيل دون إنترنت بعد إضافة ملفات التسجيلات الصوتية الخاصة بهم إلى التطبيق.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey, height: 1.6),
         ),
       ],
     );
@@ -902,15 +906,32 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> setReminder(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     if (value) {
-      final granted = await askNotificationPermission();
-      if (!granted) {
+      final notificationGranted = await askNotificationPermission();
+      if (!notificationGranted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')),
+            const SnackBar(
+              content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'),
+            ),
           );
         }
         return;
       }
+
+      final exactGranted = await askExactAlarmPermission();
+      if (!exactGranted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'يرجى السماح للتطبيق بالمنبّهات الدقيقة من إعدادات الهاتف.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
       await scheduleDailyReminder(reminderHour, reminderMinute);
     } else {
       await notifications.cancel(1001);
