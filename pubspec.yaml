@@ -45,4 +45,8 @@ flutter:
   fonts:
     - family: Amiri
       fonts:
-        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/Amiri-Regular.ttf
+
+    - family: AmiriQuran
+      fonts:
+        - asset: assets/AmiriQuran.ttf
