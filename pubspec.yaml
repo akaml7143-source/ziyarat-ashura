@@ -1,54 +1,38 @@
-name: ziyarat_ashura
+name: ashura_visit
 description: تطبيق زيارة عاشوراء وفضلها
 publish_to: 'none'
-
-version: 1.0.0+3
+version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  flutter:
-    sdk: flutter
-  shared_preferences: ^2.5.3
-  vibration: ^3.1.3
-  flutter_local_notifications: ^19.4.2
-  timezone: ^0.10.1
-  audioplayers: ^6.5.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.14.4
+flutter:
+sdk: flutter
+shared_preferences: ^2.3.2
+vibration: ^3.1.3
+flutter_local_notifications: ^17.2.4
+timezone: ^0.9.4
+just_audio: ^0.9.36
+audio_service: ^0.18.15
 
 flutter:
-  uses-material-design: true
+uses-material-design: true
 
-  assets:
-    - assets/wallpaper_1326_1793992364813.jpg
-    - assets/ashura_icon.png
-    - assets/shibr_maalla.mp3
-    - assets/baqir_almaqdisi.mp3
-    - assets/basim_alkarbalaei.mp3
-    - assets/ahmed_alftlawi.mp3
-    - assets/mohammed_baqir_alkhaqani.mp3
-    - assets/aba_thar_alhelwachi.mp3
-    - assets/ali_alkabi.mp3
-    - assets/mahdi_samawati.mp3
-    - assets/mahmoud_karimi.mp3
-    - assets/ammar_alkinani.mp3
+assets:
+- assets/wallpaper_1326_1793992364813.jpg
+- assets/shibr_maalla.mp3
+- assets/baqir_almaqdisi.mp3
+- assets/basim_alkarbalaei.mp3
+- assets/ahmed_alftlawi.mp3
+- assets/mohammed_baqir_alkhaqani.mp3
+- assets/aba_thar_alhelwachi.mp3
+- assets/ali_alkabi.mp3
+- assets/mahdi_samawati.mp3
+- assets/mahmoud_karimi.mp3
+- assets/ammar_alkinani.mp3
 
-  fonts:
-    - family: Amiri
-      fonts:
-        - asset: Amiri-Regular.ttf
-
-    - family: AmiriQuran
-      fonts:
-        - asset: AmiriQuran.ttf
-
-flutter_launcher_icons:
-  android: true
-  ios: false
-  image_path: "assets/ashura_icon.png"
+fonts:
+- family: Amiri
+fonts:
+- asset: assets/fonts/Amiri-Regular.ttf
