@@ -4,6 +4,8 @@ import 'package:vibration/vibration.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:just_audio/just_audio.dart';
+import 'package:audio_service/audio_service.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF1B4332);
@@ -18,6 +20,75 @@ const Map<String, Color> appColors = {
 
 final FlutterLocalNotificationsPlugin notifications =
     FlutterLocalNotificationsPlugin();
+
+late AudioHandler audioHandler;
+
+class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
+  final AudioPlayer _player = AudioPlayer();
+
+  AshuraAudioHandler() {
+    _player.playbackEventStream.listen(_broadcastState);
+    _player.durationStream.listen((duration) {
+      final current = mediaItem.value;
+      if (current != null && duration != null) {
+        mediaItem.add(current.copyWith(duration: duration));
+      }
+    });
+  }
+
+  Future<void> playAsset(String assetPath, String title) async {
+    final item = MediaItem(
+      id: assetPath,
+      title: title,
+      album: 'زيارة عاشوراء',
+      artUri: null,
+    );
+    mediaItem.add(item);
+    await _player.stop();
+    await _player.setAudioSource(AudioSource.asset(assetPath));
+    await _player.play();
+  }
+
+  void _broadcastState(PlaybackEvent event) {
+    final processing = <ProcessingState, AudioProcessingState>{
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[_player.processingState]!;
+
+    playbackState.add(PlaybackState(
+      controls: [
+        if (_player.playing) MediaControl.pause else MediaControl.play,
+        MediaControl.stop,
+      ],
+      systemActions: const {MediaAction.seek},
+      androidCompactActionIndices: const [0, 1],
+      processingState: processing,
+      playing: _player.playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+      speed: _player.speed,
+      queueIndex: 0,
+    ));
+  }
+
+  @override
+  Future<void> play() => _player.play();
+
+  @override
+  Future<void> pause() => _player.pause();
+
+  @override
+  Future<void> seek(Duration position) => _player.seek(position);
+
+  @override
+  Future<void> stop() async {
+    await _player.stop();
+    await super.stop();
+  }
+}
 
 Future<void> initNotifications() async {
   tzdata.initializeTimeZones();
@@ -66,8 +137,16 @@ Future<void> scheduleDailyReminder(int hour, int minute) async {
   );
 }
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  audioHandler = await AudioService.init(
+    builder: () => AshuraAudioHandler(),
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'com.ziyaratashura.audio',
+      androidNotificationChannelName: 'استماع زيارة عاشوراء',
+      androidNotificationOngoing: true,
+    ),
+  );
   try {
     await initNotifications();
   } catch (error) {
@@ -329,6 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       ZiyaratPage(fontSize: widget.fontSize),
       FavorsPage(fontSize: widget.fontSize),
+      FarVisitPage(fontSize: widget.fontSize),
       ListeningPage(fontSize: widget.fontSize),
       NoticePage(fontSize: widget.fontSize),
     ];
@@ -368,6 +448,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'فضل الزيارة'),
+          BottomNavigationBarItem(icon: Icon(Icons.place), label: 'من بعيد'),
           BottomNavigationBarItem(icon: Icon(Icons.headphones), label: 'استماع الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_active), label: 'إشعار'),
         ],
@@ -715,87 +796,113 @@ class _CounterWidgetState extends State<CounterWidget> {
 class FavorsPage extends StatelessWidget {
   final double fontSize;
   const FavorsPage({super.key, required this.fontSize});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: 'فضل وعظمة زيارة عاشوراء',
+          title: 'زيارة عاشوراء وآثارها العجيبة عند الأئمة (ع) والعلماء الكبار',
           fontSize: fontSize,
           highlight: true,
-          content: 'ورد في رواية علقمة عن الإمام الباقر عليه السلام في فضل هذه الزيارة: «فإنك إذا قلت ذلك فقد دعوت بما يدعو به زوّاره من الملائكة...»\n\nالمصدر: كامل الزيارات، ومصباح المتهجد.',
+          content: r'''قد وردت روايات كثيرة حول زيارة عاشوراء. وقد علم الإمام الباقر (عليه السلام) هذه الزيارة لأحد أصحابه وهو علقمة بن محمد الحضري.
+
+إن زيارة عاشوراء تعتبر من الأدعية التي أكد الأئمة المعصومون (عليهم السلام) والعلماء الكبار على مواظبتها، وأن لها آثاراً بناءة وفريدة على الأفراد.''',
         ),
         const SizedBox(height: 12),
         SectionCard(
-          title: 'زيارة الإمام الحسين عليه السلام',
+          title: 'ثواب قراءة زيارة عاشوراء في كلام الأئمة المعصومين (عليهم السلام)',
           fontSize: fontSize,
-          content: 'زيارة الإمام الحسين عليه السلام من القرب أو البعد بابٌ للتوجّه والسلام وإحياء ذكرى نهضته المباركة. ويمكن قراءة الزيارة من المنزل مع استحضار النية والتوجّه إلى الله تعالى.',
+          highlight: true,
+          content: r'''1- قال الإمام محمد الباقر (ع) لعلقمة بن محمد الحضري الذي سأل عن كيفية زيارة الإمام الحسين (ع) من بعيد:
+
+"بعد أن تشير إليه بالسلام فتصلي ركعتين ثم تقرأ زيارة عاشوراء. فإذا قرأت هذه الزيارة فقد دعوته بما يدعوه به كل ملك يريد زيارته، وكتب الله لك ألف ألف حسنة، وحط عنك ألف ألف سيئة، ورفع لك ألف ألف ضعف. أنت مثل أولئك الذين بذلوا مهجهم دون الإمام. حتى أنك تشارك في درجاتهم". (كامل الزيارات - ص 74).
+
+2- قال الإمام الصادق (عليه السلام) لأحد أصحابه، صفوان، عن آثار زيارة عاشوراء:
+
+"تَعَاهَدْ هَذِهِ الزِّيَارَةَ وَادْعُ بِهَذَا الدُّعَاءِ وَزُرْ بِهِ فَإِنِّي ضَامِنٌ عَلَى اللَّهِ تَعَالَى لِكُلِّ مَنْ زَارَ بِهَذِهِ الزِّيَارَةِ وَدَعَا بِهَذَا الدُّعَاءِ مِنْ قُرْبٍ أَوْ بُعْدٍ أَنَّ زِيَارَتَهُ مَقْبُولَةٌ وَسَعْيَهُ مَشْكُورٌ وَسَلَامَهُ وَاصِلٌ غَيْرُ مَحْجُوبٍ وَحَاجَتَهُ مَقْضِيَّةٌ مِنَ اللَّهِ بَالِغاً مَا بَلَغَتْ وَلَا يُخَيِّبُهُ فَإِنَّ اللَّهَ لَا يُخْلِفُ الْمِيعَادَ". (بحار الأنوار، ج 98، ص 300).
+
+3- جاء في رواية أخرى عن الإمام الباقر (عليه السلام):
+
+"لو يعلم الناس ما في زيارة الحسين (عليه السلام) من الفضل لماتوا شوقاً إليه، وتقطّعت أنفسهم عليه حسرات". (بحار الأنوار - ج 101 - ص 18).
+
+4- قال الإمام الصادق (عليه السلام) أيضاً:
+
+"أقسم الله تعالى أنه من قرأ هذه الزيارة والدعاء، فإنه -تعالى- سيقبل زيارته ودعاءه ويقضي حاجته، ويعتقه من النار ويسكنه الجنة ويرزقه الشفاعة ومساعدة الناس".
+
+5- جاء في كتاب مفاتيح الجنان وقبل نص زيارة عاشوراء حديث عن الإمام الباقر عليه السلام في ثواب هذه الزيارة فيقول:
+
+"إن هذا الدعاء دعاء تدعو به الملائكة، ويكتب الله لك مائة ألف ألف درجة، وتكون كمن استشهد مع الحسين عليه السلام. وكتب لك ثواب زيارة كل نبي ورسول، وثواب زيارة كل من زار الحسين (عليه السلام) من يوم استشهاده".
+
+6- جاء في كتاب مفاتيح الجنان قبل زيارة الجامعة الكبيرة وبعد دعاء العلقمة كلام عن إمام الزمان (ع) الموجه للسيد الرشتي هكذا:
+
+"لماذا لا تقوم بقراءة زيارة عاشوراء؟: عاشوراء، عاشوراء، عاشوراء".''',
+        ),
+        const SizedBox(height: 12),
+        SectionCard(
+          title: 'فضل قراءة زيارة عاشوراء في أقوال علماء وكبار الدين',
+          fontSize: fontSize,
+          highlight: true,
+          content: r'''1- روى العلامة الشيخ عبد الهادي الحائري المازندراني عن أبيه الحاج ملا أبو الحسن أنني رأيت الحاج ميرزا علي نقي الطباطبائي في المنام بعد وفاته فقلت له: "هل لك أمنية"؟ قال: "لي أمنية واحدة، وهي عدم زيارتي لقراءة زيارة عاشوراء كل يوم في الدنيا".
+
+وكان من عادة السيد أن يؤدي قراءة زيارة عاشوراء طوال العقد الأول من شهر محرم الحرام، ولكن بعد وفاته ندم على عدم تمكنه من أداء قراءتها طوال العام.
+
+2- يقول آية الله الشبيري الزنجاني أحد مراجع التقليد:
+
+"لقد أصبحت إحدى عيني ابن السيد الحاج سيد محمد البجنوردي عمياء بسبب حالة مرضية، وحسب الأطباء، وحتى الأطباء في الخارج، ومع تقدم الحالة، فإن عينه الأخرى سوف تصبح عمياء أيضاً. ولكن الرجل شفي. وقد رأى أحد أقاربه سيد الشهداء في المنام، فقال له: لقد أخذنا من الله سلامة عينه الأخرى لأنه استمر في قراءة زيارة عاشوراء".
+
+3- يقول المرجع الكبير آية الله العظمى بهجت (ره) عن زيارة عاشوراء:
+
+"إن زيارة عاشوراء من الأحاديث القدسية، وهذه الأمور هي التي دفعت علماءنا الكبار وأساتذتنا، أن يقيدوا أنفسهم على قراءتها على الرغم من كثرة انشغالاتهم العلمية وكثرة المراجعات إليهم، بحيث أن أستاذنا المرحوم الحاج الشيخ محمد حسين الأصفهاني، طلب من الله تعالى أن لا يقبض روحه في آخر عمره، إلا وهو في حالة قراءة زيارة عاشوراء؛ فاستجاب الله دعاءه، وقبض الله روحه بعد أن انتهى من قراءة هذه الزيارة".
+
+4- روى المرحوم الشهيد دستغيب (رحمه الله) قصة عن فضل قراءة زيارة عاشوراء هكذا:
+
+"رأى أحد علماء النجف سيدنا عزرائيل في المنام قبل نحو مئة عام، فسلم عليه، ثم سأله: من أين أنت؟ قال ملك الموت: من شيراز! لقد أخذت روح المرحوم ميرزا إبراهيم المحلاتي. فسأل الشيخ: في أي وضع كانت روحه؟ قال عزرائيل: في خير الأحوال وخير حدائق البرزخ. وضع الله ألف ملك لتنفيذ أوامر الشيخ. سأل العالم: ما هذه النعم؟ قال: من أجل قراءة زيارة عاشوراء".
+
+ويقال إن المرحوم الميرزا إبراهيم المحلاتي لم يترك قراءة زيارة عاشوراء طوال الثلاثين سنة الأخيرة من حياته، وكان كل يوم لا يستطيع فيه القيام بها بسبب المرض أو غيره من الأسباب يعين نائباً عنه.
+
+5- روي عن العارف الكبير المرحوم آية الله ميرزا سيد علي آقا قاضي (رحمه الله) (معلم آية الله بهجت والعلامة الطباطبائي) أنه بعد وفاته رآه شخص في المنام وسأله: "أي العمل أهم هناك؟".
+
+قال: "قراءة زيارة عاشوراء، وأنا نادم لأني قرأت زيارة عاشوراء في كل يوم مرة واحدة ولم أقرأه مرتين!".
+
+وكان المرحوم القاضي رحمه الله يقول: "كل ما عندي فهو من سيد الشهداء عليه السلام والقرآن".''',
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'تنبيه: نُقلت النصوص والمراجع كما وردت في المادة المرسلة، ويُستحسن مراجعة ألفاظ الروايات وأرقام الصفحات في مصادرها قبل اعتمادها للنشر.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey, height: 1.7),
         ),
       ],
     );
   }
 }
 
+class FarVisitPage extends StatelessWidget {
   final double fontSize;
-  const ListeningPage({super.key, required this.fontSize});
-
-  static const List<String> readers = [
-    'الشيخ شبر معله',
-    'الشيخ باقر المقدسي',
-    'الرادود باسم الكربلائي',
-    'الرادود أحمد الفتلاوي',
-    'الرادود محمد باقر الخاقاني',
-    'الرادود أبا ذر الحلواجي',
-    'الحاج علي الكعبي',
-    'الحاج مهدي سماواتي',
-    'الحاج محمود كريمي',
-    'الرادود عمار الكناني',
-  ];
-
+  const FarVisitPage({super.key, required this.fontSize});
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Image.asset(
-            'assets/wallpaper_1326_1793992364813.jpg',
-            height: 190,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+        SectionCard(
+          title: 'الزيارة من بعيد',
+          fontSize: fontSize,
+          highlight: true,
+          content: 'يمكنك التوجّه إلى جهة مرقد الإمام الحسين عليه السلام، ثم تستحضر الزيارة وتقول:\n\nالسَّلَامُ عَلَيْكَ يَا أَبَا عَبْدِ اللهِ، السَّلَامُ عَلَيْكَ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ.\n\nثم اقرأ نص زيارة عاشوراء في قسم «الزيارة المباركة».',
         ),
-        const SizedBox(height: 16),
-        Text(
-          'استماع زيارة عاشوراء',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: fontSize + 3, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'اختر القارئ من القائمة التالية',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 12),
-        ...List.generate(readers.length, (index) {
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 5),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Text('${index + 1}',
-                    style: const TextStyle(color: Colors.white)),
-              ),
-              title: Text(readers[index],
-                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+}
 
+class ListeningPage extends StatelessWidget {
   final double fontSize;
   const ListeningPage({super.key, required this.fontSize});
 
-  final List<Map<String, String>> readers = const [
+  static const List<Map<String, String>> readers = [
     {'name': 'الشيخ شبر معله', 'file': 'shibr_maalla.mp3'},
     {'name': 'الشيخ باقر المقدسي', 'file': 'baqir_almaqdisi.mp3'},
     {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
@@ -820,20 +927,23 @@ class FavorsPage extends StatelessWidget {
             height: 190,
             width: double.infinity,
             fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              height: 150,
+              color: Theme.of(context).colorScheme.primary,
+              alignment: Alignment.center,
+              child: const Icon(Icons.mosque, color: gold, size: 64),
+            ),
           ),
         ),
         const SizedBox(height: 16),
         Text(
           'استماع زيارة عاشوراء',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: fontSize + 3,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: fontSize + 3, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
-          'اختر القارئ للاستماع في الخلفية دون إنترنت',
+          'اختر القارئ للاستماع إلى التسجيل المحفوظ داخل التطبيق',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey),
         ),
@@ -845,44 +955,34 @@ class FavorsPage extends StatelessWidget {
             child: ListTile(
               leading: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Text(
-                  '${index + 1}',
-                  style: const TextStyle(color: Colors.white),
-                ),
+                child: Text('${index + 1}',
+                    style: const TextStyle(color: Colors.white)),
               ),
               title: Text(
                 reader['name']!,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
               ),
+              subtitle: const Text('تشغيل من ملفات التطبيق دون إنترنت'),
               trailing: IconButton(
                 tooltip: 'تشغيل',
-                icon: const Icon(
-                  Icons.play_circle_fill,
-                  color: gold,
-                  size: 32,
-                ),
+                icon: const Icon(Icons.play_circle_fill, color: gold, size: 32),
                 onPressed: () async {
                   try {
-                    await audioHandler.playAsset(
-                      reader['file']!,
+                    await (audioHandler as AshuraAudioHandler).playAsset(
+                      'assets/${reader['file']!}',
                       reader['name']!,
                     );
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('جاري تشغيل: ${reader['name']}'),
-                        ),
+                        SnackBar(content: Text('جاري تشغيل: ${reader['name']}')),
                       );
                     }
-                  } catch (e) {
-                    debugPrint('Audio error: $e');
+                  } catch (error) {
+                    debugPrint('Audio error: $error');
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('تعذر تشغيل الملف الصوتي'),
+                        SnackBar(
+                          content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.'),
                         ),
                       );
                     }
@@ -894,7 +994,7 @@ class FavorsPage extends StatelessWidget {
         }),
         const SizedBox(height: 10),
         const Text(
-          'ملاحظة: يعمل الصوت في الخلفية وعند إطفاء الشاشة أو التنقل بين التبويبات.',
+          'يمكن متابعة التشغيل عبر إشعار الوسائط أثناء الانتقال بين صفحات التطبيق، وقد يستمر بعد إطفاء الشاشة وفق إعدادات النظام.',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, height: 1.6),
         ),
