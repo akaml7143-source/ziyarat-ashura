@@ -9,6 +9,13 @@ const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF1B4332);
 const Color darkBackground = Color(0xFF121212);
 
+const Map<String, Color> appColors = {
+  'أخضر': Color(0xFF1B4332),
+  'نيلي': Color(0xFF303B78),
+  'عنابي': Color(0xFF7B263A),
+  'فيروزي': Color(0xFF176B70),
+};
+
 final FlutterLocalNotificationsPlugin notifications =
     FlutterLocalNotificationsPlugin();
 
@@ -55,7 +62,11 @@ Future<void> scheduleDailyReminder(int hour, int minute) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initNotifications();
+  try {
+    await initNotifications();
+  } catch (error) {
+    debugPrint('تعذر تهيئة الإشعارات: $error');
+  }
   runApp(const AshuraApp());
 }
 
@@ -70,6 +81,8 @@ class _AshuraAppState extends State<AshuraApp> {
   double fontSize = 20;
   bool entered = false;
   bool loaded = false;
+  String selectedFont = 'Amiri';
+  String selectedColor = 'أخضر';
 
   @override
   void initState() {
@@ -84,8 +97,23 @@ class _AshuraAppState extends State<AshuraApp> {
       isDarkMode = prefs.getBool('ashura_dark') ?? true;
       fontSize = prefs.getDouble('ashura_font') ?? 20;
       entered = prefs.getBool('ashura_entered') ?? false;
+      final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
+      selectedFont = savedFont == 'AmiriQuran' ? 'AmiriQuran' : 'Amiri';
+      final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
+      selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
     });
+
+    // إعادة جدولة التذكير بعد فتح التطبيق إذا كان مفعّلاً سابقاً.
+    if (prefs.getBool('ashura_reminder_enabled') ?? false) {
+      final hour = prefs.getInt('ashura_reminder_hour') ?? 20;
+      final minute = prefs.getInt('ashura_reminder_minute') ?? 0;
+      try {
+        await scheduleDailyReminder(hour, minute);
+      } catch (error) {
+        debugPrint('تعذر إعادة جدولة التذكير: $error');
+      }
+    }
   }
 
   Future<void> toggleTheme() async {
@@ -98,6 +126,20 @@ class _AshuraAppState extends State<AshuraApp> {
     setState(() => fontSize = (fontSize + delta).clamp(16.0, 32.0));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('ashura_font', fontSize);
+  }
+
+  Future<void> changeFontFamily(String value) async {
+    if (value != 'Amiri' && value != 'AmiriQuran') return;
+    setState(() => selectedFont = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ashura_font_family', value);
+  }
+
+  Future<void> changeThemeColor(String value) async {
+    if (!appColors.containsKey(value)) return;
+    setState(() => selectedColor = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ashura_theme_color', value);
   }
 
   Future<void> enterApp() async {
@@ -114,17 +156,20 @@ class _AshuraAppState extends State<AshuraApp> {
         home: Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
+    final primaryColor = appColors[selectedColor] ?? green;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'زيارة عاشوراء',
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
+        fontFamily: selectedFont,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
-        colorScheme: const ColorScheme.dark(
-          primary: gold,
-          surface: Color(0xFF1E1E1E),
+        colorScheme: ColorScheme.dark(
+          primary: primaryColor,
+          secondary: gold,
+          surface: const Color(0xFF1E1E1E),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF1F1F1F),
@@ -135,15 +180,17 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Color(0xFF1F1F1F)),
       ),
       theme: ThemeData(
+        fontFamily: selectedFont,
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF9F6F0),
         cardColor: Colors.white,
-        colorScheme: const ColorScheme.light(
-          primary: green,
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          secondary: gold,
           surface: Colors.white,
         ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: green,
+        appBarTheme: AppBarTheme(
+          backgroundColor: primaryColor,
           foregroundColor: gold,
           centerTitle: true,
         ),
@@ -156,8 +203,12 @@ class _AshuraAppState extends State<AshuraApp> {
             ? HomeScreen(
                 isDarkMode: isDarkMode,
                 fontSize: fontSize,
+                selectedFont: selectedFont,
+                selectedColor: selectedColor,
                 onToggleTheme: toggleTheme,
                 onChangeFontSize: changeFontSize,
+                onChangeFontFamily: changeFontFamily,
+                onChangeThemeColor: changeThemeColor,
               )
             : WelcomeScreen(onEnter: enterApp),
       ),
@@ -217,7 +268,7 @@ class WelcomeScreen extends StatelessWidget {
                               style: TextStyle(fontSize: 19,
                                   fontWeight: FontWeight.bold)),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: green,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: gold,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -241,15 +292,23 @@ class WelcomeScreen extends StatelessWidget {
 class HomeScreen extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
+  final String selectedFont;
+  final String selectedColor;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
+  final Function(String) onChangeFontFamily;
+  final Function(String) onChangeThemeColor;
 
   const HomeScreen({
     super.key,
     required this.isDarkMode,
     required this.fontSize,
+    required this.selectedFont,
+    required this.selectedColor,
     required this.onToggleTheme,
     required this.onChangeFontSize,
+    required this.onChangeFontFamily,
+    required this.onChangeThemeColor,
   });
 
   @override
@@ -279,8 +338,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (_) => SettingsPage(
                   isDarkMode: widget.isDarkMode,
                   fontSize: widget.fontSize,
+                  selectedFont: widget.selectedFont,
+                  selectedColor: widget.selectedColor,
                   onToggleTheme: widget.onToggleTheme,
                   onChangeFontSize: widget.onChangeFontSize,
+                  onChangeFontFamily: widget.onChangeFontFamily,
+                  onChangeThemeColor: widget.onChangeThemeColor,
                 ),
               ),
             ),
@@ -294,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: selectedIndex,
         onTap: (i) => setState(() => selectedIndex = i),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: gold,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'الزيارة'),
@@ -496,7 +559,7 @@ class _CounterWidgetState extends State<CounterWidget> {
                   icon: const Icon(Icons.touch_app),
                   label: Text('العدد: $count'),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: green, foregroundColor: Colors.white),
+                      backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
                 IconButton(onPressed: reset, icon: const Icon(Icons.refresh),
                     tooltip: 'إعادة العداد'),
@@ -586,14 +649,22 @@ class NoticePage extends StatelessWidget {
 class SettingsPage extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
+  final String selectedFont;
+  final String selectedColor;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
+  final Function(String) onChangeFontFamily;
+  final Function(String) onChangeThemeColor;
   const SettingsPage({
     super.key,
     required this.isDarkMode,
     required this.fontSize,
+    required this.selectedFont,
+    required this.selectedColor,
     required this.onToggleTheme,
     required this.onChangeFontSize,
+    required this.onChangeFontFamily,
+    required this.onChangeThemeColor,
   });
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -603,11 +674,26 @@ class _SettingsPageState extends State<SettingsPage> {
   bool reminderEnabled = false;
   int reminderHour = 20;
   int reminderMinute = 0;
+  late String localFont;
+  late String localColor;
 
   @override
   void initState() {
     super.initState();
+    localFont = widget.selectedFont;
+    localColor = widget.selectedColor;
     loadReminder();
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedFont != widget.selectedFont) {
+      localFont = widget.selectedFont;
+    }
+    if (oldWidget.selectedColor != widget.selectedColor) {
+      localColor = widget.selectedColor;
+    }
   }
 
   Future<void> loadReminder() async {
@@ -675,6 +761,78 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
               value: widget.isDarkMode,
               onChanged: (_) => widget.onToggleTheme(),
+            ),
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.palette, color: gold),
+                    title: Text('لون التطبيق الرئيسي'),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: localColor,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    items: appColors.keys.map((colorName) =>
+                      DropdownMenuItem<String>(
+                        value: colorName,
+                        child: Text(colorName),
+                      ),
+                    ).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => localColor = value);
+                        widget.onChangeThemeColor(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.font_download, color: gold),
+                    title: Text('نوع الخط'),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: localFont,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem<String>(
+                        value: 'Amiri',
+                        child: Text('Amiri - خط النسخ'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'AmiriQuran',
+                        child: Text('Amiri Quran - الخط القرآني'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => localFont = value);
+                        widget.onChangeFontFamily(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           Card(
