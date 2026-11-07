@@ -227,7 +227,8 @@ class WelcomeScreen extends StatelessWidget {
           Image.asset(
   'assets/wallpaper_1326_1793992364813.jpg',
   fit: BoxFit.cover,
-)
+),
+Container(color: Colors.black.withValues(alpha: 0.38)),
           Container(color: Colors.black.withValues(alpha: 0.38)),
           SafeArea(
             child: Padding(
