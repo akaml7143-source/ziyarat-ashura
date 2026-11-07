@@ -36,11 +36,15 @@ class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     });
   }
 
-  Future<void> playAsset(String assetPath, String title) async {
+  Future<void> playAsset(
+    String assetPath,
+    String title, {
+    String album = 'زيارة عاشوراء',
+  }) async {
     final item = MediaItem(
       id: assetPath,
       title: title,
-      album: 'زيارة عاشوراء',
+      album: album,
       artUri: null,
     );
     mediaItem.add(item);
@@ -127,16 +131,14 @@ Future<void> scheduleDailyReminder(int hour, int minute) async {
     ),
   );
   await notifications.zonedSchedule(
-  1001,
-  'إشعار',
-  'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
-  scheduled,
-  details,
-  androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-  uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
-  matchDateTimeComponents: DateTimeComponents.time,
-);
+    1001,
+    'إشعار',
+    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
+    scheduled,
+    details,
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
 }
 
 Future<void> main() async {
@@ -410,7 +412,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       ZiyaratPage(fontSize: widget.fontSize),
       FavorsPage(fontSize: widget.fontSize),
-      FarVisitPage(fontSize: widget.fontSize),
+      AbbasVisitPage(fontSize: widget.fontSize),
       ListeningPage(fontSize: widget.fontSize),
       NoticePage(fontSize: widget.fontSize),
     ];
@@ -450,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'فضل الزيارة'),
-          BottomNavigationBarItem(icon: Icon(Icons.place), label: 'من بعيد'),
+          BottomNavigationBarItem(icon: Icon(Icons.mosque), label: 'زيارة العباس'),
           BottomNavigationBarItem(icon: Icon(Icons.headphones), label: 'استماع الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_active), label: 'إشعار'),
         ],
@@ -881,19 +883,94 @@ class FavorsPage extends StatelessWidget {
   }
 }
 
-class FarVisitPage extends StatelessWidget {
+class AbbasVisitPage extends StatelessWidget {
   final double fontSize;
-  const FarVisitPage({super.key, required this.fontSize});
+  const AbbasVisitPage({super.key, required this.fontSize});
+
+  static const String ziyaraText = r'''زيارة الامام العباس (عليه السلام)
+
+سَلامُ اللهِ وَسَلامُ مَلائِكَتِهِ الْمُقَرَّبِينَ وَأَنْبِيَائِهِ الْمُرْسَلِينَ ، وَعِبَادِهِ الصَّالِحِينَ وَجَمِيعِ الشُّهَداءِ وَالصِّدِّيقِينَ ، وَالزَّاكِيَاتُ الطَّيِّبَاتُ فِيمَا تَغْتَدِي وَتَرُوحُ عَلَيْكَ يَابْنَ أَمِيرِ الْمُؤْمِنِينَ ، أَشْهَدُ لَكَ بِالتَّسْلِيمِ وَالتَّصْدِيقِ وَالْوَفَاءِ وَالنَّصِيحَةِ ، لِخَلَفِ النَّبِيِّ الْمُرْسَلِ ـ صَلَّى اللهُ عَلَيْهِ وَآلِهِ ـ ، وَالسِّبْطِ الْمُنْتَجَبِ ، وَالدَّلِيلِ الْعَالِمِ ، وَالْوَصِيِّ الْمُبَلِّغِ ، وَالْمَظْلُومِ الْمُهْتَضَمِ ، فَجَزَاكَ اللهُ عَن رَّسُولِهِ وَعَنْ أَمِيرِ الْمُؤْمِنينَ وَعَنْ فَاطِمَةَ والْحَسَنِ وَالْحُسَيْنِ ـ صَلَوَاتُ اللهِ عَلَيْهِمْ ـ أَفْضَلَ الْجَزاءِ ، بِمَا صَبَرْتَ وَاحْتَسَبْتَ وَأَعَنْتَ ، فَنِعْمَ عُقْبَى الدَّارِ ، لَعَنَ اللهُ مَنْ قَتَلَكَ ، وَلَعَنَ اللهُ مَنْ جَهِلَ حَقَّكَ وَاسْتَخَفَّ بِحُرْمَتِكَ ، وَلَعَنَ اللهُ مَنْ حَالَ بَيْنَكَ وَبَيْنَ مَاءِ الْفُرَاتِ ، أَشْهَدُ أَنَّكَ قُتِلْتَ مَظْلُوماً ، وَأَنَّ اللهَ مُنْجِزٌ لَّكُم مَّا وَعَدَكُمْ ، جِئْتُكَ يَابْنَ أَمِيرِ اْلُمْؤْمِنينَ وَافِداً إِلَيْكُمْ ، وَقَلْبِي مُسَلِّمٌ لَّكُمْ وَتابِعٌ ، وَأَنَا لَكُمْ تَابِعٌ وَنُصْرَتِي لَكُم مُّعَدَّةٌ ، حَتّى يَحْكُمَ اللهُ وَهُوَ خَيْرُ الْحَاكِمِينَ ، فَمَعَكُمْ مَعَكُمْ لا مَعَ عَدُوِّكُمْ ، إِنِّي بِكُمْ وَبِإِيَابِكُمْ مِنَ الْمُؤْمِنينَ ، وَبِمَنْ خَالَفَكُمْ وَقَتَلَكُمْ مِنَ الْكَافَرِينَ ، قَتَلَ اللهُ أُمَّةً قَتَلَتْكُمْ بِالأَيْدِي وَالأَلْسُنِ .
+
+ثمّ ادخل فانكبّ على القبر وقلْ :
+
+اَلسَّلامُ عَلَيْكَ أَيُّهَا الْعَبْدُ الصَّالِحُ الْمُطِيعُ للهِ وَلِرَسُولِهِ وَلِأَميرِ الْمُؤْمِنينَ وَالْحَسَنِ والْحُسَيْنِ ـ صَلَّى اللهُ عَلَيْهِمْ وَسَلَّمَ ـ ، اَلسَّلامُ عَلَيْكَ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ ، وَمَغْفِرَتُهُ وَرِضْوَانُهُ وَعَلَى رُوحِكَ وَبَدَنِكَ ، أَشْهَدُ ـ وأُشْهِدُ اللهَ ـ أَنَّكَ مَضَيْتَ عَلَى مَا مَضَى بِهِ الْبَدْرِيُّونَ وَالْمُجَاهِدُونَ فِي سَبيلِ اللهِ الْمُنَاصِحُونَ لَهُ فِي جِهَادِ أَعْدَائِهِ ، الْمُبَالِغُونَ فِي نُصْرَةِ أَوْلِيَائِهِ ، الذَّابُّونَ عَنْ أَحِبَّائِهِ ، فَجَزاكَ اللهُ أَفْضَلَ الْجَزاءِ ، وَأَكْثَرَ الْجَزاءِ ، وَأَوْفَرَ الْجَزَاءِ ، وَأَوْفَى جَزاءِ أَحَدٍ مِمَّن وَّفَى بِبَيْعَتِهِ ، وَاسْتَجابَ لَهُ دَعْوَتَهُ ، وَأَطَاعَ وُلاةَ أَمْرِهِ ، أَشْهَدُ أَنَّكَ قَدْ بَالَغْتَ فِي النَّصِيحَةِ وَأَعْطَيْتَ غايَةَ الْمَجْهُودِ ، فَبَعَثَكَ اللهُ فِي الشُّهَداءِ ، وَجَعَلَ رُوحَكَ مَعَ أَرْوَاحِ السُّعَداءِ ، وَأَعْطَاكَ مِنْ جِنَانِهِ أَفْسَحَهَا مَنْزِلاً وَّأَفْضَلَهَا غُرَفاً ، وَّرَفَعَ ذِكْرَكَ فِي عِلِّيِّينَ ، وَحَشَرَكَ مَعَ النَّبِيِّينَ وَالصِّدِّيقِينَ وَالشُّهَداءِ وَالصَّالِحِينَ ، وَحَسُنَ أُولَئِكَ رَفِيقاً ، أَشْهَدُ أَنَّكَ لَمْ تَهِن وَّلَمْ تَنْكُلْ ، وَأَنَّكَ مَضَيْتَ عَلَى بَصِيرَةٍ مِنْ أَمْرِكَ مُقْتَدِياً بِالصَّالِحِينَ ، وَمُتَّبِعاً لِّلنَّبِيِّينَ ، فَجَمَعَ اللهُ بَيْنَنَا وَبَيْنَكَ وَبَيْنَ رَسُولِهِ وَأَوْلِيَائِهِ فِي مَنَازِلِ الْمُخْبِتِينَ ، فَإِنَّهُ أَرْحَمُ الرَّاحِمِينَ .
+
+ثمّ صرْ إلى الرأس الشريف وصلّ ركعتين وادعُ بهذا الدعاء :
+
+اَللَّـهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَّآلِ مُحَمَّدٍ ، وَّلا تَدَعْ لِي فِي هذَا الْمَكَانِ الْمُكَرَّمِ وَالْمَشْهَدِ الْمُعَظَّمِ ذَنْباً إِلَّا غَفَرْتَهُ ، وَلا هَمًّا إِلَّا فَرَّجَتَهُ ، وَلا مَرَضاً إِلَّا شَفَيْتَهُ ، وَلا عَيْباً إِلَّا سَتَرْتَهُ ، وَلا رِزْقاً إِلَّا بَسَطتَّهُ ، وَلا خَوْفاً إِلَّا آمَنْتَهُ ، وَلا شَمْلاً إِلَّا جَمَعْتَهُ ، وَلا غائِباً إِلَّا حَفِظْتَهُ وَأَدْنَيْتَهُ ، وَلا حَاجَةً مِّنْ حَوَائِجِ الدُّنْيَا وَالْآخِرَةِ لَكَ فِيهَا رِضًى وَلِيَ فِيهَا صَلاحٌ إِلَّا قَضَيْتَها يَا أَرْحَمَ الرَّاحِمِينَ .
+
+ثمّ عُدْ إلى جهة الرّجلَيْن وقُلْ :
+
+اَلسَّلامُ عَلَيْكَ يَا أَبَا الْفَضْلِ الْعَبَّاسَ بْنَ أَمِيرِ الْمُؤْمِنينَ ، اَلسَّلامُ عَلَيْكَ يَابْنَ سَيِّدِ الْوَصِيِّينَ ، اَلسَّلامُ عَلَيْكَ يَابْنَ أَوَّلِ الْقَوْمِ إِسْلاماً ، وَّأَقْدَمِهِمْ إِيْمَاناً وَّأَقْوَمِهِمْ بِدِينِ اللهِ ، وَأَحْوَطِهِمْ عَلَى الإِسْلامِ ، أَشْهَدُ لَقَدْ نَصَحْتَ للهِ وَلِرَسُولِهِ وَلِأَخيكَ ، فَنِعْمَ الأَخُ الْمُواسي ، فَلَعَنَ اللهُ أُمَّةً قَتَلَتْكَ ، وَلَعَنَ اللهُ أُمَّةً ظَلَمَتْكَ ، وَلَعَنَ اللهُ أُمَّةً اسْتَحَلَّتْ مِنْكَ الْمَحَارِمَ ، وَانْتَهَكَتْ حُرْمَةَ الإِسْلامِ ، فَنِعْمَ الصَّابِرُ الْمُجَاهِدُ الْمُحَامِي النَّاصِرُ ، وَالأَخُ الدَّافِعُ عَنْ أَخِيهِ ، الْمُجيبُ إِلَى طَاعَةِ رَبِّهِ ، الرَّاغِبُ فِيمَا زَهِدَ فِيهِ غَيْرُهُ مِنَ الثَّوَابِ الْجَزِيلِ وَالثَّنَاءِ الْجَمِيلِ ، وَأَلْحَقَكَ اللهُ بِدَرَجَةِ آبَائِكَ فِي جَنَّاتِ النَّعِيمِ ، اَللَّـهُمَّ إِنِّي تَعَرَّضْتُ لِزِيَارَةِ أَوْلِيَائِكَ رَغْبَةً فِي ثَوَابِكَ ، وَرَجَاءً لِّمَغْفِرَتِكَ وَجَزيلِ إِحْسَانِكَ ، فَأَسْأَلُكَ أَنْ تُصَلِّيَ عَلَى مُحَمَّدٍ وَّآلِهِ الطَّاهِرِينَ ، وَأَنْ تَجْعَلَ رِزْقِي بِهِمْ دَارًّا ، وَّعَيْشِي بِهِمْ قَارًّا ، وَّزِيَارَتِي بِهِمْ مَقْبُولَةً ، وَّحَيَاتِي بِهِمْ طَيِّبَةً ، وَّأَدْرِجْنِي إِدْرَاجَ الْمُكْرَمِينَ ، وَاجْعَلْنِي مِمَّن يَّنْقَلِبُ مِنْ زِيَارَةِ مَشَاهِدِ أَحِبَّائِكَ مُفْلِحاً مُّنْجِحاً ، قَدِ اسْتَوْجَبَ غُفْرَانَ الذُّنُوبِ وَسَتْرَ الْعُيُوبِ وَكَشْفَ الْكُرُوبِ ، إِنَّكَ أَهْلُ التَّقْوَى وَأَهْلُ الْمَغْفِرَةِ .''';
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: 'الزيارة من بعيد',
+          title: 'زيارة الإمام العباس (عليه السلام)',
+          content: ziyaraText,
           fontSize: fontSize,
           highlight: true,
-          content: 'يمكنك التوجّه إلى جهة مرقد الإمام الحسين عليه السلام، ثم تستحضر الزيارة وتقول:\n\nالسَّلَامُ عَلَيْكَ يَا أَبَا عَبْدِ اللهِ، السَّلَامُ عَلَيْكَ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ.\n\nثم اقرأ نص زيارة عاشوراء في قسم «الزيارة المباركة».',
+        ),
+        const SizedBox(height: 14),
+        Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: gold, width: 1),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                const Icon(Icons.headphones, color: gold, size: 38),
+                const SizedBox(height: 8),
+                const Text(
+                  'استماع زيارة أبي الفضل العباس',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold),
+                ),
+                const SizedBox(height: 6),
+                const Text('القارئ: الشيخ شبر معله', textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await (audioHandler as AshuraAudioHandler).playAsset(
+                          'assets/shibr_maalla_abbas.mp3',
+                          'الشيخ شبر معله',
+                          album: 'زيارة أبي الفضل العباس',
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله')),
+                          );
+                        }
+                      } catch (error) {
+                        debugPrint('Abbas audio error: $error');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3')),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.play_arrow),
+                    label: const Text('تشغيل الزيارة'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -1273,8 +1350,8 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 18),
           const SectionCard(
-            title: 'معلومات المبرمج',
-            content: 'المبرمج: كامل الكميتي\nتاريخ إنتاج التطبيق: ٦/١١/٢٠٢٦\n\nنسألكم الدعاء',
+            title: 'عن التطبيق وتطويره',
+            content: 'تطبيق «زيارة عاشوراء» وهو تطبيق ديني روحاني متكامل يُعنى بتيسير قراءة واستماع «زيارة عاشوراء» المباركة ليكون رفيقاً إيمانياً يومياً للمؤمنين أينما كانوا.\n\nاللهم اغفر لي ولوالديّ وارحمهما كما ربّياني صغيراً، واجزهما عني خير ما جزيت والداً عن ولده. اللهم اغفر للمؤمنين والمؤمنات، والمسلمين والمسلمات، الأحياء منهم والأموات، واجمعنا وإياهم في جنات النعيم بجوار محمد وآله الطاهرين.\n\nتطوير وتصميم كامل الكميتي 2026/11/6\n\nجميع الحقوق محفوظة',
             fontSize: 18,
             highlight: true,
           ),
