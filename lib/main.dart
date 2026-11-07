@@ -127,14 +127,16 @@ Future<void> scheduleDailyReminder(int hour, int minute) async {
     ),
   );
   await notifications.zonedSchedule(
-    1001,
-    'إشعار',
-    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
-    scheduled,
-    details,
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    matchDateTimeComponents: DateTimeComponents.time,
-  );
+  1001,
+  'إشعار',
+  'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
+  scheduled,
+  details,
+  androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+  uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+  matchDateTimeComponents: DateTimeComponents.time,
+);
 }
 
 Future<void> main() async {
