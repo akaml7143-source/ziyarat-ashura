@@ -41,6 +41,7 @@ flutter:
     - assets/mahdi_samawati.mp3
     - assets/mahmoud_karimi.mp3
     - assets/ammar_alkinani.mp3
+    - assets/shibr_maalla_abbas.mp3
 
   fonts:
     - family: Amiri
