@@ -1,3 +1,4 @@
+
 name: Build Ziyarat Ashura APK
 
 on:
@@ -27,6 +28,54 @@ jobs:
 
       - name: Create Android platform
         run: flutter create --platforms=android .
+
+      - name: Configure notification permissions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path("android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+
+          permissions = [
+              "android.permission.POST_NOTIFICATIONS",
+              "android.permission.SCHEDULE_EXACT_ALARM",
+              "android.permission.RECEIVE_BOOT_COMPLETED",
+          ]
+
+          for permission in permissions:
+              tag = f'<uses-permission android:name="{permission}" />'
+              if permission not in s:
+                  s = re.sub(
+                      r'(<application\b)',
+                      tag + '\n    \\1',
+                      s,
+                      count=1
+                  )
+
+          receivers = '''
+              <receiver
+                  android:exported="false"
+                  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+
+              <receiver
+                  android:exported="false"
+                  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+                  <intent-filter>
+                      <action android:name="android.intent.action.BOOT_COMPLETED" />
+                      <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                      <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                  </intent-filter>
+              </receiver>
+          '''
+
+          if "ScheduledNotificationReceiver" not in s:
+              s = s.replace("</application>", receivers + "\n</application>")
+
+          p.write_text(s)
+          print("Notification permissions configured")
+          PY
 
       - name: Enable Core Library Desugaring
         run: |
