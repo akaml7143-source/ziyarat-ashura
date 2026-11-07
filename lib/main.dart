@@ -464,11 +464,141 @@ class ZiyaratPage extends StatelessWidget {
         const SizedBox(height: 12),
         SectionCard(title: 'سجدة الزيارة', content: 'ثم تسجد وتقول:\n\n$sajda',
             fontSize: fontSize, highlight: true),
+        const SizedBox(height: 12),
+        CompletedVisitCounter(),
         const SizedBox(height: 20),
         const Text('المصدر: مفاتيح الجنان، زيارة عاشوراء.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey)),
       ],
+    );
+  }
+}
+
+
+class CompletedVisitCounter extends StatefulWidget {
+  const CompletedVisitCounter({super.key});
+
+  @override
+  State<CompletedVisitCounter> createState() => _CompletedVisitCounterState();
+}
+
+class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
+  static const String storageKey = 'ashura_completed_visits';
+  int completedVisits = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadCompletedVisits();
+  }
+
+  Future<void> loadCompletedVisits() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      completedVisits = prefs.getInt(storageKey) ?? 0;
+      isLoading = false;
+    });
+  }
+
+  Future<void> markVisitCompleted() async {
+    final nextCount = completedVisits + 1;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(storageKey, nextCount);
+    if (!mounted) return;
+    setState(() => completedVisits = nextCount);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تقبّل الله زيارتكم، تم تسجيل القراءة')),
+    );
+  }
+
+  Future<void> resetCount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('إعادة العداد'),
+        content: const Text('هل تريد تصفير عدد الزيارات المكتملة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('تصفير'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(storageKey, 0);
+    if (mounted) setState(() => completedVisits = 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: gold, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              'عداد الزيارات المكتملة',
+              style: TextStyle(
+                color: gold,
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            isLoading
+                ? const CircularProgressIndicator()
+                : Text(
+                    '$completedVisits زيارة مكتملة',
+                    style: const TextStyle(
+                      fontSize: 25,
+                      color: gold,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isLoading ? null : markVisitCompleted,
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('أتممت قراءة الزيارة كاملة'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: isLoading || completedVisits == 0 ? null : resetCount,
+                icon: const Icon(Icons.refresh, size: 18),
+                label: const Text('تصفير العداد'),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
