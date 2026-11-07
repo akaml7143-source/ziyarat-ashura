@@ -29,7 +29,7 @@ jobs:
       - name: Create Android platform
         run: flutter create --platforms=android .
 
-      - name: Configure notification permissions
+      - name: Configure notification and audio permissions
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -42,19 +42,64 @@ jobs:
               "android.permission.POST_NOTIFICATIONS",
               "android.permission.SCHEDULE_EXACT_ALARM",
               "android.permission.RECEIVE_BOOT_COMPLETED",
+              "android.permission.WAKE_LOCK",
+              "android.permission.FOREGROUND_SERVICE",
+              "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
           ]
 
           for permission in permissions:
-              tag = f'<uses-permission android:name="{permission}" />'
               if permission not in s:
+                  tag = f'<uses-permission android:name="{permission}" />'
                   s = re.sub(
                       r'(<application\b)',
-                      tag + '\n    \\1',
+                      lambda m: tag + '\n    ' + m.group(1),
                       s,
                       count=1
                   )
 
-          receivers = '''
+          # تغيير MainActivity إلى AudioServiceActivity
+          if "com.ryanheise.audioservice.AudioServiceActivity" not in s:
+              pattern = r'(<activity\b[^>]*android:name=")[^"]*MainActivity(")'
+              s, count = re.subn(
+                  pattern,
+                  lambda m: m.group(1) +
+                            "com.ryanheise.audioservice.AudioServiceActivity" +
+                            m.group(2),
+                  s,
+                  count=1
+              )
+
+              if count == 0:
+                  raise SystemExit("MainActivity not found in AndroidManifest.xml")
+
+          # إضافة خدمة تشغيل الصوت بالخلفية
+          if 'android:name="com.ryanheise.audioservice.AudioService"' not in s:
+              audio_components = '''
+              <service
+                  android:name="com.ryanheise.audioservice.AudioService"
+                  android:foregroundServiceType="mediaPlayback"
+                  android:exported="true">
+                  <intent-filter>
+                      <action android:name="android.media.browse.MediaBrowserService" />
+                  </intent-filter>
+              </service>
+
+              <receiver
+                  android:name="com.ryanheise.audioservice.MediaButtonReceiver"
+                  android:exported="true">
+                  <intent-filter>
+                      <action android:name="android.intent.action.MEDIA_BUTTON" />
+                  </intent-filter>
+              </receiver>
+              '''
+              s = s.replace(
+                  "</application>",
+                  audio_components + "\n</application>"
+              )
+
+          # مستقبلات الإشعارات المجدولة
+          if 'android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"' not in s:
+              notification_receivers = '''
               <receiver
                   android:exported="false"
                   android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
@@ -68,13 +113,14 @@ jobs:
                       <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                   </intent-filter>
               </receiver>
-          '''
-
-          if "ScheduledNotificationReceiver" not in s:
-              s = s.replace("</application>", receivers + "\n</application>")
+              '''
+              s = s.replace(
+                  "</application>",
+                  notification_receivers + "\n</application>"
+              )
 
           p.write_text(s)
-          print("Notification permissions configured")
+          print("Notification and audio configuration completed")
           PY
 
       - name: Enable Core Library Desugaring
@@ -99,21 +145,38 @@ jobs:
           if is_kts:
               setting = "isCoreLibraryDesugaringEnabled = true"
               dependency = '    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")'
+
+              pattern = r'isCoreLibraryDesugaringEnabled\s*=\s*(true|false)'
+              if re.search(pattern, s):
+                  s = re.sub(pattern, setting, s, count=1)
+              else:
+                  s, count = re.subn(
+                      r'compileOptions\s*\{',
+                      lambda m: m.group(0) + '\n        ' + setting,
+                      s,
+                      count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("compileOptions block not found")
+
           else:
               setting = "coreLibraryDesugaringEnabled true"
               dependency = "    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'"
 
-          if setting not in s:
-              s, count = re.subn(
-                  r'compileOptions\s*\{',
-                  lambda m: m.group(0) + '\n        ' + setting,
-                  s,
-                  count=1
-              )
-              if count == 0:
-                  raise SystemExit("compileOptions block not found")
+              pattern = r'coreLibraryDesugaringEnabled\s+(true|false)'
+              if re.search(pattern, s):
+                  s = re.sub(pattern, setting, s, count=1)
+              else:
+                  s, count = re.subn(
+                      r'compileOptions\s*\{',
+                      lambda m: m.group(0) + '\n        ' + setting,
+                      s,
+                      count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("compileOptions block not found")
 
-          if "coreLibraryDesugaring" not in s:
+          if "desugar_jdk_libs" not in s:
               match = re.search(r'(?m)^dependencies\s*\{', s)
               if match:
                   pos = match.end()
@@ -122,7 +185,7 @@ jobs:
                   s += '\n\ndependencies {\n' + dependency + '\n}\n'
 
           p.write_text(s)
-          print("Desugaring configured successfully")
+          print("Core Library Desugaring configured successfully")
           PY
 
       - name: Get dependencies
