@@ -737,7 +737,6 @@ class FavorsPage extends StatelessWidget {
   }
 }
 
-class ListeningPage extends StatelessWidget {
   final double fontSize;
   const ListeningPage({super.key, required this.fontSize});
 
@@ -792,15 +791,102 @@ class ListeningPage extends StatelessWidget {
               ),
               title: Text(readers[index],
                   style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+
+  final double fontSize;
+  const ListeningPage({super.key, required this.fontSize});
+
+  final List<Map<String, String>> readers = const [
+    {'name': 'الشيخ شبر معله', 'file': 'shibr_maalla.mp3'},
+    {'name': 'الشيخ باقر المقدسي', 'file': 'baqir_almaqdisi.mp3'},
+    {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
+    {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
+    {'name': 'الرادود محمد باقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
+    {'name': 'الرادود أبا ذر الحلواجي', 'file': 'aba_thar_alhelwachi.mp3'},
+    {'name': 'الحاج علي الكعبي', 'file': 'ali_alkabi.mp3'},
+    {'name': 'الحاج مهدي سماواتي', 'file': 'mahdi_samawati.mp3'},
+    {'name': 'الحاج محمود كريمي', 'file': 'mahmoud_karimi.mp3'},
+    {'name': 'الرادود عمار الكناني', 'file': 'ammar_alkinani.mp3'},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Image.asset(
+            'assets/wallpaper_1326_1793992364813.jpg',
+            height: 190,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'استماع زيارة عاشوراء',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: fontSize + 3,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'اختر القارئ للاستماع في الخلفية دون إنترنت',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        const SizedBox(height: 12),
+        ...List.generate(readers.length, (index) {
+          final reader = readers[index];
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 5),
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child: Text(
+                  '${index + 1}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+              title: Text(
+                reader['name']!,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               trailing: IconButton(
-                tooltip: 'ملف الصوت غير متوفر حالياً',
-                icon: const Icon(Icons.play_circle_fill, color: gold, size: 32),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('أضف تسجيل هذا القارئ إلى ملفات التطبيق لتشغيله دون إنترنت.'),
-                    ),
-                  );
+                tooltip: 'تشغيل',
+                icon: const Icon(
+                  Icons.play_circle_fill,
+                  color: gold,
+                  size: 32,
+                ),
+                onPressed: () async {
+                  try {
+                    await audioHandler.playAsset(
+                      reader['file']!,
+                      reader['name']!,
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('جاري تشغيل: ${reader['name']}'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('Audio error: $e');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تعذر تشغيل الملف الصوتي'),
+                        ),
+                      );
+                    }
+                  }
                 },
               ),
             ),
@@ -808,7 +894,7 @@ class ListeningPage extends StatelessWidget {
         }),
         const SizedBox(height: 10),
         const Text(
-          'ملاحظة: أُضيفت أسماء القرّاء، وسيعمل التشغيل دون إنترنت بعد إضافة ملفات التسجيلات الصوتية الخاصة بهم إلى التطبيق.',
+          'ملاحظة: يعمل الصوت في الخلفية وعند إطفاء الشاشة أو التنقل بين التبويبات.',
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.grey, height: 1.6),
         ),
