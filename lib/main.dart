@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
@@ -26,6 +29,20 @@ late AudioHandler audioHandler;
 class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
 
+  Stream<Duration> get positionStream => _player.positionStream;
+  Stream<Duration?> get durationStream => _player.durationStream;
+  Stream<bool> get playingStream => _player.playingStream;
+  bool get isPlaying => _player.playing;
+
+  Future<void> seekRelative(Duration offset) async {
+    final target = _player.position + offset;
+    final duration = _player.duration ?? target;
+    final bounded = target < Duration.zero
+        ? Duration.zero
+        : (target > duration ? duration : target);
+    await _player.seek(bounded);
+  }
+
   AshuraAudioHandler() {
     _player.playbackEventStream.listen(_broadcastState);
     _player.durationStream.listen((duration) {
@@ -50,7 +67,7 @@ class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     mediaItem.add(item);
     await _player.stop();
     await _player.setAudioSource(AudioSource.asset(assetPath));
-    await _player.play();
+    unawaited(_player.play());
   }
 
   void _broadcastState(PlaybackEvent event) {
@@ -114,33 +131,137 @@ Future<bool> askExactAlarmPermission() async {
   return await android?.requestExactAlarmsPermission() ?? false;
 }
 
-Future<void> scheduleDailyReminder(int hour, int minute) async {
-  final now = tz.TZDateTime.now(tz.local);
-  var scheduled = tz.TZDateTime(
-      tz.local, now.year, now.month, now.day, hour, minute);
-  if (!scheduled.isAfter(now)) {
-    scheduled = scheduled.add(const Duration(days: 1));
+class AshuraReminder {
+  final int id;
+  final int hour;
+  final int minute;
+  final List<int> weekdays;
+  final bool enabled;
+
+  const AshuraReminder({
+    required this.id,
+    required this.hour,
+    required this.minute,
+    required this.weekdays,
+    required this.enabled,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'hour': hour,
+        'minute': minute,
+        'weekdays': weekdays,
+        'enabled': enabled,
+      };
+
+  factory AshuraReminder.fromJson(Map<String, dynamic> json) => AshuraReminder(
+        id: (json['id'] as num).toInt(),
+        hour: (json['hour'] as num).toInt(),
+        minute: (json['minute'] as num).toInt(),
+        weekdays: (json['weekdays'] as List)
+            .map((value) => (value as num).toInt())
+            .where((day) => day >= 1 && day <= 7)
+            .toList(),
+        enabled: json['enabled'] == true,
+      );
+
+  AshuraReminder copyWith({
+    int? hour,
+    int? minute,
+    List<int>? weekdays,
+    bool? enabled,
+  }) => AshuraReminder(
+        id: id,
+        hour: hour ?? this.hour,
+        minute: minute ?? this.minute,
+        weekdays: weekdays ?? this.weekdays,
+        enabled: enabled ?? this.enabled,
+      );
+}
+
+const String reminderMessage =
+    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.';
+
+int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
+
+Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
+  for (final day in reminder.weekdays) {
+    await notifications.cancel(_notificationId(reminder.id, day));
   }
-  const details = NotificationDetails(
+  // Also cancel all seven IDs in case the selected days were edited earlier.
+  for (var day = 1; day <= 7; day++) {
+    await notifications.cancel(_notificationId(reminder.id, day));
+  }
+}
+
+Future<void> scheduleReminder(AshuraReminder reminder) async {
+  await cancelReminderNotifications(reminder);
+  if (!reminder.enabled || reminder.weekdays.isEmpty) return;
+
+  final details = NotificationDetails(
     android: AndroidNotificationDetails(
-      'ashura_daily_reminder',
-      'تذكير زيارة عاشوراء',
-      channelDescription: 'تذكير يومي بقراءة زيارة عاشوراء',
+      'ashura_reminders',
+      'منبّهات زيارة عاشوراء',
+      channelDescription: 'تذكيرات مخصصة لقراءة زيارة عاشوراء',
       importance: Importance.high,
       priority: Priority.high,
     ),
   );
-  await notifications.zonedSchedule(
-    1001,
-    'إشعار',
-    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
-    scheduled,
-   details,
-    uiLocalNotificationDateInterpretation:
-    UILocalNotificationDateInterpretation.absoluteTime,
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    matchDateTimeComponents: DateTimeComponents.time,
+  final now = tz.TZDateTime.now(tz.local);
+  for (final weekday in reminder.weekdays) {
+    var scheduled = tz.TZDateTime(
+      tz.local, now.year, now.month, now.day, reminder.hour, reminder.minute,
+    );
+    while (scheduled.weekday != weekday || !scheduled.isAfter(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    await notifications.zonedSchedule(
+      _notificationId(reminder.id, weekday),
+      'تذكير زيارة عاشوراء',
+      reminderMessage,
+      scheduled,
+      details,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
+  }
+}
+
+Future<List<AshuraReminder>> loadSavedReminders() async {
+  final prefs = await SharedPreferences.getInstance();
+  final raw = prefs.getString('ashura_reminders_v2');
+  if (raw == null || raw.isEmpty) return [];
+  try {
+    final decoded = jsonDecode(raw) as List;
+    return decoded
+        .map((item) => AshuraReminder.fromJson(
+            Map<String, dynamic>.from(item as Map)))
+        .toList();
+  } catch (error) {
+    debugPrint('تعذر قراءة المنبّهات المحفوظة: $error');
+    return [];
+  }
+}
+
+Future<void> saveReminders(List<AshuraReminder> reminders) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(
+    'ashura_reminders_v2',
+    jsonEncode(reminders.map((item) => item.toJson()).toList()),
   );
+}
+
+Future<void> rescheduleSavedReminders() async {
+  final reminders = await loadSavedReminders();
+  for (final reminder in reminders) {
+    try {
+      await scheduleReminder(reminder);
+    } catch (error) {
+      debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error');
+    }
+  }
 }
 
 Future<void> main() async {
@@ -155,6 +276,7 @@ Future<void> main() async {
   );
   try {
     await initNotifications();
+    await notifications.cancel(1001); // إلغاء التذكير القديم ذي المعرّف الثابت.
   } catch (error) {
     debugPrint('تعذر تهيئة الإشعارات: $error');
   }
@@ -195,15 +317,11 @@ class _AshuraAppState extends State<AshuraApp> {
       loaded = true;
     });
 
-    // إعادة جدولة التذكير بعد فتح التطبيق إذا كان مفعّلاً سابقاً.
-    if (prefs.getBool('ashura_reminder_enabled') ?? false) {
-      final hour = prefs.getInt('ashura_reminder_hour') ?? 20;
-      final minute = prefs.getInt('ashura_reminder_minute') ?? 0;
-      try {
-        await scheduleDailyReminder(hour, minute);
-      } catch (error) {
-        debugPrint('تعذر إعادة جدولة التذكير: $error');
-      }
+    // إعادة جدولة جميع المنبّهات المحفوظة عند فتح التطبيق.
+    try {
+      await rescheduleSavedReminders();
+    } catch (error) {
+      debugPrint('تعذر إعادة جدولة المنبّهات: $error');
     }
   }
 
@@ -317,8 +435,8 @@ class WelcomeScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/wallpaper_1326_1793992364813.jpg', fit: BoxFit.cover),
-          Container(color: Colors.black.withValues(alpha: 0.38)),
+          Container(color: const Color(0xFF101810)),
+          Image.asset('assets/wallpaper_1326_1793992364813.jpg', fit: BoxFit.contain),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(22, 30, 22, 26),
@@ -416,7 +534,6 @@ class _HomeScreenState extends State<HomeScreen> {
       FavorsPage(fontSize: widget.fontSize),
       AbbasVisitPage(fontSize: widget.fontSize),
       ListeningPage(fontSize: widget.fontSize),
-      NoticePage(fontSize: widget.fontSize),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -456,7 +573,6 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.auto_awesome), label: 'فضل الزيارة'),
           BottomNavigationBarItem(icon: Icon(Icons.mosque), label: 'زيارة العباس'),
           BottomNavigationBarItem(icon: Icon(Icons.headphones), label: 'استماع الزيارة'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_active), label: 'إشعار'),
         ],
       ),
     );
@@ -539,7 +655,7 @@ class ZiyaratPage extends StatelessWidget {
             fontSize: fontSize),
         const SizedBox(height: 12),
         CounterWidget(
-          storageKey: 'ashura_lan_counter',
+          storageKey: 'ashura_lعن_counter',
           title: 'ثم تقول (100 مرّة) - اللعن',
           phrase: cursePhrase,
           fontSize: fontSize,
@@ -979,7 +1095,7 @@ class AbbasVisitPage extends StatelessWidget {
   }
 }
 
-class ListeningPage extends StatelessWidget {
+class ListeningPage extends StatefulWidget {
   final double fontSize;
   const ListeningPage({super.key, required this.fontSize});
 
@@ -997,118 +1113,203 @@ class ListeningPage extends StatelessWidget {
   ];
 
   @override
+  State<ListeningPage> createState() => _ListeningPageState();
+}
+
+class _ListeningPageState extends State<ListeningPage> {
+  String? selectedAsset;
+
+  AshuraAudioHandler get handler => audioHandler as AshuraAudioHandler;
+
+  Future<void> playReader(Map<String, String> reader) async {
+    final asset = 'assets/${reader['file']!}';
+    try {
+      await handler.playAsset(asset, reader['name']!);
+      if (mounted) setState(() => selectedAsset = asset);
+    } catch (error) {
+      debugPrint('Audio error: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.')),
+        );
+      }
+    }
+  }
+
+  String formatDuration(Duration value) {
+    final minutes = value.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = value.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final hours = value.inHours;
+    return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Stack(
+      fit: StackFit.expand,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Image.asset(
-            'assets/wallpaper_1326_1793992364813.jpg',
-            height: 190,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
-              height: 150,
-              color: Theme.of(context).colorScheme.primary,
-              alignment: Alignment.center,
-              child: const Icon(Icons.mosque, color: gold, size: 64),
-            ),
-          ),
+        ColoredBox(color: isDark ? const Color(0xFF101810) : const Color(0xFFF5F0E5)),
+        Image.asset(
+          'assets/wallpaper_1326_1793992364813.jpg',
+          fit: BoxFit.contain,
+          alignment: Alignment.center,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
-        const SizedBox(height: 16),
-        Text(
-          'استماع زيارة عاشوراء',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: fontSize + 3, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'اختر القارئ للاستماع إلى التسجيل المحفوظ داخل التطبيق',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 12),
-        ...List.generate(readers.length, (index) {
-          final reader = readers[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 5),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                child: Text('${index + 1}',
-                    style: const TextStyle(color: Colors.white)),
+        SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Text(
+                  'استماع زيارة عاشوراء',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF18251C),
+                    fontSize: widget.fontSize + 3,
+                    fontWeight: FontWeight.bold,
+                    shadows: const [Shadow(color: Colors.black54, blurRadius: 5)],
+                  ),
+                ),
               ),
-              title: Text(
-                reader['name']!,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text('تشغيل من ملفات التطبيق دون إنترنت'),
-              trailing: IconButton(
-                tooltip: 'تشغيل',
-                icon: const Icon(Icons.play_circle_fill, color: gold, size: 32),
-                onPressed: () async {
-                  try {
-                    await (audioHandler as AshuraAudioHandler).playAsset(
-                      'assets/${reader['file']!}',
-                      reader['name']!,
-                    );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('جاري تشغيل: ${reader['name']}')),
-                      );
-                    }
-                  } catch (error) {
-                    debugPrint('Audio error: $error');
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.'),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                  itemCount: ListeningPage.readers.length,
+                  itemBuilder: (context, index) {
+                    final reader = ListeningPage.readers[index];
+                    final asset = 'assets/${reader['file']!}';
+                    return InkWell(
+                      onTap: () => playReader(reader),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        child: Text(
+                          reader['name']!,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: selectedAsset == asset ? gold : Colors.white,
+                            fontSize: widget.fontSize,
+                            fontWeight: FontWeight.bold,
+                            shadows: const [
+                              Shadow(color: Colors.black87, blurRadius: 6),
+                              Shadow(color: Colors.black87, blurRadius: 2),
+                            ],
+                          ),
                         ),
-                      );
-                    }
-                  }
-                },
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-          );
-        }),
-        const SizedBox(height: 10),
-        const Text(
-          'يمكن متابعة التشغيل عبر إشعار الوسائط أثناء الانتقال بين صفحات التطبيق، وقد يستمر بعد إطفاء الشاشة وفق إعدادات النظام.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey, height: 1.6),
+              _AudioPlayerControls(
+                handler: handler,
+                formatDuration: formatDuration,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-class NoticePage extends StatelessWidget {
-  final double fontSize;
-  const NoticePage({super.key, required this.fontSize});
+class _AudioPlayerControls extends StatelessWidget {
+  final AshuraAudioHandler handler;
+  final String Function(Duration) formatDuration;
+  const _AudioPlayerControls({
+    required this.handler,
+    required this.formatDuration,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(18),
-      children: [
-        const SizedBox(height: 35),
-        const Icon(Icons.notifications_active, size: 58, color: gold),
-        const SizedBox(height: 22),
-        SectionCard(
-          title: 'إشعار',
-          fontSize: fontSize,
-          highlight: true,
-          content: 'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.',
-        ),
-        const SizedBox(height: 18),
-        const Text('يمكنك تفعيل التذكير اليومي وتحديد وقته من الإعدادات.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 15)),
-      ],
+    return StreamBuilder<Duration?>(
+      stream: handler.durationStream,
+      builder: (context, durationSnapshot) {
+        final duration = durationSnapshot.data ?? Duration.zero;
+        return StreamBuilder<Duration>(
+          stream: handler.positionStream,
+          initialData: Duration.zero,
+          builder: (context, positionSnapshot) {
+            final rawPosition = positionSnapshot.data ?? Duration.zero;
+            final position = rawPosition > duration ? duration : rawPosition;
+            final maxMs = duration.inMilliseconds > 0 ? duration.inMilliseconds : 1;
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(18, 4, 18, 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StreamBuilder<MediaItem?>(
+                    stream: handler.mediaItem,
+                    builder: (context, snapshot) => Text(
+                      snapshot.data?.title ?? 'اختر أحد القرّاء',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: gold, fontWeight: FontWeight.bold, fontSize: 16,
+                        shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
+                      ),
+                    ),
+                  ),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: gold,
+                      inactiveTrackColor: Colors.white54,
+                      thumbColor: gold,
+                      overlayColor: gold.withValues(alpha: 0.16),
+                      trackHeight: 2.5,
+                    ),
+                    child: Slider(
+                      min: 0,
+                      max: maxMs.toDouble(),
+                      value: position.inMilliseconds.clamp(0, maxMs).toDouble(),
+                      onChanged: duration == Duration.zero
+                          ? null
+                          : (value) => handler.seek(Duration(milliseconds: value.round())),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(formatDuration(position), style: const TextStyle(color: Colors.white, shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
+                      Text(formatDuration(duration), style: const TextStyle(color: Colors.white, shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
+                    ],
+                  ),
+                  StreamBuilder<bool>(
+                    stream: handler.playingStream,
+                    initialData: handler.isPlaying,
+                    builder: (context, snapshot) {
+                      final playing = snapshot.data ?? false;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            tooltip: 'تأخير 10 ثوانٍ',
+                            onPressed: duration == Duration.zero ? null : () => handler.seekRelative(const Duration(seconds: -10)),
+                            icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
+                          ),
+                          IconButton(
+                            tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
+                            onPressed: duration == Duration.zero ? null : () => playing ? handler.pause() : handler.play(),
+                            icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 48),
+                          ),
+                          IconButton(
+                            tooltip: 'تقديم 10 ثوانٍ',
+                            onPressed: duration == Duration.zero ? null : () => handler.seekRelative(const Duration(seconds: 10)),
+                            icon: const Icon(Icons.forward_10, color: Colors.white, size: 32),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
+
 
 class SettingsPage extends StatefulWidget {
   final bool isDarkMode;
@@ -1135,9 +1336,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool reminderEnabled = false;
-  int reminderHour = 20;
-  int reminderMinute = 0;
   late String localFont;
   late String localColor;
 
@@ -1146,90 +1344,17 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
-    loadReminder();
   }
 
   @override
   void didUpdateWidget(covariant SettingsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedFont != widget.selectedFont) {
-      localFont = widget.selectedFont;
-    }
-    if (oldWidget.selectedColor != widget.selectedColor) {
-      localColor = widget.selectedColor;
-    }
-  }
-
-  Future<void> loadReminder() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      reminderEnabled = prefs.getBool('ashura_reminder_enabled') ?? false;
-      reminderHour = prefs.getInt('ashura_reminder_hour') ?? 20;
-      reminderMinute = prefs.getInt('ashura_reminder_minute') ?? 0;
-    });
-  }
-
-  Future<void> setReminder(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (value) {
-      final notificationGranted = await askNotificationPermission();
-      if (!notificationGranted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'),
-            ),
-          );
-        }
-        return;
-      }
-
-      final exactGranted = await askExactAlarmPermission();
-      if (!exactGranted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'يرجى السماح للتطبيق بالمنبّهات الدقيقة من إعدادات الهاتف.',
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      await scheduleDailyReminder(reminderHour, reminderMinute);
-    } else {
-      await notifications.cancel(1001);
-    }
-    await prefs.setBool('ashura_reminder_enabled', value);
-    if (mounted) setState(() => reminderEnabled = value);
-  }
-
-  Future<void> chooseTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: reminderHour, minute: reminderMinute),
-    );
-    if (picked == null) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('ashura_reminder_hour', picked.hour);
-    await prefs.setInt('ashura_reminder_minute', picked.minute);
-    if (mounted) {
-      setState(() {
-        reminderHour = picked.hour;
-        reminderMinute = picked.minute;
-      });
-    }
-    if (reminderEnabled) {
-      await scheduleDailyReminder(reminderHour, reminderMinute);
-    }
+    if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
+    if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
   }
 
   @override
   Widget build(BuildContext context) {
-    final time = TimeOfDay(hour: reminderHour, minute: reminderMinute);
     return Scaffold(
       appBar: AppBar(title: const Text('الإعدادات')),
       body: ListView(
@@ -1258,15 +1383,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   DropdownButtonFormField<String>(
                     value: localColor,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                    items: appColors.keys.map((colorName) =>
-                      DropdownMenuItem<String>(
-                        value: colorName,
-                        child: Text(colorName),
-                      ),
-                    ).toList(),
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                    items: appColors.keys.map((name) => DropdownMenuItem<String>(
+                      value: name, child: Text(name),
+                    )).toList(),
                     onChanged: (value) {
                       if (value != null) {
                         setState(() => localColor = value);
@@ -1292,18 +1412,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   DropdownButtonFormField<String>(
                     value: localFont,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: const [
-                      DropdownMenuItem<String>(
-                        value: 'Amiri',
-                        child: Text('Amiri - خط النسخ'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'AmiriQuran',
-                        child: Text('Amiri Quran - الخط القرآني'),
-                      ),
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
+                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
                     ],
                     onChanged: (value) {
                       if (value != null) {
@@ -1324,38 +1436,258 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(onPressed: () => widget.onChangeFontSize(-2),
-                      icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: () => widget.onChangeFontSize(2),
-                      icon: const Icon(Icons.add)),
+                  IconButton(onPressed: () => widget.onChangeFontSize(-2), icon: const Icon(Icons.remove)),
+                  IconButton(onPressed: () => widget.onChangeFontSize(2), icon: const Icon(Icons.add)),
                 ],
               ),
             ),
           ),
           Card(
-            child: SwitchListTile(
-              secondary: const Icon(Icons.notifications_active, color: gold),
-              title: const Text('التذكير اليومي'),
-              subtitle: const Text('إشعار يومي بموعد زيارة عاشوراء'),
-              value: reminderEnabled,
-              onChanged: setReminder,
+            child: ListTile(
+              leading: const Icon(Icons.notifications_active, color: gold),
+              title: const Text('إدارة المنبّهات'),
+              subtitle: const Text('إضافة منبّهات بأوقات وأيام مختلفة'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())),
             ),
           ),
           Card(
             child: ListTile(
-              leading: const Icon(Icons.access_time, color: gold),
-              title: const Text('وقت التذكير'),
-              subtitle: Text(time.format(context)),
-              trailing: const Icon(Icons.edit),
-              onTap: chooseTime,
+              leading: const Icon(Icons.info_outline, color: gold),
+              title: const Text('حول التطبيق'),
+              subtitle: const Text('معلومات التطبيق وحقوق التصميم'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class ReminderManagerPage extends StatefulWidget {
+  const ReminderManagerPage({super.key});
+  @override
+  State<ReminderManagerPage> createState() => _ReminderManagerPageState();
+}
+
+class _ReminderManagerPageState extends State<ReminderManagerPage> {
+  List<AshuraReminder> reminders = [];
+  bool loading = true;
+
+  static const List<String> dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    final saved = await loadSavedReminders();
+    if (!mounted) return;
+    setState(() { reminders = saved; loading = false; });
+  }
+
+  Future<bool> ensurePermissions() async {
+    final notificationGranted = await askNotificationPermission();
+    if (!notificationGranted) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')));
+      return false;
+    }
+    final exactGranted = await askExactAlarmPermission();
+    if (!exactGranted) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح للتطبيق بالمنبّهات الدقيقة من إعدادات الهاتف.')));
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> persist() async {
+    await saveReminders(reminders);
+    for (final reminder in reminders) {
+      await scheduleReminder(reminder);
+    }
+  }
+
+  Future<void> addReminder() async {
+    final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
+    final draft = AshuraReminder(id: nextId, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
+    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
+    if (result == null) return;
+    if (result.enabled && !await ensurePermissions()) return;
+    setState(() => reminders = [...reminders, result]);
+    await persist();
+  }
+
+  Future<void> editReminder(AshuraReminder old) async {
+    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: old, dayNames: dayNames));
+    if (result == null) return;
+    if (result.enabled && !await ensurePermissions()) return;
+    setState(() => reminders = reminders.map((r) => r.id == old.id ? result : r).toList());
+    await persist();
+  }
+
+  Future<void> toggleReminder(AshuraReminder reminder, bool enabled) async {
+    if (enabled && !await ensurePermissions()) return;
+    setState(() => reminders = reminders.map((r) => r.id == reminder.id ? r.copyWith(enabled: enabled) : r).toList());
+    await persist();
+  }
+
+  Future<void> deleteReminder(AshuraReminder reminder) async {
+    await cancelReminderNotifications(reminder);
+    setState(() => reminders.removeWhere((r) => r.id == reminder.id));
+    await saveReminders(reminders);
+  }
+
+  String daySummary(List<int> days) {
+    if (days.length == 7) return 'كل أيام الأسبوع';
+    if (days.isEmpty) return 'لم تُحدد أيام';
+    return days.map((d) => dayNames[d - 1]).join('، ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('إدارة المنبّهات')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: addReminder,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_alarm),
+        label: const Text('إضافة منبّه'),
+      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : reminders.isEmpty
+              ? const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('لا توجد منبّهات حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.')))
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+                  itemCount: reminders.length,
+                  itemBuilder: (context, index) {
+                    final reminder = reminders[index];
+                    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
+                    return Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.alarm, color: gold, size: 30),
+                        title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                        subtitle: Text(daySummary(reminder.weekdays)),
+                        onTap: () => editReminder(reminder),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Switch(value: reminder.enabled, onChanged: (value) => toggleReminder(reminder, value)),
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') editReminder(reminder);
+                                if (value == 'delete') deleteReminder(reminder);
+                              },
+                              itemBuilder: (_) => const [
+                                PopupMenuItem(value: 'edit', child: Text('تعديل')),
+                                PopupMenuItem(value: 'delete', child: Text('حذف')),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+    );
+  }
+}
+
+class ReminderEditorDialog extends StatefulWidget {
+  final AshuraReminder reminder;
+  final List<String> dayNames;
+  const ReminderEditorDialog({super.key, required this.reminder, required this.dayNames});
+  @override
+  State<ReminderEditorDialog> createState() => _ReminderEditorDialogState();
+}
+
+class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
+  late int hour;
+  late int minute;
+  late List<int> days;
+
+  @override
+  void initState() {
+    super.initState();
+    hour = widget.reminder.hour;
+    minute = widget.reminder.minute;
+    days = [...widget.reminder.weekdays];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final time = TimeOfDay(hour: hour, minute: minute);
+    return AlertDialog(
+      title: const Text('إعداد المنبّه'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.access_time, color: gold),
+              title: const Text('وقت التنبيه'),
+              subtitle: Text(time.format(context)),
+              onTap: () async {
+                final picked = await showTimePicker(context: context, initialTime: time);
+                if (picked != null) setState(() { hour = picked.hour; minute = picked.minute; });
+              },
+            ),
+            const Divider(),
+            const Align(alignment: Alignment.centerRight, child: Text('أيام التكرار', style: TextStyle(fontWeight: FontWeight.bold))),
+            ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(widget.dayNames[index]),
+              value: days.contains(index + 1),
+              onChanged: (checked) => setState(() {
+                if (checked == true) { if (!days.contains(index + 1)) days.add(index + 1); }
+                else { days.remove(index + 1); }
+                days.sort();
+              }),
+            )),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+        ElevatedButton(
+          onPressed: days.isEmpty ? null : () => Navigator.pop(context, widget.reminder.copyWith(hour: hour, minute: minute, weekdays: days)),
+          child: const Text('حفظ'),
+        ),
+      ],
+    );
+  }
+}
+
+class AboutAppPage extends StatelessWidget {
+  const AboutAppPage({super.key});
+  static const String aboutText = '''تطبيق «زيارة عاشوراء» وهو تطبيق ديني روحاني متكامل يُعنى بتيسير قراءة واستماع «زيارة عاشوراء» المباركة ليكون رفيقاً إيمانياً يومياً للمؤمنين أينما كانوا.
+
+اللهم اغفر لي ولوالديّ وارحمهما كما ربّياني صغيراً، واجزهما عني خير ما جزيت والداً عن ولده. اللهم اغفر للمؤمنين والمؤمنات، والمسلمين والمسلمات، الأحياء منهم والأموات، واجمعنا وإياهم في جنات النعيم بجوار محمد وآله الطاهرين.
+
+تصميم كامل الكميتي 11/11/2026
+جميع الحقوق محفوظة''';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('حول التطبيق')),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
           const SizedBox(height: 18),
-          const SectionCard(
-            title: 'عن التطبيق وتطويره',
-            content: 'تطبيق «زيارة عاشوراء» وهو تطبيق ديني روحاني متكامل يُعنى بتيسير قراءة واستماع «زيارة عاشوراء» المباركة ليكون رفيقاً إيمانياً يومياً للمؤمنين أينما كانوا.\n\nاللهم اغفر لي ولوالديّ وارحمهما كما ربّياني صغيراً، واجزهما عني خير ما جزيت والداً عن ولده. اللهم اغفر للمؤمنين والمؤمنات، والمسلمين والمسلمات، الأحياء منهم والأموات، واجمعنا وإياهم في جنات النعيم بجوار محمد وآله الطاهرين.\n\nتطوير وتصميم كامل الكميتي 2026/11/6\n\nجميع الحقوق محفوظة',
-            fontSize: 18,
-            highlight: true,
+          const Icon(Icons.mosque, color: gold, size: 58),
+          const SizedBox(height: 18),
+          const SelectableText(
+            aboutText,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 18, height: 2.0),
           ),
         ],
       ),
