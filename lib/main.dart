@@ -539,7 +539,7 @@ class ZiyaratPage extends StatelessWidget {
             fontSize: fontSize),
         const SizedBox(height: 12),
         CounterWidget(
-          storageKey: 'ashura_lعن_counter',
+          storageKey: 'ashura_lan_counter',
           title: 'ثم تقول (100 مرّة) - اللعن',
           phrase: cursePhrase,
           fontSize: fontSize,
