@@ -214,7 +214,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontSize(double delta) async {
-    setState(() => fontSize = (fontSize + delta).clamp(16.0, 32.0));
+    setState(() => fontSize = (fontSize + delta).clamp(16.0, 32.0).toDouble());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('ashura_font', fontSize);
   }
