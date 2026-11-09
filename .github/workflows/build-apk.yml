@@ -38,6 +38,9 @@ jobs:
           p = Path("android/app/src/main/AndroidManifest.xml")
           s = p.read_text()
 
+          # الاسم الذي يظهر أسفل أيقونة التطبيق على الهاتف.
+          s = re.sub(r'android:label="[^"]+"', 'android:label="زيارة عاشوراء"', s, count=1)
+
           permissions = [
               "android.permission.POST_NOTIFICATIONS",
               "android.permission.SCHEDULE_EXACT_ALARM",
