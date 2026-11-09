@@ -1,6 +1,5 @@
-
 name: ashura_visit
-description: تطبيق زيارة عاشوراء وفضلها
+description: تطبيق زيارة عاشوراء
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -27,27 +26,5 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
-
   assets:
-    - assets/wallpaper_1326_1793992364813.jpg
-    - assets/ashura_icon.png
-    - assets/shibr_maalla.mp3
-    - assets/baqir_almaqdisi.mp3
-    - assets/basim_alkarbalaei.mp3
-    - assets/ahmed_alftlawi.mp3
-    - assets/mohammed_baqir_alkhaqani.mp3
-    - assets/aba_thar_alhelwachi.mp3
-    - assets/ali_alkabi.mp3
-    - assets/mahdi_samawati.mp3
-    - assets/mahmoud_karimi.mp3
-    - assets/ammar_alkinani.mp3
-    - assets/shibr_maalla_abbas.mp3
-
-  fonts:
-    - family: Amiri
-      fonts:
-        - asset: assets/Amiri-Regular.ttf
-
-    - family: AmiriQuran
-      fonts:
-        - asset: assets/AmiriQuran.ttf
+    - assets/
