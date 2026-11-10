@@ -21,13 +21,30 @@ const Map<String, Color> appColors = {
   'فيروز': Color(0xFF40BFC1),
   'بنفسجي': Color(0xFF7952A3),
   'ذهبي رملي': Color(0xFFC5A45E),
-  'كحلي ليلي': Color(0xFF17233D),
+  'كحلي ليلي': Color(0xFF0B1F3A),
 };
 
 final FlutterLocalNotificationsPlugin notifications =
     FlutterLocalNotificationsPlugin();
 
 late AudioHandler audioHandler;
+
+final AudioPlayer waterDropPlayer = AudioPlayer();
+bool waterDropLoaded = false;
+
+Future<void> playWaterDrop() async {
+  try {
+    if (!waterDropLoaded) {
+      await waterDropPlayer.setAsset('assets/water_drop.wav');
+      waterDropLoaded = true;
+    }
+    await waterDropPlayer.stop();
+    await waterDropPlayer.seek(Duration.zero);
+    unawaited(waterDropPlayer.play());
+  } catch (error) {
+    debugPrint('تعذر تشغيل صوت اللمس: $error');
+  }
+}
 
 class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -442,6 +459,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Future<void> enter() async {
     if (pressed) return;
     setState(() => pressed = true);
+    unawaited(playWaterDrop());
     await Future.delayed(const Duration(milliseconds: 220));
     if (mounted) widget.onEnter();
   }
@@ -455,89 +473,106 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          const ColoredBox(color: Color(0xFFF7F1E5)),
           Image.asset(
-            'assets/wallpaper_1326_1793992364813.jpg',
-            fit: BoxFit.contain,
+            'assets/welcome_background.png',
+            fit: BoxFit.cover,
             alignment: Alignment.center,
           ),
           SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) => SizedBox.expand(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: constraints.maxWidth,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'زيارة عاشوراء',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFFC5A45E),
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'AmiriQuran',
-                              shadows: [Shadow(color: Colors.white, blurRadius: 5)],
-                            ),
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'زيارة عاشوراء',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFC5A45E),
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'AmiriQuran',
+                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                           ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَعَجِّلْ فَرَجَهُمْ',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black, fontSize: 30, height: 1.45),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَعَجِّلْ فَرَجَهُمْ',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            height: 1.45,
+                            fontFamily: 'AmiriQuran',
+                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black, fontSize: 30, height: 1.65),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
+                          'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            height: 1.65,
+                            fontFamily: 'AmiriQuran',
+                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            story,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black, fontSize: 30, height: 1.55),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          story,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            height: 1.65,
+                            fontFamily: 'Amiri',
+                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                           ),
-                          const SizedBox(height: 18),
-                          GestureDetector(
-                            onTap: enter,
-                            child: AnimatedScale(
-                              scale: pressed ? 1.08 : 1.0,
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeOut,
-                              child: Container(
-                                width: 142,
-                                height: 142,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                  border: Border.all(color: const Color(0xFFC5A45E), width: 2),
-                                ),
-                                padding: const EdgeInsets.all(14),
-                                child: const Text(
-                                  'اضغط هنا\nللدخول للتطبيق',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Color(0xFFC5A45E),
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                        ),
+                        const SizedBox(height: 18),
+                        GestureDetector(
+                          onTap: enter,
+                          child: AnimatedScale(
+                            scale: pressed ? 1.08 : 1.0,
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOut,
+                            child: Container(
+                              width: 142,
+                              height: 142,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.12),
+                                border: Border.all(color: const Color(0xFFC5A45E), width: 2),
+                              ),
+                              padding: const EdgeInsets.all(14),
+                              child: const Text(
+                                'اضغط هنا\nللدخول',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFC5A45E),
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Amiri',
+                                  shadows: [Shadow(color: Colors.black87, blurRadius: 4)],
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -584,7 +619,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final appPrimary = Theme.of(context).colorScheme.primary;
     final fixedVisitTheme = Theme.of(context).copyWith(
       colorScheme: Theme.of(context).colorScheme.copyWith(primary: green),
-      appBarTheme: Theme.of(context).appBarTheme.copyWith(backgroundColor: green),
     );
     final pages = [
       Theme(data: fixedVisitTheme, child: ZiyaratPage(fontSize: widget.fontSize)),
@@ -595,12 +629,14 @@ class _HomeScreenState extends State<HomeScreen> {
     const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'زِيَارَةُ الإِمَــامِ العَبَّــاسِ'];
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: green,
+        backgroundColor: appPrimary,
         title: const Text('زيارة عاشوراء',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            onPressed: () => Navigator.push(
+            onPressed: () {
+              unawaited(playWaterDrop());
+              Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => SettingsPage(
@@ -614,7 +650,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChangeThemeColor: widget.onChangeThemeColor,
                 ),
               ),
-            ),
+            );
+            },
             icon: const Icon(Icons.settings),
             tooltip: 'الإعدادات',
           ),
@@ -635,7 +672,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: GestureDetector(
-                    onTap: () => setState(() => selectedIndex = index),
+                    onTap: () { unawaited(playWaterDrop()); setState(() => selectedIndex = index); },
                     child: AnimatedScale(
                       scale: selected ? 1.045 : 1.0,
                       duration: const Duration(milliseconds: 190),
@@ -832,11 +869,11 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
         content: const Text('هل تريد تصفير عدد الزيارات المكتملة؟'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
+            onPressed: () { unawaited(playWaterDrop()); Navigator.pop(dialogContext, false); },
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
+            onPressed: () { unawaited(playWaterDrop()); Navigator.pop(dialogContext, true); },
             child: const Text('تصفير'),
           ),
         ],
@@ -888,7 +925,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: isLoading ? null : markVisitCompleted,
+                onPressed: isLoading ? null : () { unawaited(playWaterDrop()); markVisitCompleted(); },
                 icon: const Icon(Icons.check_circle_outline),
                 label: const Text('أتممت قراءة الزيارة كاملة'),
                 style: ElevatedButton.styleFrom(
@@ -901,7 +938,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: isLoading || completedVisits == 0 ? null : resetCount,
+                onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(playWaterDrop()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('تصفير العداد'),
               ),
@@ -995,13 +1032,13 @@ class _CounterWidgetState extends State<CounterWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: count < 100 ? increment : null,
+                  onPressed: count < 100 ? () { unawaited(playWaterDrop()); increment(); } : null,
                   icon: const Icon(Icons.touch_app),
                   label: Text('العدد: $count'),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
-                IconButton(onPressed: reset, icon: const Icon(Icons.refresh),
+                IconButton(onPressed: () { unawaited(playWaterDrop()); reset(); }, icon: const Icon(Icons.refresh),
                     tooltip: 'إعادة العداد'),
               ],
             ),
@@ -1158,6 +1195,7 @@ class AbbasVisitPage extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () async {
+                      unawaited(playWaterDrop());
                       try {
                         await (audioHandler as AshuraAudioHandler).playAsset(
                           'assets/shibr_maalla_abbas.mp3',
@@ -1253,7 +1291,7 @@ class _ListeningPageState extends State<ListeningPage> {
         ColoredBox(color: isDark ? const Color(0xFF101810) : const Color(0xFFF5F0E5)),
         Image.asset(
           'assets/listening_background.jpg',
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
           alignment: Alignment.center,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
@@ -1280,21 +1318,22 @@ class _ListeningPageState extends State<ListeningPage> {
                     final reader = ListeningPage.readers[index];
                     final asset = 'assets/${reader['file']!}';
                     return InkWell(
-                      onTap: () => playReader(reader),
+                      onTap: () { unawaited(playWaterDrop()); playReader(reader); },
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
                           reader['name']!,
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: selectedAsset == asset ? gold : Colors.white,
                             fontSize: widget.fontSize,
-                            fontWeight: FontWeight.bold,
-                            shadows: const [
-                              Shadow(color: Colors.white, blurRadius: 5),
-                              Shadow(color: Colors.white, blurRadius: 2),
+                             fontFamily: 'Amiri',
+                             fontWeight: FontWeight.bold,
+                             shadows: const [
+                               Shadow(color: Colors.black, blurRadius: 6, offset: Offset(1, 1)),
+                               Shadow(color: Colors.black87, blurRadius: 2),
                             ],
                           ),
                         ),
@@ -1387,17 +1426,17 @@ class _AudioPlayerControls extends StatelessWidget {
                         children: [
                           IconButton(
                             tooltip: 'تأخير 10 ثوانٍ',
-                            onPressed: duration == Duration.zero ? null : () => handler.seekRelative(const Duration(seconds: -10)),
+                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); handler.seekRelative(const Duration(seconds: -10)); },
                             icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
                           ),
                           IconButton(
                             tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
-                            onPressed: duration == Duration.zero ? null : () => playing ? handler.pause() : handler.play(),
+                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); playing ? handler.pause() : handler.play(); },
                             icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 48),
                           ),
                           IconButton(
                             tooltip: 'تقديم 10 ثوانٍ',
-                            onPressed: duration == Duration.zero ? null : () => handler.seekRelative(const Duration(seconds: 10)),
+                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); handler.seekRelative(const Duration(seconds: 10)); },
                             icon: const Icon(Icons.forward_10, color: Colors.white, size: 32),
                           ),
                         ],
@@ -1540,8 +1579,8 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(onPressed: () => widget.onChangeFontSize(-2), icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: () => widget.onChangeFontSize(2), icon: const Icon(Icons.add)),
+                  IconButton(onPressed: () { unawaited(playWaterDrop()); widget.onChangeFontSize(-2); }, icon: const Icon(Icons.remove)),
+                  IconButton(onPressed: () { unawaited(playWaterDrop()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
                 ],
               ),
             ),
@@ -1552,7 +1591,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('إدارة المنبّهات'),
               subtitle: const Text('إضافة منبّهات بأوقات وأيام مختلفة'),
               trailing: const Icon(Icons.chevron_left),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())),
+              onTap: () { unawaited(playWaterDrop()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
           ),
           Card(
@@ -1561,7 +1600,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('حول التطبيق'),
               subtitle: const Text('معلومات التطبيق وحقوق التصميم'),
               trailing: const Icon(Icons.chevron_left),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())),
+              onTap: () { unawaited(playWaterDrop()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
           ),
         ],
@@ -1662,7 +1701,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة المنبّهات')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: reminders.length >= 3 ? null : addReminder,
+        onPressed: reminders.length >= 3 ? null : () { unawaited(playWaterDrop()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_alarm),
@@ -1683,7 +1722,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                         leading: const Icon(Icons.alarm, color: gold, size: 30),
                         title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
                         subtitle: Text(daySummary(reminder.weekdays)),
-                        onTap: () => editReminder(reminder),
+                        onTap: () { unawaited(playWaterDrop()); editReminder(reminder); },
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
