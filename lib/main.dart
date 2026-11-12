@@ -1675,8 +1675,8 @@ class _TasbeehPageState extends State<TasbeehPage> {
     final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
       title: const Text('إعادة العداد'), content: const Text('هل تريد تصفير العدد الكلي؟'),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context, false); }, child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context, true); }, child: const Text('تصفير')),
       ]));
     if (ok != true) return;
     setState(() { count = 0; dailyCount = 0; });
@@ -1697,8 +1697,9 @@ class _TasbeehPageState extends State<TasbeehPage> {
       title: const Text('تحديد عدد الصلاة'),
       content: TextField(controller: controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'العدد المطلوب')),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
         ElevatedButton(onPressed: () {
+          unawaited(tapFeedback());
           final n = int.tryParse(controller.text.trim());
           if (n != null && n > 0) Navigator.pop(context, n);
         }, child: const Text('حفظ')),
@@ -1710,7 +1711,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
     final chosen = await showDialog<Color>(context: context, builder: (context) => AlertDialog(
       title: const Text('خلفية المسبحة'),
       content: Wrap(spacing: 12, runSpacing: 12, children: colors.map((color) => InkWell(
-        onTap: () => Navigator.pop(context, color),
+        onTap: () { unawaited(tapFeedback()); Navigator.pop(context, color); },
         child: CircleAvatar(backgroundColor: color, radius: 22, child: const Icon(Icons.check, color: Colors.white)),
       )).toList())));
     if (chosen == null) return;
@@ -1757,9 +1758,9 @@ class _TasbeehPageState extends State<TasbeehPage> {
             child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(accent)))),
           const SizedBox(height: 7),
           Wrap(alignment: WrapAlignment.center, spacing: 7, runSpacing: 5, children: [
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
-            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: _customTarget, child: const Text('تحديد العدد')),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () { unawaited(tapFeedback()); _setTarget(500); }, child: const Text('تحدي 500')),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () { unawaited(tapFeedback()); _setTarget(1000000); }, child: const Text('تحدي المليون')),
+            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: () { unawaited(tapFeedback()); _customTarget(); }, child: const Text('تحديد العدد')),
             IconButton(onPressed: () { unawaited(tapFeedback()); _reset(); }, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
           ]),
         ])),
@@ -1979,7 +1980,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   Future<void> load() async {
     var saved = await loadSavedReminders();
     // اطلب صلاحية عرض الإشعارات عند فتح صفحة المنبّه، حتى للأوقات المحفوظة سابقاً.
-    final canSchedule = await askNotificationPermission();
+    final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'),
@@ -2235,6 +2236,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               title: const Text('وقت التنبيه'),
               subtitle: Text(time.format(context)),
               onTap: () async {
+                unawaited(tapFeedback());
                 final picked = await showTimePicker(context: context, initialTime: time);
                 if (picked != null) setState(() { hour = picked.hour; minute = picked.minute; });
               },
@@ -2246,19 +2248,22 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               dense: true,
               title: Text(widget.dayNames[index]),
               value: days.contains(index + 1),
-              onChanged: (checked) => setState(() {
+              onChanged: (checked) {
+                unawaited(tapFeedback());
+                setState(() {
                 if (checked == true) { if (!days.contains(index + 1)) days.add(index + 1); }
                 else { days.remove(index + 1); }
                 days.sort();
-              }),
+                });
+              },
             )),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
         ElevatedButton(
-          onPressed: days.isEmpty ? null : () => Navigator.pop(context, widget.reminder.copyWith(hour: hour, minute: minute, weekdays: days)),
+          onPressed: days.isEmpty ? null : () { unawaited(tapFeedback()); Navigator.pop(context, widget.reminder.copyWith(hour: hour, minute: minute, weekdays: days)); },
           child: const Text('حفظ'),
         ),
       ],
