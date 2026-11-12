@@ -1672,7 +1672,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   @override
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
-    final progress = (count / target).clamp(0.0, 1.0);
+    final progress = (count / target).clamp(0.0, 1.0).toDouble();
     return Column(children: [
       Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
         child: Column(children: [
@@ -1877,12 +1877,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   IconButton(onPressed: localFontSize <= 16 ? null : () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0));
+                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0).toDouble());
                     widget.onChangeFontSize(-2);
                   }, icon: const Icon(Icons.remove)),
                   IconButton(onPressed: localFontSize >= 32 ? null : () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0));
+                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0).toDouble());
                     widget.onChangeFontSize(2);
                   }, icon: const Icon(Icons.add)),
                 ],
