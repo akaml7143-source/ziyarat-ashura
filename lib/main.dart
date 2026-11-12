@@ -1849,6 +1849,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     )).toList(),
                     onChanged: (value) {
                       if (value != null) {
+                        unawaited(tapFeedback());
                         setState(() => localColor = value);
                         widget.onChangeThemeColor(value);
                       }
@@ -1879,6 +1880,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                     onChanged: (value) {
                       if (value != null) {
+                        unawaited(tapFeedback());
                         setState(() => localFont = value);
                         widget.onChangeFontFamily(value);
                       }
@@ -1898,12 +1900,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   IconButton(onPressed: () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0));
+                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0).toDouble());
                     widget.onChangeFontSize(-2);
                   }, icon: Icon(Icons.remove, color: Theme.of(context).colorScheme.primary)),
                   IconButton(onPressed: () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0));
+                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0).toDouble());
                     widget.onChangeFontSize(2);
                   }, icon: Icon(Icons.add, color: Theme.of(context).colorScheme.primary)),
                 ],
