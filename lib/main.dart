@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,12 @@ const Map<String, Color> appColors = {
   'نيلي': Color(0xFF303F9F),
   'ماروني': Color(0xFF800020),
   'فيروزي': Color(0xFF40BFC1),
+  'ذهبي رملي': Color(0xFFC6A15B),
+  'بنفسجي': Color(0xFF7B2CBF),
+  'سلفر': Color(0xFF9AA0A6),
+  'تركوازي': Color(0xFF009FA3),
+  'برغندي': Color(0xFF5A1020),
+  'هافان': Color(0xFF8D5A3B),
 };
 
 final FlutterLocalNotificationsPlugin notifications =
@@ -29,7 +36,7 @@ late AudioHandler audioHandler;
 Future<void> tapFeedback() async {
   try {
     if (await Vibration.hasVibrator() == true) {
-      await Vibration.vibrate(duration: 12);
+      await Vibration.vibrate(duration: 32, amplitude: 90);
     }
   } catch (_) {}
 }
@@ -127,6 +134,34 @@ Future<void> initNotifications() async {
   await notifications.initialize(settings);
 }
 
+Future<bool> canScheduleExactAlarms() async {
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.canScheduleExactNotifications() ?? false;
+}
+
+NotificationDetails reminderNotificationDetails() => NotificationDetails(
+  android: AndroidNotificationDetails(
+    'ashura_reminders_v3',
+    'منبّهات زيارة عاشوراء',
+    channelDescription: 'تنبيهات زيارة عاشوراء التي تظهر على شاشة القفل',
+    importance: Importance.max,
+    priority: Priority.max,
+    category: AndroidNotificationCategory.alarm,
+    visibility: NotificationVisibility.public,
+    ticker: 'تذكير زيارة عاشوراء',
+    enableVibration: true,
+    vibrationPattern: Int64List.fromList([0, 350, 150, 350]),
+    playSound: true,
+    showWhen: true,
+    autoCancel: true,
+    channelShowBadge: true,
+  ),
+);
+
+Future<void> showReminderTestNotification() async {
+  await notifications.show(90999, 'اختبار إشعارات زيارة عاشوراء', reminderMessage, reminderNotificationDetails());
+}
+
 Future<bool> askNotificationPermission() async {
   final android = notifications.resolvePlatformSpecificImplementation<
       AndroidFlutterLocalNotificationsPlugin>();
@@ -206,15 +241,9 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
 
-  final details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'ashura_reminders',
-      'منبّهات زيارة عاشوراء',
-      channelDescription: 'تذكيرات مخصصة لقراءة زيارة عاشوراء',
-      importance: Importance.high,
-      priority: Priority.high,
-    ),
-  );
+  final details = reminderNotificationDetails();
+  final exactAllowed = await canScheduleExactAlarms();
+  final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
   final now = tz.TZDateTime.now(tz.local);
   for (final weekday in reminder.weekdays) {
     var scheduled = tz.TZDateTime(
@@ -231,7 +260,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
       details,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
@@ -429,6 +458,7 @@ class _AshuraAppState extends State<AshuraApp> {
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
         colorScheme: ColorScheme.dark(primary: primaryColor, secondary: gold, surface: const Color(0xFF1E1E1E)),
+        splashFactory: InkRipple.splashFactory,
         elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
         outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
         switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
@@ -447,6 +477,7 @@ class _AshuraAppState extends State<AshuraApp> {
         scaffoldBackgroundColor: const Color(0xFFF9F6F0),
         cardColor: Colors.white,
         colorScheme: ColorScheme.light(primary: primaryColor, secondary: gold, surface: Colors.white),
+        splashFactory: InkRipple.splashFactory,
         elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
         outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
         switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
@@ -517,95 +548,53 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'زيارة عاشوراء',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFFC5A45E),
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'AmiriQuran',
-                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَعَجِّلْ فَرَجَهُمْ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            height: 1.45,
-                            fontFamily: 'AmiriQuran',
-                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                          'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            height: 1.65,
-                            fontFamily: 'AmiriQuran',
-                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          story,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            height: 1.65,
-                            fontFamily: 'Amiri',
-                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        GestureDetector(
-                          onTap: enter,
-                          child: AnimatedScale(
-                            scale: pressed ? 1.08 : 1.0,
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOut,
-                            child: Container(
-                              width: 142,
-                              height: 142,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.12),
-                                border: Border.all(color: const Color(0xFFC5A45E), width: 2),
-                              ),
-                              padding: const EdgeInsets.all(14),
-                              child: const Text(
-                                'اضغط هنا\nللدخول',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Color(0xFFC5A45E),
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Amiri',
-                                  shadows: [Shadow(color: Colors.black87, blurRadius: 4)],
+              builder: (context, constraints) => Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('زيارة عاشوراء', textAlign: TextAlign.center,
+                            style: TextStyle(color: Color(0xFFC5A45E), fontSize: 32, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                          const SizedBox(height: 5),
+                          const Text('اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَعَجِّلْ فَرَجَهُمْ', textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 25, height: 1.3, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
+                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 25, height: 1.45, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                          const SizedBox(height: 7),
+                          const Text(story, textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.black, fontSize: 17, height: 1.42, fontWeight: FontWeight.w600, fontFamily: 'Amiri')),
+                          const SizedBox(height: 10),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: enter,
+                              borderRadius: BorderRadius.circular(18),
+                              splashFactory: InkRipple.splashFactory,
+                              splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.38),
+                              highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.12),
+                              child: AnimatedScale(
+                                scale: pressed ? 0.96 : 1.0,
+                                duration: const Duration(milliseconds: 160),
+                                child: Container(
+                                  width: 205, height: 50, alignment: Alignment.center,
+                                  decoration: BoxDecoration(color: const Color(0xFFC5A45E).withValues(alpha: 0.20), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFC5A45E), width: 1.7)),
+                                  child: const Text('الدخول إلى التطبيق', textAlign: TextAlign.center,
+                                    style: TextStyle(color: Color(0xFFC5A45E), fontSize: 21, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -694,52 +683,36 @@ class _HomeScreenState extends State<HomeScreen> {
         top: false,
         child: Container(
           padding: const EdgeInsets.fromLTRB(5, 8, 5, 8),
-          color: Theme.of(context).brightness == Brightness.dark
-              ? const Color(0xFF1F1F1F)
-              : Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1F1F1F) : Colors.white,
           child: Row(
             children: List.generate(labels.length, (index) {
               final selected = selectedIndex == index;
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: GestureDetector(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    splashFactory: InkRipple.splashFactory,
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
-                    child: AnimatedScale(
-                      scale: selected ? 1.16 : 1.0,
+                    child: AnimatedContainer(
                       duration: const Duration(milliseconds: 190),
-                      curve: Curves.easeOutBack,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 190),
-                        curve: Curves.easeOut,
-                        height: selected ? 76 : 66,
-                        alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: appPrimary.withValues(alpha: selected ? 1.0 : 0.78),
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(
-                            color: selected ? gold : appPrimary.withValues(alpha: 0.35),
-                            width: selected ? 1.5 : 0.7,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedScale(
-                              scale: selected ? 1.12 : 0.92,
-                              duration: const Duration(milliseconds: 180),
-                              child: Icon(icons[index], color: selected ? gold : Colors.white,
-                                size: selected ? 24 : 19),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(labels[index], textAlign: TextAlign.center, softWrap: true,
-                              maxLines: 2, overflow: TextOverflow.clip,
-                              style: TextStyle(color: Colors.white, fontSize: selected ? 10 : 9,
-                                fontWeight: FontWeight.bold, height: 1.1)),
-                          ],
-                        ),
+                      height: 66,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: appPrimary.withValues(alpha: selected ? 1.0 : 0.78),
+                        borderRadius: BorderRadius.circular(13),
+                        border: Border.all(color: selected ? gold : appPrimary.withValues(alpha: 0.35), width: selected ? 1.5 : 0.7),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icons[index], color: selected ? gold : Colors.white, size: 21),
+                          const SizedBox(height: 2),
+                          Text(labels[index], textAlign: TextAlign.center, softWrap: true, maxLines: 2, overflow: TextOverflow.clip,
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, height: 1.1)),
+                        ],
                       ),
                     ),
                   ),
@@ -1679,7 +1652,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
           Row(children: [
             const Expanded(child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', textAlign: TextAlign.center,
               style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
-            IconButton(onPressed: _chooseBackground, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة'),
+            IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة'),
           ]),
           Text('﴿إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً﴾',
             textAlign: TextAlign.center,
@@ -1711,7 +1684,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
             ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
             ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
             OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: _customTarget, child: const Text('تحديد العدد')),
-            IconButton(onPressed: _reset, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
+            IconButton(onPressed: () { unawaited(tapFeedback()); _reset(); }, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
           ]),
         ])),
       Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(12,14,12,24), children: [
@@ -1805,7 +1778,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('الوضع الليلي'),
               subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
               value: widget.isDarkMode,
-              onChanged: (_) => widget.onToggleTheme(),
+              onChanged: (_) { unawaited(tapFeedback()); widget.onToggleTheme(); },
             ),
           ),
           Card(
@@ -1827,6 +1800,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: name, child: Text(name),
                     )).toList(),
                     onChanged: (value) {
+                      unawaited(tapFeedback());
                       if (value != null) {
                         setState(() => localColor = value);
                         widget.onChangeThemeColor(value);
@@ -1857,6 +1831,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
                     ],
                     onChanged: (value) {
+                      unawaited(tapFeedback());
                       if (value != null) {
                         setState(() => localFont = value);
                         widget.onChangeFontFamily(value);
@@ -1991,9 +1966,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       return false;
     }
     final exactGranted = await askExactAlarmPermission();
-    if (!exactGranted) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح للتطبيق بالمنبّهات الدقيقة من إعدادات الهاتف.')));
-      return false;
+    if (!exactGranted && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
     }
     return true;
   }
@@ -2065,6 +2039,19 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
               children: [
                 Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.notifications_active, color: gold),
+                    title: const Text('اختبار الإشعار المنبثق'),
+                    subtitle: const Text('أرسل إشعاراً تجريبياً الآن للتحقق من الصلاحيات'),
+                    onTap: () async {
+                      unawaited(tapFeedback());
+                      if (!await ensurePermissions()) return;
+                      await showReminderTestNotification();
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال الإشعار التجريبي؛ جرّب قفل الشاشة أو فتح تطبيق آخر.')));
+                    },
+                  ),
+                ),
+                Card(
                   child: Column(
                     children: [
                       SwitchListTile(
@@ -2072,14 +2059,14 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                         title: const Text('منبه الصلاة على محمد وآل محمد'),
                         subtitle: const Text('هل صليت على محمد وآل محمد هذا اليوم؟'),
                         value: salawatEnabled,
-                        onChanged: (value) => updateSalawatReminder(enabled: value),
+                        onChanged: (value) { unawaited(tapFeedback()); updateSalawatReminder(enabled: value); },
                       ),
                       ListTile(
                         leading: const Icon(Icons.access_time, color: gold),
                         title: const Text('وقت التذكير المستقل'),
                         subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
                         trailing: const Icon(Icons.edit, color: gold),
-                        onTap: chooseSalawatTime,
+                        onTap: () { unawaited(tapFeedback()); chooseSalawatTime(); },
                       ),
                     ],
                   ),
@@ -2107,9 +2094,10 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Switch(value: reminder.enabled, onChanged: (value) => toggleReminder(reminder, value)),
+                          Switch(value: reminder.enabled, onChanged: (value) { unawaited(tapFeedback()); toggleReminder(reminder, value); }),
                           PopupMenuButton<String>(
                             onSelected: (value) {
+                              unawaited(tapFeedback());
                               if (value == 'edit') editReminder(reminder);
                               if (value == 'delete') deleteReminder(reminder);
                             },
