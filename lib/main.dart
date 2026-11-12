@@ -657,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ListeningPage(fontSize: widget.fontSize),
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
-    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'الْحَسَنَاتُ يُذْهِبْنَ السَّيِّئَاتِ'];
+    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ'];
     const icons = [Icons.menu_book, Icons.auto_awesome, Icons.mosque, Icons.headphones, Icons.radio_button_checked];
     return Scaffold(
       appBar: AppBar(
