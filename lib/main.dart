@@ -1760,12 +1760,14 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late String localFont;
   late String localColor;
+  late double localFontSize;
 
   @override
   void initState() {
     super.initState();
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
+    localFontSize = widget.fontSize;
   }
 
   @override
@@ -1773,6 +1775,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
+    if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
   }
 
   @override
@@ -1863,12 +1866,20 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
               title: const Text('حجم الخط'),
-              subtitle: Text('الحجم الحالي: ${widget.fontSize.toInt()}'),
+              subtitle: Text('الحجم الحالي: ${localFontSize.toInt()}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(-2); }, icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
+                  IconButton(onPressed: localFontSize <= 16 ? null : () {
+                    unawaited(tapFeedback());
+                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0));
+                    widget.onChangeFontSize(-2);
+                  }, icon: const Icon(Icons.remove)),
+                  IconButton(onPressed: localFontSize >= 32 ? null : () {
+                    unawaited(tapFeedback());
+                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0));
+                    widget.onChangeFontSize(2);
+                  }, icon: const Icon(Icons.add)),
                 ],
               ),
             ),
@@ -1910,7 +1921,21 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> load() async {
-    final saved = await loadSavedReminders();
+    var saved = await loadSavedReminders();
+    if (saved.isEmpty) {
+      final canSchedule = await ensurePermissions();
+      saved = [
+        AshuraReminder(id: 2001, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: 2002, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: 2003, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+      ];
+      await saveReminders(saved);
+      if (canSchedule) {
+        for (final reminder in saved) {
+          await scheduleReminder(reminder);
+        }
+      }
+    }
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
