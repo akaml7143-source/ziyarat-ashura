@@ -41,6 +41,7 @@ jobs:
           permissions = [
               "android.permission.POST_NOTIFICATIONS",
               "android.permission.VIBRATE",
+              "android.permission.USE_FULL_SCREEN_INTENT",
               "android.permission.SCHEDULE_EXACT_ALARM",
               "android.permission.RECEIVE_BOOT_COMPLETED",
               "android.permission.WAKE_LOCK",
