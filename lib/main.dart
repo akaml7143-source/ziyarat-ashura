@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,11 +35,8 @@ final FlutterLocalNotificationsPlugin notifications =
 late AudioHandler audioHandler;
 
 Future<void> tapFeedback() async {
-  try {
-    if (await Vibration.hasVibrator() == true) {
-      await Vibration.vibrate(duration: 32, amplitude: 90);
-    }
-  } catch (_) {}
+  try { await HapticFeedback.mediumImpact(); } catch (_) {}
+  try { await Vibration.vibrate(duration: 55, amplitude: 255); } catch (_) {}
 }
 
 class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
@@ -155,6 +153,8 @@ NotificationDetails reminderNotificationDetails() => NotificationDetails(
     showWhen: true,
     autoCancel: true,
     channelShowBadge: true,
+    fullScreenIntent: true,
+    audioAttributesUsage: AudioAttributesUsage.alarm,
   ),
 );
 
@@ -244,6 +244,16 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
   final details = reminderNotificationDetails();
   final exactAllowed = await canScheduleExactAlarms();
   final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
+  final notificationTitle = reminder.id == 2001
+      ? 'زيارة عاشوراء'
+      : reminder.id == 2002
+          ? 'الصلاة على محمد وآل محمد'
+          : 'تذكير بزيارة عاشوراء';
+  final notificationBody = reminder.id == 2001
+      ? 'هل زرت الإمام الحسين هذا اليوم؟'
+      : reminder.id == 2002
+          ? 'هل صليت على محمد وآل محمد هذا اليوم؟'
+          : reminderMessage;
   final now = tz.TZDateTime.now(tz.local);
   for (final weekday in reminder.weekdays) {
     var scheduled = tz.TZDateTime(
@@ -254,8 +264,8 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
     }
     await notifications.zonedSchedule(
       _notificationId(reminder.id, weekday),
-      'هل زرت الإمام الحسين هذا اليوم؟',
-      reminderMessage,
+      notificationTitle,
+      notificationBody,
       scheduled,
       details,
       uiLocalNotificationDateInterpretation:
@@ -542,54 +552,71 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) => Center(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: SizedBox(
-                    width: constraints.maxWidth,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('زيارة عاشوراء', textAlign: TextAlign.center,
-                            style: TextStyle(color: Color(0xFFC5A45E), fontSize: 32, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                          const SizedBox(height: 5),
-                          const Text('اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَعَجِّلْ فَرَجَهُمْ', textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white, fontSize: 25, height: 1.3, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white, fontSize: 25, height: 1.45, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                          const SizedBox(height: 7),
-                          const Text(story, textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.black, fontSize: 17, height: 1.42, fontWeight: FontWeight.w600, fontFamily: 'Amiri')),
-                          const SizedBox(height: 10),
-                          Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: enter,
-                              borderRadius: BorderRadius.circular(18),
-                              splashFactory: InkRipple.splashFactory,
-                              splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.38),
-                              highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.12),
-                              child: AnimatedScale(
-                                scale: pressed ? 0.96 : 1.0,
-                                duration: const Duration(milliseconds: 160),
-                                child: Container(
-                                  width: 205, height: 50, alignment: Alignment.center,
-                                  decoration: BoxDecoration(color: const Color(0xFFC5A45E).withValues(alpha: 0.20), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFC5A45E), width: 1.7)),
-                                  child: const Text('الدخول إلى التطبيق', textAlign: TextAlign.center,
-                                    style: TextStyle(color: Color(0xFFC5A45E), fontSize: 21, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black87, blurRadius: 4)])),
-                                ),
+              builder: (context, constraints) => SizedBox(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
+                  child: Column(
+                    children: [
+                      const Text('زيارة عاشوراء', textAlign: TextAlign.center,
+                        style: TextStyle(color: Color(0xFFC5A45E), fontSize: 34, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                      const SizedBox(height: 5),
+                      const Text('اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ', textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 23, height: 1.25, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                      const SizedBox(height: 23),
+                      const Text(
+                        'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
+                        'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 22, height: 1.5, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                      const SizedBox(height: 12),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: enter,
+                          customBorder: const CircleBorder(),
+                          splashFactory: InkRipple.splashFactory,
+                          splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
+                          highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
+                          child: AnimatedScale(
+                            scale: pressed ? 0.94 : 1.0,
+                            duration: const Duration(milliseconds: 160),
+                            child: Container(
+                              width: 104,
+                              height: 104,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.10),
+                                border: Border.all(color: const Color(0xFFC5A45E), width: 2),
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: const Text('الدخول إلى\nالتطبيق',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black, blurRadius: 5)])),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: constraints.maxWidth - 36,
+                              child: Text(
+                                'تُروى قصةُ الشاعر أبي الحسن جمال الدين الخليعي الحلّي أنّ أمّه نذرت أن ترسله لقطع الطريق على زوّار الإمام الحسين (عليه السلام). وفي طريقه إلى كربلاء غلبه النوم، فرأى في المنام أنّ غبار الزائرين كان سبب نجاته من النار، فاستيقظ تائباً، واعتنق ولاية أهل البيت، وزار كربلاء، وصار من محبّي الإمام الحسين (عليه السلام).',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.black, fontSize: 19, height: 1.5, fontWeight: FontWeight.w700, fontFamily: 'Amiri'),
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -636,12 +663,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       ZiyaratPage(fontSize: widget.fontSize),
       FavorsPage(fontSize: widget.fontSize),
-      AbbasVisitPage(fontSize: widget.fontSize),
       ListeningPage(fontSize: widget.fontSize),
+      AbbasVisitPage(fontSize: widget.fontSize),
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
-    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ'];
-    const icons = [Icons.menu_book, Icons.auto_awesome, Icons.mosque, Icons.headphones, Icons.radio_button_checked];
+    const labels = [
+      'زيارة عاشوراء',
+      'فضل زيارة عاشوراء',
+      'استماع الزيارة',
+      'زيارة الإمام العباس (عليه السلام)',
+      'الحسنات يُذهبن السيئات',
+    ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
@@ -698,15 +730,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(13),
                         border: Border.all(color: selected ? gold : appPrimary.withValues(alpha: 0.35), width: selected ? 1.5 : 0.7),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(icons[index], color: selected ? gold : Colors.white, size: 21),
-                          const SizedBox(height: 2),
-                          Text(labels[index], textAlign: TextAlign.center, softWrap: true, maxLines: 2, overflow: TextOverflow.clip,
-                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold, height: 1.1)),
-                        ],
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 1),
+                          child: Text(
+                            labels[index],
+                            textAlign: TextAlign.center,
+                            softWrap: true,
+                            maxLines: 3,
+                            overflow: TextOverflow.clip,
+                            style: TextStyle(color: Colors.white, fontSize: selected ? 10 : 9.5, fontWeight: FontWeight.w900, height: 1.12),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -718,6 +753,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
+  final expression = RegExp(r'(?:الإمام|الامام)\s+الحسين');
+  final spans = <TextSpan>[];
+  var cursor = 0;
+  for (final match in expression.allMatches(text)) {
+    if (match.start > cursor) spans.add(TextSpan(text: text.substring(cursor, match.start)));
+    spans.add(TextSpan(text: match.group(0), style: const TextStyle(color: Colors.red)));
+    cursor = match.end;
+  }
+  if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
+  return TextSpan(style: baseStyle, children: spans);
 }
 
 class SectionCard extends StatelessWidget {
@@ -746,11 +794,9 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 19,
-                fontWeight: FontWeight.bold, color: gold)),
+            Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
             const Divider(),
-            SelectableText(content,
-                style: TextStyle(fontSize: fontSize, height: 1.95)),
+            SelectableText.rich(highlightImamHussein(content, TextStyle(fontSize: fontSize, height: 1.95))),
           ],
         ),
       ),
@@ -762,9 +808,10 @@ class ZiyaratPage extends StatelessWidget {
   final double fontSize;
   const ZiyaratPage({super.key, required this.fontSize});
 
-  static const String introduction =
-      'قال صالح بن عقبة وسيف بن عميرة: قال علقمة بن محمد الحضرمي: قلت للباقر صلوات الله وسلامه عليه: علّمني دعاءً أدعو به ذلك اليوم إذا أنا زرته من قرب، ودعاءً أدعو به إذا لم أزره من قرب وأومأت من بُعد البلاد ومن داري بالسلام إليه.\n\n'
-      'قال: فقال لي: يا علقمة، إذا أنت صلّيت الركعتين بعد أن تومئ إليه بالسلام فقل بعد الإيماء إليه من بعد التكبير هذا القول (أي الزيارة الآتية)، فإنك إذا قلت ذلك فقد دعوت بما يدعو به زوّاره من الملائكة، وكتب الله لك مئة ألف ألف درجة، وكنت كمن استشهدوا مع الحسين عليه السلام حتى تشاركهم في درجاتهم، وما عُرفت إلا في الشهداء الذين استشهدوا معه، وكُتب لك ثواب زيارة كل نبي وكل رسول، وزيارة كل من زار الحسين عليه السلام منذ يوم قُتل عليه السلام وعلى أهل بيته.';
+  static const String intentionText =
+      'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ\n'
+      'اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ\n\n'
+      'أَزُورُ سَيِّدِي وَمَوْلَايَ أَبَا عَبْدِ اللهِ الْحُسَيْنَ (عَلَيْهِ السَّلَامُ)، بِالْأَصَالَةِ عَنْ نَفْسِي، وَبِالنِّيَابَةِ عَنْ صَاحِبِ الْعَصْرِ وَالزَّمَانِ، وَعَنْ وَالِدَيَّ وَوَالِدَي وَالِدَيَّ وَوَلَدِي، وَأَخَوَاتِي وَإِخْوَانِي، وَجِيرَانِي وَأَقَارِبِي وَأَعِزَّائِي، وَعَمَّنْ قَلَّدَنِي الدُّعَاءَ وَالزِّيَارَةَ، وَجَمِيعِ الْمُؤْمِنِينَ وَالْمُؤْمِنَاتِ، الْأَحْيَاءِ مِنْهُمْ وَالْأَمْوَاتِ، قُرْبَةً إِلَى اللهِ تَعَالَى.';
 
   static const String visitText =
       'السَّلَامُ عَلَيْكَ يَا أَبَا عَبْدِ اللهِ، السَّلَامُ عَلَيْكَ يَا ابْنَ رَسُولِ اللهِ، السَّلَامُ عَلَيْكَ يَا ابْنَ أَمِيرِ الْمُؤْمِنِينَ، وَابْنَ سَيِّدِ الْوَصِيِّينَ، السَّلَامُ عَلَيْكَ يَا ابْنَ فَاطِمَةَ سَيِّدَةِ نِسَاءِ الْعَالَمِينَ، السَّلَامُ عَلَيْكَ يَا ثَارَ اللهِ وَابْنَ ثَارِهِ وَالْوِتْرَ الْمَوْتُورَ، السَّلَامُ عَلَيْكَ وَعَلَى الْأَرْوَاحِ الَّتِي حَلَّتْ بِفِنَائِكَ، عَلَيْكُمْ مِنِّي جَمِيعاً سَلَامُ اللهِ أَبَداً مَا بَقِيتُ وَبَقِيَ اللَّيْلُ وَالنَّهَارُ.\n\n'
@@ -789,7 +836,7 @@ class ZiyaratPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        SectionCard(title: 'مقدمة الزيارة', content: introduction,
+        SectionCard(title: 'نية الزيارة', content: intentionText,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
         SectionCard(title: 'نص زيارة عاشوراء كاملاً', content: visitText,
@@ -1242,21 +1289,21 @@ class ListeningPage extends StatefulWidget {
   const ListeningPage({super.key, required this.fontSize});
 
   static const List<Map<String, String>> readers = [
-    {'name': 'الشيخ شـبـر مـعـلـه', 'file': 'shibr_maalla.mp3'},
-    {'name': 'الشيخ باقـر المقـدسي', 'file': 'baqir_almaqdisi.mp3'},
-    {'name': 'الرادود باسـم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
-    {'name': 'الرادود أحمـد الفتـلاوي', 'file': 'ahmed_alftlawi.mp3'},
-    {'name': 'الرادود محمـد باقـر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
-    {'name': 'الرادود أبـا ذر الحلـواجي', 'file': 'aba_thar_alhelwachi.mp3'},
-    {'name': 'الحاج علـي الكعبـي', 'file': 'ali_alkabi.mp3'},
-    {'name': 'الحاج مهـدي سماواتـي', 'file': 'mahdi_samawati.mp3'},
-    {'name': 'الرادود عمـار الكناني', 'file': 'ammar_alkinani.mp3'},
-    {'name': 'الرادود أسامـة الكربلائـي', 'file': 'osama_al_karbalaei.mp3'},
-    {'name': 'الشيخ ميثـم كاظـم', 'file': 'maytham_kadhim.mp3'},
-    {'name': 'الشيخ ميثـم التمـار', 'file': 'maytham_al_tammar.mp3'},
-    {'name': 'الحاج عبـد الحـي قمبـر', 'file': 'abdulhay_qambar.mp3'},
-    {'name': 'الحاج علـي فانـي', 'file': 'ali_fani.mp3'},
-    {'name': 'القارئ علـي أبو ريحـان', 'file': 'ali_abu_rayhan.mp3'},
+    {'name': 'الشيخ شبر معله', 'file': 'shibr_maalla.mp3'},
+    {'name': 'الشيخ باقر المقدسي', 'file': 'baqir_almaqdisi.mp3'},
+    {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
+    {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
+    {'name': 'الرادود محمد باقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
+    {'name': 'الرادود أبا ذر الحلواجي', 'file': 'aba_thar_alhelwachi.mp3'},
+    {'name': 'الحاج علي الكعبي', 'file': 'ali_alkabi.mp3'},
+    {'name': 'الحاج مهدي سماواتي', 'file': 'mahdi_samawati.mp3'},
+    {'name': 'الرادود عمار الكناني', 'file': 'ammar_alkinani.mp3'},
+    {'name': 'القارئ أسامة الكربلائي', 'file': 'osama_al_karbalaei.mp3'},
+    {'name': 'الشيخ ميثم كاظم', 'file': 'maytham_kadhim.mp3'},
+    {'name': 'الشيخ ميثم التمار', 'file': 'maytham_al_tammar.mp3'},
+    {'name': 'الحاج عبد الحي قمبر', 'file': 'abdulhay_qambar.mp3'},
+    {'name': 'الحاج علي فاني', 'file': 'ali_fani.mp3'},
+    {'name': 'الحاج علي أبو ريحان', 'file': 'ali_abu_rayhan.mp3'},
   ];
 
   @override
@@ -1281,6 +1328,38 @@ class _ListeningPageState extends State<ListeningPage> {
         );
       }
     }
+  }
+
+  String equalizeReaderName(String name) {
+    int letters(String value) => RegExp(r'[\u0621-\u064A]').allMatches(value).length;
+    final counts = ListeningPage.readers.map((reader) => letters(reader['name']!)).toList();
+    final target = counts.reduce((a, b) => a > b ? a : b);
+    final missing = target - letters(name);
+    if (missing <= 0) return name;
+    final words = name.split(' ');
+    final total = letters(name);
+    var seenLetters = 0;
+    return words.map((word) {
+      final wordCount = letters(word);
+      if (wordCount == 0) return word;
+      final before = seenLetters;
+      seenLetters += wordCount;
+      final extra = (missing * seenLetters ~/ total) - (missing * before ~/ total);
+      final buffer = StringBuffer();
+      var localSeen = 0;
+      for (final rune in word.runes) {
+        final character = String.fromCharCode(rune);
+        buffer.write(character);
+        if (RegExp(r'[\u0621-\u064A]').hasMatch(character)) {
+          localSeen++;
+          if (localSeen < wordCount &&
+              (localSeen * extra ~/ wordCount) > ((localSeen - 1) * extra ~/ wordCount)) {
+            buffer.write('ـ');
+          }
+        }
+      }
+      return buffer.toString();
+    }).join(' ');
   }
 
   String formatDuration(Duration value) {
@@ -1332,10 +1411,10 @@ class _ListeningPageState extends State<ListeningPage> {
                         child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
-                          reader['name']!,
+                          equalizeReaderName(reader['name']!),
                           textAlign: TextAlign.right,
                           style: TextStyle(
-                            color: selectedAsset == asset ? gold : Colors.white,
+                            color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
                              fontFamily: 'Amiri',
                              fontWeight: FontWeight.bold,
@@ -1394,18 +1473,19 @@ class _AudioPlayerControls extends StatelessWidget {
                     builder: (context, snapshot) => Text(
                       snapshot.data?.title ?? 'اختر أحد القرّاء',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: gold, fontWeight: FontWeight.bold, fontSize: 16,
-                        shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold, fontSize: 16,
+                        shadows: const [Shadow(color: Colors.black87, blurRadius: 5)],
                       ),
                     ),
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: gold,
+                      activeTrackColor: Theme.of(context).colorScheme.primary,
                       inactiveTrackColor: Colors.white54,
-                      thumbColor: gold,
-                      overlayColor: gold.withValues(alpha: 0.16),
+                      thumbColor: Theme.of(context).colorScheme.primary,
+                      overlayColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.16),
                       trackHeight: 2.5,
                     ),
                     child: Slider(
@@ -1449,7 +1529,7 @@ class _AudioPlayerControls extends StatelessWidget {
                           ),
                           IconButton(
                             tooltip: 'إيقاف التسجيل',
-                            onPressed: duration == Duration.zero ? null : () async { await handler.stop(); },
+                            onPressed: duration == Duration.zero ? null : () async { unawaited(tapFeedback()); await handler.stop(); },
                             icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 32),
                           ),
                         ],
