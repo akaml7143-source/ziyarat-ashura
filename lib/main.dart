@@ -225,7 +225,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
     }
     await notifications.zonedSchedule(
       _notificationId(reminder.id, weekday),
-      'تذكير زيارة عاشوراء',
+      'هل زرت الإمام الحسين هذا اليوم؟',
       reminderMessage,
       scheduled,
       details,
@@ -1522,7 +1522,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    final today = '\${now.year}-\${now.month}-\${now.day}';
+    final today = '${now.year}-${now.month}-${now.day}';
     if (prefs.getString('tasbeeh_daily_date') != today) {
       await prefs.setString('tasbeeh_daily_date', today);
       await prefs.setInt('tasbeeh_daily_count', 0);
@@ -1673,7 +1673,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('الهدف: $target  •  المتبقي: \${(target - count).clamp(0, target)}',
+              Text('الهدف: $target  •  المتبقي: ${(target - count).clamp(0, target)}',
                 style: const TextStyle(color: Colors.white, fontSize: 15)),
               Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
               const SizedBox(height: 7),
@@ -1774,6 +1774,15 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(16),
         children: [
           Card(
+            child: ListTile(
+              leading: const Icon(Icons.alarm, color: gold),
+              title: const Text('منبه الزيارة'),
+              subtitle: const Text('إعداد ثلاثة منبّهات يومية لزيارة عاشوراء'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
+            ),
+          ),
+          Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
               title: const Text('الوضع الليلي'),
@@ -1853,15 +1862,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
                 ],
               ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('منبه الزيارة'),
-              subtitle: const Text('إعداد ثلاثة منبّهات يومية لزيارة عاشوراء'),
-              trailing: const Icon(Icons.chevron_left),
-              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
           ),
           Card(
@@ -1974,7 +1974,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       return;
     }
     final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
-    final draft = AshuraReminder(id: nextId, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
+    final defaultHour = reminders.length == 0 ? 8 : (reminders.length == 1 ? 14 : 20);
+    final draft = AshuraReminder(id: nextId, hour: defaultHour, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
     final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
     if (result == null) return;
     if (result.enabled && !await ensurePermissions()) return;
@@ -2011,7 +2012,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة المنبّهات')),
+      appBar: AppBar(title: const Text('منبه الزيارة')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: reminders.length >= 3 ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
