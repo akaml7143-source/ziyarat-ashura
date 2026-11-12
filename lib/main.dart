@@ -369,7 +369,7 @@ class _AshuraAppState extends State<AshuraApp> {
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       final migratedColor = savedColor == 'عنابي' ? 'ماروني' : (savedColor == 'فيروز' ? 'فيروزي' : savedColor);
       selectedColor = appColors.containsKey(migratedColor) ? migratedColor : 'أخضر';
-      if (selectedColor != savedColor) prefs.setString('ashura_theme_color', selectedColor);
+      if (selectedColor != savedColor) unawaited(prefs.setString('ashura_theme_color', selectedColor));
       loaded = true;
     });
 
