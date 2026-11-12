@@ -272,6 +272,49 @@ Future<void> rescheduleSavedReminders() async {
   }
 }
 
+const int salawatReminderNotificationId = 31001;
+
+Future<void> scheduleSalawatReminder({
+  required bool enabled,
+  required int hour,
+  required int minute,
+}) async {
+  await notifications.cancel(salawatReminderNotificationId);
+  if (!enabled) return;
+  final now = tz.TZDateTime.now(tz.local);
+  var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+  if (!scheduled.isAfter(now)) scheduled = scheduled.add(const Duration(days: 1));
+  const details = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'ashura_reminders',
+      'منبّهات زيارة عاشوراء',
+      channelDescription: 'تذكيرات الزيارة والصلاة على محمد وآل محمد',
+      importance: Importance.high,
+      priority: Priority.high,
+    ),
+  );
+  await notifications.zonedSchedule(
+    salawatReminderNotificationId,
+    'تذكير الصلاة على محمد وآل محمد',
+    'هل صليت على محمد وآل محمد هذا اليوم؟',
+    scheduled,
+    details,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
+}
+
+Future<void> restoreSalawatReminder() async {
+  final prefs = await SharedPreferences.getInstance();
+  await scheduleSalawatReminder(
+    enabled: prefs.getBool('salawat_reminder_enabled') ?? false,
+    hour: prefs.getInt('salawat_reminder_hour') ?? 9,
+    minute: prefs.getInt('salawat_reminder_minute') ?? 0,
+  );
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   audioHandler = await AudioService.init(
@@ -285,6 +328,8 @@ Future<void> main() async {
   try {
     await initNotifications();
     await notifications.cancel(1001); // إلغاء التذكير القديم ذي المعرّف الثابت.
+    await rescheduleSavedReminders();
+    await restoreSalawatReminder();
   } catch (error) {
     debugPrint('تعذر تهيئة الإشعارات: $error');
   }
@@ -1843,6 +1888,9 @@ class ReminderManagerPage extends StatefulWidget {
 class _ReminderManagerPageState extends State<ReminderManagerPage> {
   List<AshuraReminder> reminders = [];
   bool loading = true;
+  bool salawatEnabled = false;
+  int salawatHour = 9;
+  int salawatMinute = 0;
 
   static const List<String> dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
 
@@ -1854,8 +1902,47 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
 
   Future<void> load() async {
     final saved = await loadSavedReminders();
+    final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
-    setState(() { reminders = saved; loading = false; });
+    setState(() {
+      reminders = saved;
+      salawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
+      salawatHour = prefs.getInt('salawat_reminder_hour') ?? 9;
+      salawatMinute = prefs.getInt('salawat_reminder_minute') ?? 0;
+      loading = false;
+    });
+  }
+
+  Future<void> updateSalawatReminder({bool? enabled, int? hour, int? minute}) async {
+    final nextEnabled = enabled ?? salawatEnabled;
+    if (nextEnabled && !await ensurePermissions()) return;
+    final nextHour = hour ?? salawatHour;
+    final nextMinute = minute ?? salawatMinute;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('salawat_reminder_enabled', nextEnabled);
+    await prefs.setInt('salawat_reminder_hour', nextHour);
+    await prefs.setInt('salawat_reminder_minute', nextMinute);
+    await scheduleSalawatReminder(
+      enabled: nextEnabled,
+      hour: nextHour,
+      minute: nextMinute,
+    );
+    if (!mounted) return;
+    setState(() {
+      salawatEnabled = nextEnabled;
+      salawatHour = nextHour;
+      salawatMinute = nextMinute;
+    });
+  }
+
+  Future<void> chooseSalawatTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: salawatHour, minute: salawatMinute),
+    );
+    if (picked != null) {
+      await updateSalawatReminder(hour: picked.hour, minute: picked.minute);
+    }
   }
 
   Future<bool> ensurePermissions() async {
@@ -1934,40 +2021,70 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : reminders.isEmpty
-              ? const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('لا توجد منبّهات حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.')))
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-                  itemCount: reminders.length,
-                  itemBuilder: (context, index) {
-                    final reminder = reminders[index];
-                    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
-                    return Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.alarm, color: gold, size: 30),
-                        title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
-                        subtitle: Text(daySummary(reminder.weekdays)),
-                        onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Switch(value: reminder.enabled, onChanged: (value) => toggleReminder(reminder, value)),
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') editReminder(reminder);
-                                if (value == 'delete') deleteReminder(reminder);
-                              },
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                                PopupMenuItem(value: 'delete', child: Text('حذف')),
-                              ],
-                            ),
-                          ],
-                        ),
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+              children: [
+                Card(
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        secondary: const Icon(Icons.volunteer_activism, color: gold),
+                        title: const Text('منبه الصلاة على محمد وآل محمد'),
+                        subtitle: const Text('هل صليت على محمد وآل محمد هذا اليوم؟'),
+                        value: salawatEnabled,
+                        onChanged: (value) => updateSalawatReminder(enabled: value),
                       ),
-                    );
-                  },
+                      ListTile(
+                        leading: const Icon(Icons.access_time, color: gold),
+                        title: const Text('وقت التذكير المستقل'),
+                        subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
+                        trailing: const Icon(Icons.edit, color: gold),
+                        onTap: chooseSalawatTime,
+                      ),
+                    ],
+                  ),
                 ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text('منبّهات زيارة عاشوراء (حتى ثلاثة أوقات مستقلة)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
+                ),
+                if (reminders.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.',
+                      textAlign: TextAlign.center),
+                  ),
+                ...reminders.map((reminder) {
+                  final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.alarm, color: gold, size: 30),
+                      title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                      subtitle: Text(daySummary(reminder.weekdays)),
+                      onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Switch(value: reminder.enabled, onChanged: (value) => toggleReminder(reminder, value)),
+                          PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') editReminder(reminder);
+                              if (value == 'delete') deleteReminder(reminder);
+                            },
+                            itemBuilder: (_) => const [
+                              PopupMenuItem(value: 'edit', child: Text('تعديل')),
+                              PopupMenuItem(value: 'delete', child: Text('حذف')),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
     );
   }
 }
