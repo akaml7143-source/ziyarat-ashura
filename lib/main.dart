@@ -313,15 +313,7 @@ Future<void> scheduleSalawatReminder({
   final now = tz.TZDateTime.now(tz.local);
   var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
   if (!scheduled.isAfter(now)) scheduled = scheduled.add(const Duration(days: 1));
-  const details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'ashura_reminders',
-      'منبّهات زيارة عاشوراء',
-      channelDescription: 'تذكيرات الزيارة والصلاة على محمد وآل محمد',
-      importance: Importance.high,
-      priority: Priority.high,
-    ),
-  );
+  final details = reminderNotificationDetails();
   await notifications.zonedSchedule(
     salawatReminderNotificationId,
     'تذكير الصلاة على محمد وآل محمد',
@@ -1588,11 +1580,11 @@ class _TasbeehPageState extends State<TasbeehPage> {
   }
   Future<void> _increment() async {
     if (!loaded) return;
+    unawaited(tapFeedback());
     setState(() { count++; dailyCount++; });
     final p = await SharedPreferences.getInstance();
     await p.setInt('tasbeeh_salawat_count', count);
     await p.setInt('tasbeeh_daily_count', dailyCount);
-    await tapFeedback();
     if (count == target && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أحسنت، أتممت العدد المحدد')));
   }
   Future<void> _reset() async {
@@ -1663,7 +1655,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
             style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          GestureDetector(onTap: _increment, child: AnimatedContainer(duration: const Duration(milliseconds: 200),
+          InkWell(onTap: _increment, customBorder: const CircleBorder(), splashFactory: InkRipple.splashFactory, child: AnimatedContainer(duration: const Duration(milliseconds: 200),
             width: 154, height: 154,
             decoration: BoxDecoration(shape: BoxShape.circle,
               gradient: RadialGradient(colors: [accent.withValues(alpha: 0.88), backgroundColor]),
