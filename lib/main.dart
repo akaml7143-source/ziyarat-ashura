@@ -314,6 +314,8 @@ Future<void> scheduleSalawatReminder({
   var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
   if (!scheduled.isAfter(now)) scheduled = scheduled.add(const Duration(days: 1));
   final details = reminderNotificationDetails();
+  final exactAllowed = await canScheduleExactAlarms();
+  final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
   await notifications.zonedSchedule(
     salawatReminderNotificationId,
     'تذكير الصلاة على محمد وآل محمد',
@@ -322,7 +324,7 @@ Future<void> scheduleSalawatReminder({
     details,
     uiLocalNotificationDateInterpretation:
         UILocalNotificationDateInterpretation.absoluteTime,
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    androidScheduleMode: scheduleMode,
     matchDateTimeComponents: DateTimeComponents.time,
   );
 }
@@ -1894,8 +1896,13 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
 
   Future<void> load() async {
     var saved = await loadSavedReminders();
-    // اطلب صلاحية الإشعارات عند فتح صفحة المنبّه حتى لو كانت أوقاته محفوظة مسبقاً.
-    final canSchedule = await ensurePermissions();
+    // اطلب صلاحية عرض الإشعارات عند فتح صفحة المنبّه، حتى للأوقات المحفوظة سابقاً.
+    final canSchedule = await askNotificationPermission();
+    if (!canSchedule && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'),
+      ));
+    }
     if (saved.isEmpty) {
       saved = [
         AshuraReminder(id: 2001, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
