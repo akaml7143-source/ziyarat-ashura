@@ -3,6 +3,11 @@ name: Build Ziyarat Ashura APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/build-apk.yml'
 
 jobs:
   build:
