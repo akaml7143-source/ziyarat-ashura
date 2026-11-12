@@ -758,7 +758,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
-  final expression = RegExp(r'(?:الإمام|الامام)\s+الحسين');
+  final expression = RegExp(r'(?:(?:الإمام|الامام)\s*)?الحسين');
   final spans = <TextSpan>[];
   var cursor = 0;
   for (final match in expression.allMatches(text)) {
@@ -2052,7 +2052,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')));
       return false;
     }
-    final exactGranted = await askExactAlarmPermission();
+    var exactGranted = await canScheduleExactAlarms();
+    if (!exactGranted) exactGranted = await askExactAlarmPermission();
     if (!exactGranted && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
     }
