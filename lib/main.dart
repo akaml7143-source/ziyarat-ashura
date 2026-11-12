@@ -1549,7 +1549,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    final today = '\${now.year}-\${now.month}-\${now.day}';
+    final today = '${now.year}-${now.month}-${now.day}';
     if (prefs.getString('tasbeeh_daily_date') != today) {
       await prefs.setString('tasbeeh_daily_date', today);
       await prefs.setInt('tasbeeh_daily_count', 0);
@@ -1698,7 +1698,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                 ]),
               ),
             ),
-            Text('الهدف: $target  •  المتبقي: \${(target - count).clamp(0, target)}',
+            Text('الهدف: $target  •  المتبقي: ${(target - count).clamp(0, target)}',
               style: const TextStyle(color: Colors.white, fontSize: 13)),
             Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 12)),
             const SizedBox(height: 4),
@@ -1731,7 +1731,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
               return Card(margin: const EdgeInsets.symmetric(vertical: 4),
                 child: Padding(padding: const EdgeInsets.all(11), child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('الحديث \${i + 1}', style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text('الحديث ${i + 1}', style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 15)),
                     const SizedBox(height: 4),
                     Text(item['summary']!, style: TextStyle(fontSize: widget.fontSize - 3, height: 1.65)),
                     const SizedBox(height: 4),
@@ -1742,7 +1742,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
             const SizedBox(height: 8),
             const Text('المصدر: شبكة السراج – جواهر البحار، أحاديث في فضل الصلاة على النبي وآله.',
               textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 11)),
-            const SelectableText('https://alseraj.net/javaher/',
+            const SelectableText('https://alseraj.net/javaher/%D8%A7%D9%84%D8%A3%D8%AD%D8%A7%D8%AF%D9%8A%D8%AB-%D9%81%D9%8A-%D9%81%D8%B6%D9%84-%D8%A7%D9%84%D8%B5%D9%84%D8%A7%D8%A9-%D8%B9%D9%84%D9%89-%D8%A7%D9%84%D9%86%D8%A8%D9%8A%D9%91-%D9%88%D8%A2%D9%84%D9%87/',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.blueAccent, decoration: TextDecoration.underline)),
           ]),
