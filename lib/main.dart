@@ -1894,18 +1894,19 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
 
   Future<void> load() async {
     var saved = await loadSavedReminders();
+    // اطلب صلاحية الإشعارات عند فتح صفحة المنبّه حتى لو كانت أوقاته محفوظة مسبقاً.
+    final canSchedule = await ensurePermissions();
     if (saved.isEmpty) {
-      final canSchedule = await ensurePermissions();
       saved = [
         AshuraReminder(id: 2001, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
         AshuraReminder(id: 2002, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
         AshuraReminder(id: 2003, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
       ];
       await saveReminders(saved);
-      if (canSchedule) {
-        for (final reminder in saved) {
-          await scheduleReminder(reminder);
-        }
+    }
+    if (canSchedule) {
+      for (final reminder in saved.where((item) => item.enabled)) {
+        await scheduleReminder(reminder);
       }
     }
     final prefs = await SharedPreferences.getInstance();
