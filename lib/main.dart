@@ -1349,14 +1349,18 @@ class _ListeningPageState extends State<ListeningPage> {
       final extra = (missing * seenLetters ~/ total) - (missing * before ~/ total);
       final buffer = StringBuffer();
       var localSeen = 0;
+      final gapCount = wordCount - 1;
       for (final rune in word.runes) {
         final character = String.fromCharCode(rune);
         buffer.write(character);
         if (RegExp(r'[\u0621-\u064A]').hasMatch(character)) {
           localSeen++;
-          if (localSeen < wordCount &&
-              (localSeen * extra ~/ wordCount) > ((localSeen - 1) * extra ~/ wordCount)) {
-            buffer.write('ـ');
+          if (localSeen < wordCount && gapCount > 0) {
+            final gapIndex = localSeen - 1;
+            final base = extra ~/ gapCount;
+            final remainder = extra % gapCount;
+            final kashidas = base + (gapIndex < remainder ? 1 : 0);
+            if (kashidas > 0) buffer.write(List.filled(kashidas, 'ـ').join());
           }
         }
       }
