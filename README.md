@@ -23,7 +23,7 @@
 - `ammar_alkinani.mp3`
 - `shibr_maalla_abbas.mp3` (زيارة الإمام العباس بصوت الشيخ شبر معله)
 
-## البناء
+## طريقة بناء APK
 لبناء APK، افتح تبويب Actions في المستودع، واختر Build Ziyarat Ashura APK، ثم اضغط Run workflow على فرع main. اسم التطبيق الظاهر على الهاتف مضبوط في workflow على: `زيارة عاشوراء`.
 
 ## ملاحظة الخط
