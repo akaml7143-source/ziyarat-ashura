@@ -16,12 +16,9 @@ const Color darkBackground = Color(0xFF121212);
 
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
-  'رصاصي': Color(0xFF808080),
-  'عنابي': Color(0xFF800020),
-  'فيروز': Color(0xFF40BFC1),
-  'بنفسجي': Color(0xFF7952A3),
-  'ذهبي رملي': Color(0xFFC5A45E),
-  'كحلي ليلي': Color(0xFF0B1F3A),
+  'نيلي': Color(0xFF303F9F),
+  'ماروني': Color(0xFF800020),
+  'فيروزي': Color(0xFF40BFC1),
 };
 
 final FlutterLocalNotificationsPlugin notifications =
@@ -29,21 +26,12 @@ final FlutterLocalNotificationsPlugin notifications =
 
 late AudioHandler audioHandler;
 
-final AudioPlayer waterDropPlayer = AudioPlayer();
-bool waterDropLoaded = false;
-
-Future<void> playWaterDrop() async {
+Future<void> tapFeedback() async {
   try {
-    if (!waterDropLoaded) {
-      await waterDropPlayer.setAsset('assets/water_drop.wav');
-      waterDropLoaded = true;
+    if (await Vibration.hasVibrator() == true) {
+      await Vibration.vibrate(duration: 12);
     }
-    await waterDropPlayer.stop();
-    await waterDropPlayer.seek(Duration.zero);
-    unawaited(waterDropPlayer.play());
-  } catch (error) {
-    debugPrint('تعذر تشغيل صوت اللمس: $error');
-  }
+  } catch (_) {}
 }
 
 class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
@@ -200,7 +188,7 @@ class AshuraReminder {
 }
 
 const String reminderMessage =
-    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيقه، فهذا هو التوفيق بعينه.';
+    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
 
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
 
@@ -459,7 +447,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Future<void> enter() async {
     if (pressed) return;
     setState(() => pressed = true);
-    unawaited(playWaterDrop());
+    unawaited(tapFeedback());
     await Future.delayed(const Duration(milliseconds: 220));
     if (mounted) widget.onEnter();
   }
@@ -623,10 +611,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final pages = [
       Theme(data: fixedVisitTheme, child: ZiyaratPage(fontSize: widget.fontSize)),
       Theme(data: fixedVisitTheme, child: FavorsPage(fontSize: widget.fontSize)),
-      Theme(data: fixedVisitTheme, child: ListeningPage(fontSize: widget.fontSize)),
       Theme(data: fixedVisitTheme, child: AbbasVisitPage(fontSize: widget.fontSize)),
+      Theme(data: fixedVisitTheme, child: ListeningPage(fontSize: widget.fontSize)),
+      Theme(data: fixedVisitTheme, child: TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor)),
     ];
-    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'زِيَارَةُ الإِمَــامِ العَبَّــاسِ'];
+    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'المِسْبَحَةُ الإِلِكْتُرُونِيَّةُ'];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
@@ -635,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              unawaited(playWaterDrop());
+              unawaited(tapFeedback());
               Navigator.push(
               context,
               MaterialPageRoute(
@@ -672,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
                   child: GestureDetector(
-                    onTap: () { unawaited(playWaterDrop()); setState(() => selectedIndex = index); },
+                    onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedScale(
                       scale: selected ? 1.045 : 1.0,
                       duration: const Duration(milliseconds: 190),
@@ -869,11 +858,11 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
         content: const Text('هل تريد تصفير عدد الزيارات المكتملة؟'),
         actions: [
           TextButton(
-            onPressed: () { unawaited(playWaterDrop()); Navigator.pop(dialogContext, false); },
+            onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, false); },
             child: const Text('إلغاء'),
           ),
           TextButton(
-            onPressed: () { unawaited(playWaterDrop()); Navigator.pop(dialogContext, true); },
+            onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, true); },
             child: const Text('تصفير'),
           ),
         ],
@@ -925,7 +914,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: isLoading ? null : () { unawaited(playWaterDrop()); markVisitCompleted(); },
+                onPressed: isLoading ? null : () { unawaited(tapFeedback()); markVisitCompleted(); },
                 icon: const Icon(Icons.check_circle_outline),
                 label: const Text('أتممت قراءة الزيارة كاملة'),
                 style: ElevatedButton.styleFrom(
@@ -938,7 +927,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
-                onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(playWaterDrop()); resetCount(); },
+                onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 18),
                 label: const Text('تصفير العداد'),
               ),
@@ -1032,13 +1021,13 @@ class _CounterWidgetState extends State<CounterWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: count < 100 ? () { unawaited(playWaterDrop()); increment(); } : null,
+                  onPressed: count < 100 ? () { unawaited(tapFeedback()); increment(); } : null,
                   icon: const Icon(Icons.touch_app),
                   label: Text('العدد: $count'),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
-                IconButton(onPressed: () { unawaited(playWaterDrop()); reset(); }, icon: const Icon(Icons.refresh),
+                IconButton(onPressed: () { unawaited(tapFeedback()); reset(); }, icon: const Icon(Icons.refresh),
                     tooltip: 'إعادة العداد'),
               ],
             ),
@@ -1195,7 +1184,7 @@ class AbbasVisitPage extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () async {
-                      unawaited(playWaterDrop());
+                      unawaited(tapFeedback());
                       try {
                         await (audioHandler as AshuraAudioHandler).playAsset(
                           'assets/shibr_maalla_abbas.mp3',
@@ -1247,8 +1236,13 @@ class ListeningPage extends StatefulWidget {
     {'name': 'الرادود أبـا ذر الحلـواجي', 'file': 'aba_thar_alhelwachi.mp3'},
     {'name': 'الحاج علـي الكعبـي', 'file': 'ali_alkabi.mp3'},
     {'name': 'الحاج مهـدي سماواتـي', 'file': 'mahdi_samawati.mp3'},
-    {'name': 'الحاج محمـود كريمـي', 'file': 'mahmoud_karimi.mp3'},
     {'name': 'الرادود عمـار الكناني', 'file': 'ammar_alkinani.mp3'},
+    {'name': 'الرادود أسامـة الكربلائـي', 'file': 'osama_al_karbalaei.mp3'},
+    {'name': 'الشيخ ميثـم كاظـم', 'file': 'maytham_kadhim.mp3'},
+    {'name': 'الشيخ ميثـم التمـار', 'file': 'maytham_al_tammar.mp3'},
+    {'name': 'الحاج عبـد الحـي قمبـر', 'file': 'abdulhay_qambar.mp3'},
+    {'name': 'الحاج علـي فانـي', 'file': 'ali_fani.mp3'},
+    {'name': 'القارئ علـي أبو ريحـان', 'file': 'ali_abu_rayhan.mp3'},
   ];
 
   @override
@@ -1318,7 +1312,7 @@ class _ListeningPageState extends State<ListeningPage> {
                     final reader = ListeningPage.readers[index];
                     final asset = 'assets/${reader['file']!}';
                     return InkWell(
-                      onTap: () { unawaited(playWaterDrop()); playReader(reader); },
+                      onTap: () { unawaited(tapFeedback()); playReader(reader); },
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
@@ -1426,18 +1420,23 @@ class _AudioPlayerControls extends StatelessWidget {
                         children: [
                           IconButton(
                             tooltip: 'تأخير 10 ثوانٍ',
-                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); handler.seekRelative(const Duration(seconds: -10)); },
+                            onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: -10)); },
                             icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
                           ),
                           IconButton(
                             tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
-                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); playing ? handler.pause() : handler.play(); },
+                            onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); playing ? handler.pause() : handler.play(); },
                             icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 48),
                           ),
                           IconButton(
                             tooltip: 'تقديم 10 ثوانٍ',
-                            onPressed: duration == Duration.zero ? null : () { unawaited(playWaterDrop()); handler.seekRelative(const Duration(seconds: 10)); },
+                            onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: 10)); },
                             icon: const Icon(Icons.forward_10, color: Colors.white, size: 32),
+                          ),
+                          IconButton(
+                            tooltip: 'إيقاف التسجيل',
+                            onPressed: duration == Duration.zero ? null : () async { await handler.stop(); },
+                            icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 32),
                           ),
                         ],
                       );
@@ -1453,6 +1452,232 @@ class _AudioPlayerControls extends StatelessWidget {
   }
 }
 
+
+class TasbeehPage extends StatefulWidget {
+  final double fontSize;
+  final String selectedColor;
+  const TasbeehPage({super.key, required this.fontSize, required this.selectedColor});
+  @override
+  State<TasbeehPage> createState() => _TasbeehPageState();
+}
+
+class _TasbeehPageState extends State<TasbeehPage> {
+  int count = 0;
+  int target = 500;
+  int dailyCount = 0;
+  Color backgroundColor = const Color(0xFF121212);
+  bool loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final today = '\${now.year}-\${now.month}-\${now.day}';
+    if (prefs.getString('tasbeeh_daily_date') != today) {
+      await prefs.setString('tasbeeh_daily_date', today);
+      await prefs.setInt('tasbeeh_daily_count', 0);
+    }
+    if (!mounted) return;
+    setState(() {
+      count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
+      target = prefs.getInt('tasbeeh_target') ?? 500;
+      dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
+      backgroundColor = Color(prefs.getInt('tasbeeh_background_color') ?? 0xFF121212);
+      loaded = true;
+    });
+  }
+
+  Future<void> _increment() async {
+    if (!loaded) return;
+    setState(() { count++; dailyCount++; });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_salawat_count', count);
+    await prefs.setInt('tasbeeh_daily_count', dailyCount);
+    await tapFeedback();
+    if (count == target && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('أحسنت، أتممت العدد المحدد من الصلاة على محمد وآل محمد')),
+      );
+    }
+  }
+
+  Future<void> _reset() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إعادة العداد'),
+        content: const Text('هل تريد تصفير العدد الكلي؟'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => count = 0);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_salawat_count', 0);
+  }
+
+  Future<void> _setTarget(int value) async {
+    if (value < 1) return;
+    setState(() => target = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_target', value);
+  }
+
+  Future<void> _customTarget() async {
+    final controller = TextEditingController(text: target.toString());
+    final value = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تحديد العدد'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'العدد المطلوب'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          ElevatedButton(
+            onPressed: () {
+              final parsed = int.tryParse(controller.text.trim());
+              if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+    if (value != null) await _setTarget(value);
+  }
+
+  Future<void> _chooseBackground() async {
+    const choices = <Color>[
+      Color(0xFF121212), Color(0xFF1B4332), Color(0xFF172554),
+      Color(0xFF3B1024), Color(0xFF173D3D), Color(0xFF30234A),
+    ];
+    final chosen = await showDialog<Color>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('خلفية المسبحة'),
+        content: Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: choices.map((color) => InkWell(
+            onTap: () => Navigator.pop(context, color),
+            child: CircleAvatar(
+              backgroundColor: color,
+              radius: 22,
+              child: const Icon(Icons.check, color: Colors.white),
+            ),
+          )).toList(),
+        ),
+      ),
+    );
+    if (chosen == null) return;
+    setState(() => backgroundColor = chosen);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_background_color', chosen.value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = appColors[widget.selectedColor] ?? green;
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          color: backgroundColor,
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran')),
+                  ),
+                  IconButton(onPressed: _chooseBackground, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير الخلفية'),
+                ],
+              ),
+              GestureDetector(
+                onTap: _increment,
+                child: Container(
+                  width: 148,
+                  height: 148,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(colors: [accent.withValues(alpha: 0.85), backgroundColor]),
+                    border: Border.all(color: gold, width: 4),
+                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12, spreadRadius: 1)],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('$count', style: const TextStyle(color: gold, fontSize: 34, fontWeight: FontWeight.bold)),
+                      const Text('اضغط للتسبيح', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text('الهدف: $target  •  المتبقي: \${(target - count).clamp(0, target)}',
+                style: const TextStyle(color: Colors.white, fontSize: 15)),
+              Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 7),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 7,
+                children: [
+                  OutlinedButton(onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
+                  OutlinedButton(onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
+                  OutlinedButton(onPressed: _customTarget, child: const Text('تحديد العدد')),
+                  IconButton(onPressed: _reset, icon: const Icon(Icons.refresh, color: gold), tooltip: 'تصفير العداد'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                '﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: widget.fontSize, height: 2, fontFamily: 'AmiriQuran'),
+              ),
+              const SizedBox(height: 5),
+              const Text('سورة الأحزاب، الآية 56', textAlign: TextAlign.center, style: TextStyle(color: gold)),
+              const SizedBox(height: 18),
+              const Divider(color: gold),
+              const Text('فضل الصلاة على محمد وآل محمد',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text(
+                'قال رسول الله (صلى الله عليه وآله): «مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللهُ عَلَيْهِ بِهَا عَشْرًا».',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: widget.fontSize - 1, height: 1.9, fontFamily: 'Amiri'),
+              ),
+              const SizedBox(height: 6),
+              const Text('المصدر: صحيح مسلم، كتاب الصلاة، حديث الصلاة على النبي (رقم 408 في ترقيم مشهور).',
+                textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.6)),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class SettingsPage extends StatefulWidget {
   final bool isDarkMode;
@@ -1579,19 +1804,19 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(onPressed: () { unawaited(playWaterDrop()); widget.onChangeFontSize(-2); }, icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: () { unawaited(playWaterDrop()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
+                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(-2); }, icon: const Icon(Icons.remove)),
+                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
                 ],
               ),
             ),
           ),
           Card(
             child: ListTile(
-              leading: const Icon(Icons.notifications_active, color: gold),
-              title: const Text('إدارة المنبّهات'),
-              subtitle: const Text('إضافة منبّهات بأوقات وأيام مختلفة'),
+              leading: const Icon(Icons.alarm, color: gold),
+              title: const Text('منبه الزيارة'),
+              subtitle: const Text('إعداد ثلاثة منبّهات يومية لزيارة عاشوراء'),
               trailing: const Icon(Icons.chevron_left),
-              onTap: () { unawaited(playWaterDrop()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
+              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
           ),
           Card(
@@ -1600,7 +1825,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: const Text('حول التطبيق'),
               subtitle: const Text('معلومات التطبيق وحقوق التصميم'),
               trailing: const Icon(Icons.chevron_left),
-              onTap: () { unawaited(playWaterDrop()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
+              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
           ),
         ],
@@ -1701,7 +1926,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة المنبّهات')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: reminders.length >= 3 ? null : () { unawaited(playWaterDrop()); addReminder(); },
+        onPressed: reminders.length >= 3 ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_alarm),
@@ -1722,7 +1947,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                         leading: const Icon(Icons.alarm, color: gold, size: 30),
                         title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
                         subtitle: Text(daySummary(reminder.weekdays)),
-                        onTap: () { unawaited(playWaterDrop()); editReminder(reminder); },
+                        onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
