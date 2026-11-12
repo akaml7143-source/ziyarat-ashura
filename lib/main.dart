@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -366,7 +367,9 @@ class _AshuraAppState extends State<AshuraApp> {
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
       selectedFont = savedFont == 'AmiriQuran' ? 'AmiriQuran' : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
-      selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
+      final migratedColor = savedColor == 'عنابي' ? 'ماروني' : (savedColor == 'فيروز' ? 'فيروزي' : savedColor);
+      selectedColor = appColors.containsKey(migratedColor) ? migratedColor : 'أخضر';
+      if (selectedColor != savedColor) prefs.setString('ashura_theme_color', selectedColor);
       loaded = true;
     });
 
@@ -651,7 +654,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final appPrimary = Theme.of(context).colorScheme.primary;
     final fixedVisitTheme = Theme.of(context).copyWith(
-      colorScheme: Theme.of(context).colorScheme.copyWith(primary: green),
+      colorScheme: Theme.of(context).colorScheme.copyWith(primary: appPrimary),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(backgroundColor: appPrimary, foregroundColor: Colors.white),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: appPrimary, foregroundColor: Colors.white),
     );
     final pages = [
       Theme(data: fixedVisitTheme, child: ZiyaratPage(fontSize: widget.fontSize)),
@@ -660,7 +667,8 @@ class _HomeScreenState extends State<HomeScreen> {
       Theme(data: fixedVisitTheme, child: ListeningPage(fontSize: widget.fontSize)),
       Theme(data: fixedVisitTheme, child: TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor)),
     ];
-    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'المِسْبَحَةُ الإِلِكْتُرُونِيَّةُ'];
+    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'الحَسَنَاتِ يُذهِبنَ السَّيِّئَاتِ'];
+    const tabIcons = [Icons.menu_book, Icons.auto_awesome, Icons.mosque, Icons.headphones, Icons.auto_awesome];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
@@ -705,39 +713,35 @@ class _HomeScreenState extends State<HomeScreen> {
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: GestureDetector(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(13),
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedScale(
-                      scale: selected ? 1.045 : 1.0,
-                      duration: const Duration(milliseconds: 190),
+                      scale: selected ? 1.12 : 0.93,
+                      duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOutBack,
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 190),
+                        duration: const Duration(milliseconds: 220),
                         curve: Curves.easeOut,
-                        height: 66,
+                        height: 68,
                         alignment: Alignment.center,
-                        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
                         decoration: BoxDecoration(
-                          color: appPrimary.withValues(alpha: selected ? 1.0 : 0.78),
+                          color: appPrimary.withValues(alpha: selected ? 1.0 : 0.68),
                           borderRadius: BorderRadius.circular(13),
-                          border: Border.all(
-                            color: selected ? gold : appPrimary.withValues(alpha: 0.35),
-                            width: selected ? 1.5 : 0.7,
-                          ),
+                          border: Border.all(color: selected ? gold : appPrimary.withValues(alpha: 0.35),
+                            width: selected ? 1.7 : 0.7),
                         ),
-                        child: Text(
-                          labels[index],
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          maxLines: 2,
-                          overflow: TextOverflow.clip,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
-                        ),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+                          AnimatedScale(scale: selected ? 1.22 : 0.92,
+                            duration: const Duration(milliseconds: 220),
+                            child: Icon(tabIcons[index], color: selected ? gold : Colors.white, size: 20)),
+                          const SizedBox(height: 3),
+                          Text(labels[index], textAlign: TextAlign.center, softWrap: true, maxLines: 2,
+                            overflow: TextOverflow.clip,
+                            style: TextStyle(color: Colors.white, fontSize: selected ? 9.5 : 8.5,
+                              fontWeight: FontWeight.bold, height: 1.1)),
+                        ]),
                       ),
                     ),
                   ),
@@ -1058,7 +1062,7 @@ class _CounterWidgetState extends State<CounterWidget> {
               value: count / 100,
               minHeight: 8,
               borderRadius: BorderRadius.circular(10),
-              color: count == 100 ? Colors.green : gold,
+              color: count == 100 ? Theme.of(context).colorScheme.primary : gold,
               backgroundColor: Colors.grey.withValues(alpha: 0.2),
             ),
             const SizedBox(height: 14),
@@ -1077,8 +1081,8 @@ class _CounterWidgetState extends State<CounterWidget> {
               ],
             ),
             if (count == 100)
-              const Text('أحسنت، اكتمل العدد',
-                  style: TextStyle(color: Colors.green,
+              Text('أحسنت، اكتمل العدد',
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold)),
           ],
         ),
@@ -1507,22 +1511,45 @@ class TasbeehPage extends StatefulWidget {
 }
 
 class _TasbeehPageState extends State<TasbeehPage> {
-  int count = 0;
-  int target = 500;
-  int dailyCount = 0;
+  int count = 0, target = 500, dailyCount = 0;
   Color backgroundColor = const Color(0xFF121212);
   bool loaded = false;
 
+  static const List<Map<String, String>> narrations = [
+    {'summary': 'الإكثار من الصلاة على محمد وآله سبب لمحو الذنوب، ولها منزلة عظيمة تعدل التسبيح والتهليل والتكبير.', 'source': 'عيون أخبار الرضا، وأمالي الصدوق؛ بحار الأنوار، ج ٩١، ص ٤٧–٤٨'},
+    {'summary': 'يُستحب أن يبدأ المؤمن بالصلاة على النبي وآله عند ذكر أحد الأنبياء.', 'source': 'الأمالي للصدوق؛ بحار الأنوار، ج ٩١، ص ٤٨'},
+    {'summary': 'الصلاة على محمد وأهل بيته من الأعمال الثقيلة في ميزان الأعمال.', 'source': 'قرب الإسناد؛ بحار الأنوار، ج ٩١، ص ٤٩'},
+    {'summary': 'تتناول الرواية الصيغة الأفضل للصلاة على محمد وآل محمد مع الدعاء بالبركة.', 'source': 'قرب الإسناد؛ بحار الأنوار، ج ٩١، ص ٤٩'},
+    {'summary': 'تحث الرواية على الصلاة على محمد وآله، وتذكر قبول الدعاء عند ذكر النبي والدعاء له.', 'source': 'الخصال؛ بحار الأنوار، ج ٩١، ص ٥٠'},
+    {'summary': 'تذكر الرواية فضل الإكثار من الصلاة على النبي في شهر رمضان وأثره في ثقل الميزان.', 'source': 'الأمالي للصدوق؛ بحار الأنوار، ج ٩١، ص ٥٢'},
+    {'summary': 'تربط الرواية اتخاذ إبراهيم خليلاً بكثرة الصلاة على محمد وأهل بيته.', 'source': 'علل الشرائع؛ بحار الأنوار، ج ٩١، ص ٥٤'},
+    {'summary': 'تشرح الرواية معنى الصلاة: رحمة من الله، وتزكية من الملائكة، ودعاء من الناس، وتذكر ثواب الصلاة على محمد وآله.', 'source': 'معاني الأخبار؛ بحار الأنوار، ج ٩١، ص ٥٥'},
+    {'summary': 'تذكر الرواية فضل الصلاة على النبي عند الدعاء، وأنها من أفضل ما يخرج به الداعي.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٧'},
+    {'summary': 'تحث الرواية على تقديم الصلاة على محمد وآله قبل الدعاء.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٨'},
+    {'summary': 'تذكر الرواية استحباب الإكثار من الصلاة على محمد وآله بعد صلاة الفجر.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٨'},
+    {'summary': 'تتناول الرواية ذكراً بعد الصبح والمغرب، وتشرح معنى صلاة الله والملائكة والمؤمنين؛ وينبّه المصدر إلى عدم تعيين الإمام في سندها.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٨–٥٩'},
+    {'summary': 'توضح الرواية أن الصيغة الجامعة هي الصلاة على محمد وآل محمد.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٩'},
+    {'summary': 'تحث الرواية على إظهار الصلاة على النبي، وتذكر أثرها في إزالة النفاق.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٥٩–٦٠'},
+    {'summary': 'تذكر الرواية فضل الإكثار من الصلاة على النبي يوم الجمعة.', 'source': 'ثواب الأعمال؛ بحار الأنوار، ج ٩١، ص ٦٠'},
+    {'summary': 'تذكر الرواية مضاعفة الثواب الإلهي على الصلاة الواحدة على النبي وآله.', 'source': 'جامع الأخبار؛ بحار الأنوار، ج ٩١، ص ٦٣'},
+    {'summary': 'تذكر الرواية أن الصلاة على النبي سبب لمحو آثار الذنوب.', 'source': 'جامع الأخبار؛ بحار الأنوار، ج ٩١، ص ٦٣'},
+    {'summary': 'توصي الرواية بالإكثار من الصلاة على محمد وآله لمن لم يجد عملاً آخر يكفّر به ذنوبه.', 'source': 'جامع الأخبار؛ بحار الأنوار، ج ٩١، ص ٦٣'},
+    {'summary': 'تحذر الرواية من ذكر النبي من دون الصلاة عليه، وتقرن ذلك بالتقصير في مواسم الرحمة وبر الوالدين.', 'source': 'جامع الأخبار؛ بحار الأنوار، ج ٩١، ص ٦٣'},
+    {'summary': 'تؤكد الرواية استحباب تقديم الصلاة على محمد وآله قبل الدعاء.', 'source': 'جامع الأخبار؛ بحار الأنوار، ج ٩١، ص ٦٤'},
+    {'summary': 'تذكر الرواية أن صلاة المؤمن على النبي تُبلّغ إليه، وأن الله يجزي المصلي عليها أضعافاً.', 'source': 'جمال الأسبوع؛ بحار الأنوار، ج ٩١، ص ٦٨'},
+    {'summary': 'تعدّ الرواية ذكر الله ورسوله وأمير المؤمنين والأئمة من الذكر والعبادة.', 'source': 'الاختصاص؛ بحار الأنوار، ج ٩١، ص ٦٩'},
+    {'summary': 'تذكر الرواية فضل المداومة على الصلاة على النبي في أوقات اليوم والليل ابتغاء محبته.', 'source': 'الدعوات؛ بحار الأنوار، ج ٩١، ص ٧٠'},
+    {'summary': 'تذكر الرواية الصلاة على النبي وسقي الماء ومحبة أمير المؤمنين ضمن أفضل الأعمال.', 'source': 'الدعوات؛ بحار الأنوار، ج ٩١، ص ٧٠'},
+    {'summary': 'تذكر الرواية فضل كتابة الصلاة على النبي، واستغفار الملائكة ما دام اسمه في الكتاب.', 'source': 'منية المريد؛ بحار الأنوار، ج ٩١، ص ٧١'},
+  ];
+
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    final today = '${now.year}-${now.month}-${now.day}';
+    final today = '\${now.year}-\${now.month}-\${now.day}';
     if (prefs.getString('tasbeeh_daily_date') != today) {
       await prefs.setString('tasbeeh_daily_date', today);
       await prefs.setInt('tasbeeh_daily_count', 0);
@@ -1545,9 +1572,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
     await prefs.setInt('tasbeeh_daily_count', dailyCount);
     await tapFeedback();
     if (count == target && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أحسنت، أتممت العدد المحدد من الصلاة على محمد وآل محمد')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أحسنت، أتممت الهدف المحدد')));
     }
   }
 
@@ -1559,7 +1584,9 @@ class _TasbeehPageState extends State<TasbeehPage> {
         content: const Text('هل تريد تصفير العدد الكلي؟'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: appColors[widget.selectedColor] ?? green, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
         ],
       ),
     );
@@ -1581,21 +1608,17 @@ class _TasbeehPageState extends State<TasbeehPage> {
     final value = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحديد العدد'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'العدد المطلوب'),
-        ),
+        title: const Text('تحديد الهدف'),
+        content: TextField(controller: controller, keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'العدد المطلوب')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: appColors[widget.selectedColor] ?? green, foregroundColor: Colors.white),
             onPressed: () {
               final parsed = int.tryParse(controller.text.trim());
               if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
-            },
-            child: const Text('حفظ'),
-          ),
+            }, child: const Text('حفظ')),
         ],
       ),
     );
@@ -1611,18 +1634,12 @@ class _TasbeehPageState extends State<TasbeehPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('خلفية المسبحة'),
-        content: Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        content: Wrap(spacing: 12, runSpacing: 12,
           children: choices.map((color) => InkWell(
             onTap: () => Navigator.pop(context, color),
-            child: CircleAvatar(
-              backgroundColor: color,
-              radius: 22,
-              child: const Icon(Icons.check, color: Colors.white),
-            ),
-          )).toList(),
-        ),
+            child: CircleAvatar(backgroundColor: color, radius: 22,
+              child: const Icon(Icons.check, color: Colors.white)),
+          )).toList()),
       ),
     );
     if (chosen == null) return;
@@ -1637,87 +1654,98 @@ class _TasbeehPageState extends State<TasbeehPage> {
     return Column(
       children: [
         Container(
-          width: double.infinity,
-          color: backgroundColor,
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran')),
-                  ),
-                  IconButton(onPressed: _chooseBackground, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير الخلفية'),
-                ],
-              ),
-              GestureDetector(
-                onTap: _increment,
-                child: Container(
-                  width: 148,
-                  height: 148,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(colors: [accent.withValues(alpha: 0.85), backgroundColor]),
-                    border: Border.all(color: gold, width: 4),
-                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12, spreadRadius: 1)],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+          width: double.infinity, color: backgroundColor,
+          padding: const EdgeInsets.fromLTRB(10, 5, 10, 7),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              const Expanded(child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
+              IconButton(onPressed: _chooseBackground,
+                icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة'),
+            ]),
+            const Text('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, height: 1.6, color: Colors.white, fontFamily: 'AmiriQuran')),
+            const Text('سورة الأحزاب (٣٣)، الآية (٥٦)',
+              textAlign: TextAlign.center, style: TextStyle(color: gold, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 3),
+            const Text('المسبحة الإلكترونية', style: TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
+            GestureDetector(
+              onTap: _increment,
+              child: SizedBox(width: 208, height: 208,
+                child: Stack(alignment: Alignment.center, children: [
+                  for (var i = 0; i < 32; i++)
+                    Positioned(
+                      left: 104 + math.cos((2 * math.pi * i / 32) - math.pi / 2) * 88 - 7,
+                      top: 104 + math.sin((2 * math.pi * i / 32) - math.pi / 2) * 88 - 7,
+                      child: Container(width: 14, height: 14,
+                        decoration: BoxDecoration(shape: BoxShape.circle,
+                          gradient: RadialGradient(colors: [gold, accent]),
+                          border: Border.all(color: Colors.white70, width: 0.7),
+                          boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 3)])),
+                    ),
+                  Container(width: 138, height: 138,
+                    decoration: BoxDecoration(shape: BoxShape.circle,
+                      gradient: RadialGradient(colors: [accent.withValues(alpha: 0.95), backgroundColor]),
+                      border: Border.all(color: gold, width: 3),
+                      boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10)]),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Text('$count', style: const TextStyle(color: gold, fontSize: 34, fontWeight: FontWeight.bold)),
-                      const Text('اضغط للتسبيح', style: TextStyle(color: Colors.white, fontSize: 12)),
-                    ],
+                      const Text('اضغط للعدّ', style: TextStyle(color: Colors.white, fontSize: 12)),
+                    ]),
                   ),
-                ),
+                ]),
               ),
-              const SizedBox(height: 8),
-              Text('الهدف: $target  •  المتبقي: ${(target - count).clamp(0, target)}',
-                style: const TextStyle(color: Colors.white, fontSize: 15)),
-              Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 7),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 7,
-                children: [
-                  OutlinedButton(onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
-                  OutlinedButton(onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
-                  OutlinedButton(onPressed: _customTarget, child: const Text('تحديد العدد')),
-                  IconButton(onPressed: _reset, icon: const Icon(Icons.refresh, color: gold), tooltip: 'تصفير العداد'),
-                ],
-              ),
-            ],
-          ),
+            ),
+            Text('الهدف: $target  •  المتبقي: \${(target - count).clamp(0, target)}',
+              style: const TextStyle(color: Colors.white, fontSize: 13)),
+            Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 12)),
+            const SizedBox(height: 4),
+            Wrap(alignment: WrapAlignment.center, spacing: 5, runSpacing: 1, children: [
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7)),
+                onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7)),
+                onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)),
+                onPressed: _customTarget, child: const Text('هدف مخصص')),
+              IconButton(onPressed: _reset, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
+            ]),
+          ]),
         ),
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                '﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: widget.fontSize, height: 2, fontFamily: 'AmiriQuran'),
-              ),
-              const SizedBox(height: 5),
-              const Text('سورة الأحزاب، الآية 56', textAlign: TextAlign.center, style: TextStyle(color: gold)),
-              const SizedBox(height: 18),
-              const Divider(color: gold),
-              const Text('فضل الصلاة على محمد وآل محمد',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(
-                'قال رسول الله (صلى الله عليه وآله): «مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللهُ عَلَيْهِ بِهَا عَشْرًا».',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: widget.fontSize - 1, height: 1.9, fontFamily: 'Amiri'),
-              ),
-              const SizedBox(height: 6),
-              const Text('المصدر: صحيح مسلم، كتاب الصلاة، حديث الصلاة على النبي (رقم 408 في ترقيم مشهور).',
-                textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.6)),
-              const SizedBox(height: 20),
-            ],
-          ),
+          child: ListView(padding: const EdgeInsets.fromLTRB(12, 9, 12, 18), children: [
+            const Text('روايات في فضل الصلاة على محمد وآل محمد',
+              textAlign: TextAlign.center, style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('ملخصات مرتبة بحسب أرقام الصفحة الأصلية، وليست نقلاً حرفياً للنصوص.',
+              textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 11)),
+            const SizedBox(height: 7),
+            ...List.generate(narrations.length, (i) {
+              final item = narrations[i];
+              return Card(margin: const EdgeInsets.symmetric(vertical: 4),
+                child: Padding(padding: const EdgeInsets.all(11), child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('الحديث \${i + 1}', style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 4),
+                    Text(item['summary']!, style: TextStyle(fontSize: widget.fontSize - 3, height: 1.65)),
+                    const SizedBox(height: 4),
+                    Text(item['source']!, style: const TextStyle(color: Colors.grey, fontSize: 10.5, height: 1.4)),
+                  ])),
+              );
+            }),
+            const SizedBox(height: 8),
+            const Text('المصدر: شبكة السراج – جواهر البحار، أحاديث في فضل الصلاة على النبي وآله.',
+              textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 11)),
+            const SelectableText('https://alseraj.net/javaher/',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.blueAccent, decoration: TextDecoration.underline)),
+          ]),
         ),
       ],
     );
@@ -1751,12 +1779,16 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late String localFont;
   late String localColor;
+  late bool localDarkMode;
+  late double localFontSize;
 
   @override
   void initState() {
     super.initState();
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
+    localDarkMode = widget.isDarkMode;
+    localFontSize = widget.fontSize;
   }
 
   @override
@@ -1764,6 +1796,8 @@ class _SettingsPageState extends State<SettingsPage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
+    if (oldWidget.isDarkMode != widget.isDarkMode) localDarkMode = widget.isDarkMode;
+    if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
   }
 
   @override
@@ -1784,11 +1818,14 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Card(
             child: SwitchListTile(
-              secondary: const Icon(Icons.dark_mode, color: gold),
+              secondary: Icon(Icons.dark_mode, color: Theme.of(context).colorScheme.primary),
               title: const Text('الوضع الليلي'),
-              subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
-              value: widget.isDarkMode,
-              onChanged: (_) => widget.onToggleTheme(),
+              subtitle: Text(localDarkMode ? 'مفعّل' : 'غير مفعّل'),
+              value: localDarkMode,
+              onChanged: (_) {
+                setState(() => localDarkMode = !localDarkMode);
+                widget.onToggleTheme();
+              },
             ),
           ),
           Card(
@@ -1797,10 +1834,11 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.palette, color: gold),
-                    title: Text('تغيير لون التطبيق'),
+                    leading: Icon(Icons.palette, color: Theme.of(context).colorScheme.primary),
+                    title: const Text('تغيير لون التطبيق'),
+                    subtitle: const Text('أخضر • نيلي • ماروني • فيروزي'),
                   ),
                   DropdownButtonFormField<String>(
                     value: localColor,
@@ -1854,12 +1892,20 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
               title: const Text('حجم الخط'),
-              subtitle: Text('الحجم الحالي: ${widget.fontSize.toInt()}'),
+              subtitle: Text('الحجم الحالي: ${localFontSize.toInt()}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(-2); }, icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: () { unawaited(tapFeedback()); widget.onChangeFontSize(2); }, icon: const Icon(Icons.add)),
+                  IconButton(onPressed: () {
+                    unawaited(tapFeedback());
+                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0));
+                    widget.onChangeFontSize(-2);
+                  }, icon: Icon(Icons.remove, color: Theme.of(context).colorScheme.primary)),
+                  IconButton(onPressed: () {
+                    unawaited(tapFeedback());
+                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0));
+                    widget.onChangeFontSize(2);
+                  }, icon: Icon(Icons.add, color: Theme.of(context).colorScheme.primary)),
                 ],
               ),
             ),
