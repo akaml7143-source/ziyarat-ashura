@@ -607,10 +607,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             fit: BoxFit.scaleDown,
                             child: SizedBox(
                               width: constraints.maxWidth - 36,
-                              child: Text(
-                                'تُروى قصةُ الشاعر أبي الحسن جمال الدين الخليعي الحلّي أنّ أمّه نذرت أن ترسله لقطع الطريق على زوّار الإمام الحسين (عليه السلام). وفي طريقه إلى كربلاء غلبه النوم، فرأى في المنام أنّ غبار الزائرين كان سبب نجاته من النار، فاستيقظ تائباً، واعتنق ولاية أهل البيت، وزار كربلاء، وصار من محبّي الإمام الحسين (عليه السلام).',
+                              child: Text.rich(
+                                highlightImamHussein(
+                                  'تُروى قصةُ الشاعر أبي الحسن جمال الدين الخليعي الحلّي أنّ أمّه نذرت أن ترسله لقطع الطريق على زوّار الإمام الحسين (عليه السلام). وفي طريقه إلى كربلاء غلبه النوم، فرأى في المنام أنّ غبار الزائرين كان سبب نجاته من النار، فاستيقظ تائباً، واعتنق ولاية أهل البيت، وزار كربلاء، وصار من محبّي الإمام الحسين (عليه السلام).',
+                                  const TextStyle(color: Colors.black, fontSize: 19, height: 1.5, fontWeight: FontWeight.w700, fontFamily: 'Amiri'),
+                                ),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.black, fontSize: 19, height: 1.5, fontWeight: FontWeight.w700, fontFamily: 'Amiri'),
                               ),
                             ),
                           ),
