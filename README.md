@@ -7,7 +7,7 @@
 - `assets/ashura_icon.png`: أيقونة التطبيق المعتمدة.
 - `assets/wallpaper_1326_1793992364813.jpg`: خلفية شاشة البداية.
 - `assets/listening_background.jpg`: صورة صفحة الاستماع الثابتة.
-- `.github/workflows/build-apk.yml`: بناء APK تلقائياً عند الدفع إلى فرع `main` أو يدوياً.
+- `.github/workflows/build-apk.yml`: بناء APK تلقائياً عند الدفع إلى فرع `main` يدوياً فقط.
 
 ## ملاحظات مهمة قبل اعتبار الصوت مكتملاً
 الكود يتضمن أسماء عشرة قرّاء وملفات الصوت المحلية المطلوبة، لكن ملفات MP3 نفسها لم تكن ضمن الملفات التي أمكن استرجاعها. أضف التسجيلات الأصلية بالأسماء التالية داخل `assets/` حتى يعمل الاستماع دون إنترنت:
@@ -20,7 +20,6 @@
 - `aba_thar_alhelwachi.mp3`
 - `ali_alkabi.mp3`
 - `mahdi_samawati.mp3`
-- `mahmoud_karimi.mp3`
 - `ammar_alkinani.mp3`
 - `shibr_maalla_abbas.mp3` (زيارة الإمام العباس بصوت الشيخ شبر معله)
 
