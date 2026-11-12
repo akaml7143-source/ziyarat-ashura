@@ -428,11 +428,11 @@ class _AshuraAppState extends State<AshuraApp> {
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
-        colorScheme: ColorScheme.dark(
-          primary: primaryColor,
-          secondary: gold,
-          surface: const Color(0xFF1E1E1E),
-        ),
+        colorScheme: ColorScheme.dark(primary: primaryColor, secondary: gold, surface: const Color(0xFF1E1E1E)),
+        elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
+        outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
+        switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
+        sliderTheme: SliderThemeData(activeTrackColor: primaryColor, thumbColor: primaryColor),
         appBarTheme: AppBarTheme(
           backgroundColor: primaryColor,
           foregroundColor: gold,
@@ -446,11 +446,11 @@ class _AshuraAppState extends State<AshuraApp> {
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF9F6F0),
         cardColor: Colors.white,
-        colorScheme: ColorScheme.light(
-          primary: primaryColor,
-          secondary: gold,
-          surface: Colors.white,
-        ),
+        colorScheme: ColorScheme.light(primary: primaryColor, secondary: gold, surface: Colors.white),
+        elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
+        outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
+        switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
+        sliderTheme: SliderThemeData(activeTrackColor: primaryColor, thumbColor: primaryColor),
         appBarTheme: AppBarTheme(
           backgroundColor: primaryColor,
           foregroundColor: gold,
@@ -650,17 +650,15 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final appPrimary = Theme.of(context).colorScheme.primary;
-    final fixedVisitTheme = Theme.of(context).copyWith(
-      colorScheme: Theme.of(context).colorScheme.copyWith(primary: green),
-    );
     final pages = [
-      Theme(data: fixedVisitTheme, child: ZiyaratPage(fontSize: widget.fontSize)),
-      Theme(data: fixedVisitTheme, child: FavorsPage(fontSize: widget.fontSize)),
-      Theme(data: fixedVisitTheme, child: AbbasVisitPage(fontSize: widget.fontSize)),
-      Theme(data: fixedVisitTheme, child: ListeningPage(fontSize: widget.fontSize)),
-      Theme(data: fixedVisitTheme, child: TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor)),
+      ZiyaratPage(fontSize: widget.fontSize),
+      FavorsPage(fontSize: widget.fontSize),
+      AbbasVisitPage(fontSize: widget.fontSize),
+      ListeningPage(fontSize: widget.fontSize),
+      TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
-    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'المِسْبَحَةُ الإِلِكْتُرُونِيَّةُ'];
+    const labels = ['زِيَارَةُ عَاشُورَاءَ', 'فَضْــلُ الزِّيَــارَةِ', 'زِيَارَةُ العَبَّاسِ', 'اسْتِمَــاعُ الزِّيَــارَةِ', 'الْحَسَنَاتُ يُذْهِبْنَ السَّيِّئَاتِ'];
+    const icons = [Icons.menu_book, Icons.auto_awesome, Icons.mosque, Icons.headphones, Icons.radio_button_checked];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
@@ -708,13 +706,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: GestureDetector(
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedScale(
-                      scale: selected ? 1.045 : 1.0,
+                      scale: selected ? 1.16 : 1.0,
                       duration: const Duration(milliseconds: 190),
                       curve: Curves.easeOutBack,
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 190),
                         curve: Curves.easeOut,
-                        height: 66,
+                        height: selected ? 76 : 66,
                         alignment: Alignment.center,
                         padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
                         decoration: BoxDecoration(
@@ -725,18 +723,22 @@ class _HomeScreenState extends State<HomeScreen> {
                             width: selected ? 1.5 : 0.7,
                           ),
                         ),
-                        child: Text(
-                          labels[index],
-                          textAlign: TextAlign.center,
-                          softWrap: true,
-                          maxLines: 2,
-                          overflow: TextOverflow.clip,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                          ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedScale(
+                              scale: selected ? 1.12 : 0.92,
+                              duration: const Duration(milliseconds: 180),
+                              child: Icon(icons[index], color: selected ? gold : Colors.white,
+                                size: selected ? 24 : 19),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(labels[index], textAlign: TextAlign.center, softWrap: true,
+                              maxLines: 2, overflow: TextOverflow.clip,
+                              style: TextStyle(color: Colors.white, fontSize: selected ? 10 : 9,
+                                fontWeight: FontWeight.bold, height: 1.1)),
+                          ],
                         ),
                       ),
                     ),
@@ -1506,19 +1508,94 @@ class TasbeehPage extends StatefulWidget {
   State<TasbeehPage> createState() => _TasbeehPageState();
 }
 
+const List<String> tasbeehHadithTexts = [
+  "قال الرضا (عليه السلام): من لم يقدر على ما يكفّر به ذنوبه فليكثر من الصلاة على محمّد وآله، فإنّها تهدم الذنوب هدماً، وقال (عليه السلام): الصلاة على محمّد وآله تعدل عند اللّه عزّ وجلّ التسبيح والتهليل والتكبير.",
+  "قال الصادق (عليه السلام): إذا ذكر أحد من الأنبياء فابدأ بالصلاة على محمّد ثمّ عليه، صلّى الله على محمّد وآله وعلى جميع الأنبياء.",
+  "قال الباقر (عليه السلام) أو الصادق (عليه السلام): أثقل ما يوضع في الميزان يوم القيامة الصلاة على محمّد وعلى أهل بيته.",
+  "قال بعض الأصحاب عند الصادق (عليه السلام): اللّهمّ صلّ على محمّد وآل محمّد كما صلّيت على إبراهيم فقال (عليه السلام): لا، ولكن كأفضل ما صلّيت وباركت على إبراهيم وآل إبراهيم، إنّك حميد مجيد.",
+  "قال أمير المؤمنين (عليه السلام): صلّوا على محمّد وآل محمّد، فإنّ الله عزّ وجلّ يقبل دعاءكم عند ذكر محمّد (صلى الله عليه وآله وسلم) ودعائكم له، وحفظكم إيّاه.",
+  "قال النبيّ (صلى الله عليه وآله وسلم) في فضل شهر رمضان: من أكثر فيه من الصلاة عليّ ثقّل الله ميزانه يوم تخفّ الموازين.",
+  "قال العسكري (عليه السلام): إنّما اتّخذ الله إبراهيم خليلاً، لكثرة صلاته على محمّد وأهل بيته (عليهم السلام).",
+  "قال أبو حمزة الثمالي: سألت الصادق (عليه السلام) عن قول الله عزّ وجلّ: ﴿إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً﴾، فقال (عليه السلام): الصلاة من الله عزّ وجلّ رحمة، ومن الملائكة تزكية، ومن الناس دعاء، وأمّا قوله عزّ وجلّ: ﴿وَسَلِّمُوا تَسْليماً﴾ فإنّه يعني التسليم له فيما ورد عنه، فقلت له: فكيف نصلّي على محمّد وآله؟ قال (عليه السلام): تقولون: «صلوات الله وصلوات ملائكته وأنبيائه ورسله وجميع خلقه على محمّد وآل محمّد، والسلام عليه وعليهم ورحمة الله وبركاته»، فقلت: فما ثواب من صلّى على النبيّ وآله بهذه الصلاة؟ قال (عليه السلام): الخروج من الذنوب ـ والله ـ كهيئة يوم ولدته أمّه.",
+  "قال عبد السلام بن نعيم: قلت للصادق (عليه السلام): إنّي دخلت البيت فلم يحضرني شيء من الدعاء إلّا الصلاة على النبيّ (صلى الله عليه وآله وسلم)، فقال (عليه السلام): لم يخرج أحد بأفضل ممّا خرجت.",
+  "قال أمير المؤمنين (عليه السلام): كلّ دعاء محجوب عن السماء حتّى يصلّى على محمّد وآله.",
+  "قال الصبّاح بن سيابة: قال الصادق (عليه السلام): أ لا أعلّمك شيئاً يقي الله به وجهك من حرّ جهنم؟ قلت: بلى، قال (عليه السلام): قل بعد الفجر: «اللّهمّ صلّ على محمّد وآل محمّد» مائة مرّة، يقي الله به وجهك من حرّ جهنّم.",
+  "قال أبو المغيرة: قال أبو الحسن (عليه السلام): من قال في دبر صلاة الصبح وصلاة المغرب قبل أن يثني رجليه أو يكلّم أحداً: «﴿إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً﴾ اللّهمّ صلّ على محمّد وذرّيّته» قضى الله له مائة حاجة، سبعين في الدنيا وثلاثين في الآخرة. قلت: ما معنى صلاة الله وصلاة ملائكته وصلاة المؤمنين؟ قال (عليه السلام): صلاة الله رحمة من الله، وصلاة ملائكته تزكية منهم له، وصلاة المؤمنين دعاء منهم له. ومن سرّ آل محمّد في الصلاة على النبيّ وآله: «اللّهمّ صلّ على محمّد وآل محمّد في الأوّلين، وصلّ على محمّد وآل محمّد في الآخرين، وصلّ على محمّد وآل محمّد في الملأ الأعلى، وصلّ على محمّد وآل محمّد في المرسلين، اللّهمّ أعط محمّداً الوسيلة والشرف والفضيلة والدرجة الكبيرة، اللّهــمّ إنّي آمنت بمحمّد ولم أره، فلا تحرمني يوم القيامة رؤيته، وارزقني صحبته، وتوفّني على ملّته، واسقني من حوضه مشرباً سائغاً هنيئاً لا أظمأ بعده أبداً، إنّك على كلّ شيء قدير، اللّهــمّ كما آمنت بمحمّد ولم أره، فعرّفني في الجنان وجهه، اللّهمّ بلّغ روح محمّد عنّي تحيّة كثيرة وسلاماً». فإنّ من صلّى على النبيّ (صلى الله عليه وآله وسلم) بهذه الصلوات هدمت ذنوبه، ومحيت خطاياه، ودام سروره، واستجيب دعاؤه، وأعطي أمله، وبسط له في رزقه، وأعين على عدوّه، وهي له سبب أنواع الخير، ويجعل من رفقاء نبيّه في الجنان الأعلى، يقولهنّ ثلاث مرّات غدوة، وثلاث مرّات عشيّة. (١) وبما أنّ أبا المغيرة غير معروف لم يمكن تعيين الإمام (عليه السلام).",
+  "قال رجل عند الصادق (عليه السلام): اللّهمّ صلّ على محمّد وأهل بيت محمّد (عليهم السلام)، فقال الصادق (عليه السلام): يا هذا، لقد ضيّقت علينا، أ ما علمت أنّ أهل البيت خمسة أصحاب الكساء؟ فقال الرجل: كيف أقول؟ قال (عليه السلام): قل: «اللّهمّ صلّ على محمّد وآل محمّد» فنكون نحن وشيعتنا قد دخلنا فيه.",
+  "قال رسول الله (صلى الله عليه وآله وسلم): ارفعوا أصواتكم بالصلاة عليّ، فإنّها تذهب بالنفاق.",
+  "قال رسول الله (صلى الله عليه وآله وسلم): من صلّى عليّ يوم الجمعة مائة مرّة قضى الله له ستّين حاجة: منها للدنيا ثلاثون حاجة، وثلاثون للآخرة.",
+  "قال رسول الله (صلى الله عليه وآله وسلم): من صلّى عليّ مرة صلّى الله عليه عشراً، ومن صلّى عليّ عشراً صلّى الله عليه مائة مرّة، ومن صلّى عليّ مائة مرّة صلّى الله عليه ألف مرّة، ومن صلّى عليّ ألف مرّة لا يعذّبه الله في النار أبداً.",
+  "قال النبيّ (صلى الله عليه وآله وسلم): من صلّى عليّ مرّة لم يبق من ذنوبه ذرّة.",
+  "قال الرضا (عليه السلام): من لم يقدر على ما يكفّر به ذنوبه، فليكثر من الصلاة على محمّد وآله، فإنّها تهدم الذنوب هدماً.",
+  "قال النبيّ (صلى الله عليه وآله وسلم): من ذكرني فلم يصلّ عليّ فقد شقي، ومن أدرك رمضان فلم تصبه الرحمة فقد شقي، ومن أدرك أبواه أو أحدهما فلم يبرّ فقد شقي.",
+  "قال النبيّ (صلى الله عليه وآله وسلم): ما من دعاء إلّا بينه وبين السماء حجاب حتّى يصلّى على محمّد وآل محمّد، وإذا فعل ذلك انخرق الحجاب فدخل الدعاء، وإذا لم يفعل ذلك لم يرفع الدعاء.",
+  "قال رسول الله (صلى الله عليه وآله وسلم): إنّ الله أعطى ملكاً من الملائكة أسماء الخلائق كلّهم، وأسماء آبائهم، فهو قائم على قبري إذا متّ إلى يوم القيامة، فليس أحد يصلّي عليّ صلاة إلّا قال: يا محمّد، صلّى عليك فلان بن فلان بكذا وكذا، وإنّ ربّي كفّل لي أن يصلّي على ذلك العبد بكلّ واحدة عشراً.",
+  "قال رسول الله (صلى الله عليه وآله وسلم): ذكر الله عزّ وجلّ عبادة، وذكري عبادة، وذكر عليّ عبادة، وذكر الأئمّة من ولده عبادة.",
+  "قال النبيّ (صلى الله عليه وآله وسلم): من صلّى عليّ كلّ يوم ثلاث مرّات، وفي كلّ ليلة ثلاث مرّات حبّاً لي وشوقاً إليّ، كان حقّاً على الله عزّ وجلّ أن يغفر له ذنوبه تلك الليلة وذلك اليوم.",
+  "قال النبيّ (صلى الله عليه وآله وسلم): رأيت في ما يرى النائم عمّي حمزة بن عبد المطّلب وأخي جعفر بن أبي طالب، وبين يديهما طبق من نبق فأكلا ساعة، فتحوّل النبق عنباً فأكلا ساعة، فتحوّل العنب لهما رطباً فأكلا ساعة، فدنوت منهما، وقلت: بأبي أنتما، أيّ الأعمال وجدتما أفضل؟ قالا: فديناك بالآباء والأمّهات، وجدنا أفضل الأعمال الصلاة عليك، وسقي الماء، وحبّ عليّ بن أبي طالب (عليه السلام). (النبق: ثمر السدر).",
+  "قال النبيّ (صلى الله عليه وآله وسلم): من صلّى عليّ في كتاب، لم تزل الملائكة تستغفر له ما دام اسمي في ذلك الكتاب."
+];
+const List<String> tasbeehHadithOriginalSources = [
+  "عيون أخبار الرضا (عليه السلام)؛ الأمالي للصدوق",
+  "الأمالي للصدوق",
+  "قرب الإسناد",
+  "قرب الإسناد",
+  "الخصال",
+  "الأمالي للصدوق",
+  "علل الشرائع",
+  "معاني الأخبار",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "ثواب الأعمال",
+  "جامع الأخبار",
+  "جامع الأخبار",
+  "جامع الأخبار",
+  "جامع الأخبار",
+  "جامع الأخبار",
+  "جمال الأسبوع",
+  "الاختصاص",
+  "الدعوات",
+  "الدعوات",
+  "منية المريد"
+];
+const List<String> tasbeehHadithPages = [
+  "٤٧-٤٨",
+  "٤٨",
+  "٤٩",
+  "٤٩",
+  "٥٠",
+  "٥٢",
+  "٥٤",
+  "٥٥",
+  "٥٧",
+  "٥٨",
+  "٥٨",
+  "٥٨-٥٩",
+  "٥٩",
+  "٥٩-٦٠",
+  "٦٠",
+  "٦٣",
+  "٦٣",
+  "٦٣",
+  "٦٣",
+  "٦٤",
+  "٦٨",
+  "٦٩",
+  "٧٠",
+  "٧٠",
+  "٧١"
+];
+
 class _TasbeehPageState extends State<TasbeehPage> {
-  int count = 0;
-  int target = 500;
-  int dailyCount = 0;
+  int count = 0, target = 500, dailyCount = 0;
   Color backgroundColor = const Color(0xFF121212);
   bool loaded = false;
-
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
+  void initState() { super.initState(); _load(); }
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
@@ -1536,191 +1613,123 @@ class _TasbeehPageState extends State<TasbeehPage> {
       loaded = true;
     });
   }
-
   Future<void> _increment() async {
     if (!loaded) return;
     setState(() { count++; dailyCount++; });
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('tasbeeh_salawat_count', count);
-    await prefs.setInt('tasbeeh_daily_count', dailyCount);
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('tasbeeh_salawat_count', count);
+    await p.setInt('tasbeeh_daily_count', dailyCount);
     await tapFeedback();
-    if (count == target && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أحسنت، أتممت العدد المحدد من الصلاة على محمد وآل محمد')),
-      );
-    }
+    if (count == target && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أحسنت، أتممت العدد المحدد')));
   }
-
   Future<void> _reset() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إعادة العداد'),
-        content: const Text('هل تريد تصفير العدد الكلي؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
-        ],
-      ),
-    );
+    final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
+      title: const Text('إعادة العداد'), content: const Text('هل تريد تصفير العدد الكلي؟'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('تصفير')),
+      ]));
     if (ok != true) return;
-    setState(() => count = 0);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('tasbeeh_salawat_count', 0);
+    setState(() { count = 0; dailyCount = 0; });
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('tasbeeh_salawat_count', 0);
+    await p.setInt('tasbeeh_daily_count', 0);
   }
-
-  Future<void> _setTarget(int value) async {
-    if (value < 1) return;
-    setState(() => target = value);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('tasbeeh_target', value);
+  Future<void> _setTarget(int v) async {
+    if (v < 1) return;
+    setState(() => target = v);
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('tasbeeh_target', v);
+    await tapFeedback();
   }
-
   Future<void> _customTarget() async {
     final controller = TextEditingController(text: target.toString());
-    final value = await showDialog<int>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تحديد العدد'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'العدد المطلوب'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              final parsed = int.tryParse(controller.text.trim());
-              if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
-            },
-            child: const Text('حفظ'),
-          ),
-        ],
-      ),
-    );
-    if (value != null) await _setTarget(value);
+    final v = await showDialog<int>(context: context, builder: (context) => AlertDialog(
+      title: const Text('تحديد عدد الصلاة'),
+      content: TextField(controller: controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'العدد المطلوب')),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () {
+          final n = int.tryParse(controller.text.trim());
+          if (n != null && n > 0) Navigator.pop(context, n);
+        }, child: const Text('حفظ')),
+      ]));
+    if (v != null) await _setTarget(v);
   }
-
   Future<void> _chooseBackground() async {
-    const choices = <Color>[
-      Color(0xFF121212), Color(0xFF1B4332), Color(0xFF172554),
-      Color(0xFF3B1024), Color(0xFF173D3D), Color(0xFF30234A),
-    ];
-    final chosen = await showDialog<Color>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('خلفية المسبحة'),
-        content: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: choices.map((color) => InkWell(
-            onTap: () => Navigator.pop(context, color),
-            child: CircleAvatar(
-              backgroundColor: color,
-              radius: 22,
-              child: const Icon(Icons.check, color: Colors.white),
-            ),
-          )).toList(),
-        ),
-      ),
-    );
+    const colors = <Color>[Color(0xFF121212),Color(0xFF1B4332),Color(0xFF172554),Color(0xFF3B1024),Color(0xFF173D3D),Color(0xFF30234A)];
+    final chosen = await showDialog<Color>(context: context, builder: (context) => AlertDialog(
+      title: const Text('خلفية المسبحة'),
+      content: Wrap(spacing: 12, runSpacing: 12, children: colors.map((color) => InkWell(
+        onTap: () => Navigator.pop(context, color),
+        child: CircleAvatar(backgroundColor: color, radius: 22, child: const Icon(Icons.check, color: Colors.white)),
+      )).toList())));
     if (chosen == null) return;
     setState(() => backgroundColor = chosen);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('tasbeeh_background_color', chosen.value);
+    final p = await SharedPreferences.getInstance();
+    await p.setInt('tasbeeh_background_color', chosen.value);
   }
-
   @override
   Widget build(BuildContext context) {
-    final accent = appColors[widget.selectedColor] ?? green;
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          color: backgroundColor,
-          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran')),
-                  ),
-                  IconButton(onPressed: _chooseBackground, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير الخلفية'),
-                ],
-              ),
-              GestureDetector(
-                onTap: _increment,
-                child: Container(
-                  width: 148,
-                  height: 148,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(colors: [accent.withValues(alpha: 0.85), backgroundColor]),
-                    border: Border.all(color: gold, width: 4),
-                    boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 12, spreadRadius: 1)],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('$count', style: const TextStyle(color: gold, fontSize: 34, fontWeight: FontWeight.bold)),
-                      const Text('اضغط للتسبيح', style: TextStyle(color: Colors.white, fontSize: 12)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text('الهدف: $target  •  المتبقي: ${(target - count).clamp(0, target)}',
-                style: const TextStyle(color: Colors.white, fontSize: 15)),
-              Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 7),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 7,
-                children: [
-                  OutlinedButton(onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
-                  OutlinedButton(onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
-                  OutlinedButton(onPressed: _customTarget, child: const Text('تحديد العدد')),
-                  IconButton(onPressed: _reset, icon: const Icon(Icons.refresh, color: gold), tooltip: 'تصفير العداد'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                '﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ ۚ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: widget.fontSize, height: 2, fontFamily: 'AmiriQuran'),
-              ),
-              const SizedBox(height: 5),
-              const Text('سورة الأحزاب، الآية 56', textAlign: TextAlign.center, style: TextStyle(color: gold)),
-              const SizedBox(height: 18),
-              const Divider(color: gold),
-              const Text('فضل الصلاة على محمد وآل محمد',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(
-                'قال رسول الله (صلى الله عليه وآله): «مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللهُ عَلَيْهِ بِهَا عَشْرًا».',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: widget.fontSize - 1, height: 1.9, fontFamily: 'Amiri'),
-              ),
-              const SizedBox(height: 6),
-              const Text('المصدر: صحيح مسلم، كتاب الصلاة، حديث الصلاة على النبي (رقم 408 في ترقيم مشهور).',
-                textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.6)),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ],
-    );
+    final accent = Theme.of(context).colorScheme.primary;
+    final progress = (count / target).clamp(0.0, 1.0);
+    return Column(children: [
+      Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
+        child: Column(children: [
+          Row(children: [
+            const Expanded(child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', textAlign: TextAlign.center,
+              style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
+            IconButton(onPressed: _chooseBackground, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة'),
+          ]),
+          GestureDetector(onTap: _increment, child: AnimatedContainer(duration: const Duration(milliseconds: 200),
+            width: 154, height: 154,
+            decoration: BoxDecoration(shape: BoxShape.circle,
+              gradient: RadialGradient(colors: [accent.withValues(alpha: 0.88), backgroundColor]),
+              border: Border.all(color: accent, width: 5),
+              boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.3), blurRadius: 16, spreadRadius: 2)]),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('$count', style: const TextStyle(color: gold, fontSize: 35, fontWeight: FontWeight.bold)),
+              const Text('اضغط للتسبيح', style: TextStyle(color: Colors.white, fontSize: 12)),
+            ]))),
+          const SizedBox(height: 6),
+          Text('الهدف: $target  •  المتبقي: ' + (target-count).clamp(0,target).toString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 5),
+          SizedBox(width: 230, child: ClipRRect(borderRadius: BorderRadius.circular(20),
+            child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(accent)))),
+          const SizedBox(height: 7),
+          Wrap(alignment: WrapAlignment.center, spacing: 7, runSpacing: 5, children: [
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(500), child: const Text('تحدي 500')),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () => _setTarget(1000000), child: const Text('تحدي المليون')),
+            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: _customTarget, child: const Text('تحديد العدد')),
+            IconButton(onPressed: _reset, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
+          ]),
+        ])),
+      Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(12,14,12,24), children: [
+        Text('﴿إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً﴾',
+          textAlign: TextAlign.center, style: TextStyle(fontSize: widget.fontSize, height: 2, fontFamily: 'AmiriQuran')),
+        const SizedBox(height: 5),
+        const Text('سورة الأحزاب — الآية ٥٦', textAlign: TextAlign.center, style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 18),
+        const Text('أحاديث في فضل الصلاة على محمّد وآل محمّد', textAlign: TextAlign.center, style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        const Text('أحاديث في فضل الصلاة على محمّد وآل محمّد، وأنّ الصلاة عليهم تكفّر الذنوب وتثقّل الميزان، وفي ما يقال عند ذكر الأنبياء، وعلّة اتّخاذ الله إبراهيم خليلاً. هذه النصوص من مجموعة «جواهر البحار» المقتبسة من «بحار الأنوار» للعلامة المجلسي، مع إبقاء أرقامها ومصادرها كما وردت في النص المرسل.', textAlign: TextAlign.justify, style: TextStyle(height: 1.8)),
+        const SizedBox(height: 10),
+        ...List.generate(tasbeehHadithTexts.length, (index) => Card(
+          margin: const EdgeInsets.symmetric(vertical: 7), elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2)),
+          child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text('الحديث: ' + (index+1).toString() + '  |  ترتيب جواهر البحار: ' + (9455+index).toString(),
+              textAlign: TextAlign.right, style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16)),
+            const Divider(),
+            SelectableText(tasbeehHadithTexts[index], textAlign: TextAlign.justify, style: TextStyle(fontSize: widget.fontSize-2, height: 1.9)),
+            const SizedBox(height: 9),
+            Text('المصدر الأصلي: ' + tasbeehHadithOriginalSources[index], style: const TextStyle(color: Colors.grey, height: 1.6)),
+            Text('المصدر من بحار الأنوار: ج ٩١، ص ' + tasbeehHadithPages[index], style: const TextStyle(color: Colors.grey, height: 1.6)),
+          ])),
+        )),
+      ])),
+    ]);
   }
 }
 
