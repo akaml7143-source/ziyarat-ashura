@@ -47,3 +47,6 @@
 
 
 <!-- Trigger Android APK build after Dart syntax correction. -->
+
+
+<!-- Trigger APK build for latest welcome and reader-name updates. -->
