@@ -53,3 +53,6 @@
 
 
 <!-- Trigger final APK build with reminder permission updates. -->
+
+
+آخر تحسين لشاشة الترحيب: زر دائري متحرك، الشعر مكبّر، والقصة باللون الأبيض.
