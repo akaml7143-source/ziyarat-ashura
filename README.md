@@ -44,3 +44,6 @@
 
 
 تحديث واجهة الترحيب ومحتوى فضل الزيارة والمنبّهات في الإصدار الحالي.
+
+
+<!-- Trigger Android APK build after Dart syntax correction. -->
