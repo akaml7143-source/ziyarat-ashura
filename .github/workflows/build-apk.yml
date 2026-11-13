@@ -131,13 +131,13 @@ jobs:
           gradle = Path("android/app/build.gradle.kts")
           if gradle.exists():
               gs = gradle.read_text()
-              gs = re.sub(r'minSdk\\s*=\\s*\\d+', 'minSdk = 23', gs)
+              gs = re.sub(r'minSdk\\s*=\\s*[^,\\n]+', 'minSdk = 23', gs)
               gradle.write_text(gs)
           else:
               gradle = Path("android/app/build.gradle")
               if gradle.exists():
                   gs = gradle.read_text()
-                  gs = re.sub(r'minSdkVersion\\s+\\d+', 'minSdkVersion 23', gs)
+                  gs = re.sub(r'minSdkVersion\\s+[^,\\n]+', 'minSdkVersion 23', gs)
                   gradle.write_text(gs)
 
           p.write_text(s)
