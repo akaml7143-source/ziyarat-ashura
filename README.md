@@ -71,3 +71,6 @@
 
 
 إعادة بناء التطبيق بعد العودة إلى flutter_local_notifications مع جدولة بغداد وإعادة الجدولة بعد تشغيل الهاتف.
+
+
+Build APK after Android SDK 36 compatibility fix.
