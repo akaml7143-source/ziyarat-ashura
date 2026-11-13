@@ -597,10 +597,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         child: Text.rich(
                           highlightImamHussein(
                             'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً .. لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسين',
+                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً .. عَليهِ غُبارُ زوّارِ الحُسين',
                             const TextStyle(
                               color: Colors.white,
-                              fontSize: 27,
+                              fontSize: 31,
                               height: 1.3,
                               fontFamily: 'AmiriQuran',
                               shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
@@ -624,7 +624,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: enter,
-                                borderRadius: BorderRadius.circular(40),
+                                borderRadius: BorderRadius.circular(100),
                                 splashFactory: InkRipple.splashFactory,
                                 splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
                                 highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
@@ -632,13 +632,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   scale: pressed ? 0.94 : 1.0,
                                   duration: const Duration(milliseconds: 160),
                                   child: Container(
-                                    constraints: const BoxConstraints(minWidth: 154, minHeight: 66),
-                                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                                    constraints: const BoxConstraints.tightFor(width: 118, height: 118),
+                                    padding: const EdgeInsets.all(12),
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF17130D).withValues(alpha: 0.58),
                                       borderRadius: BorderRadius.circular(40),
-                                      border: Border.all(color: const Color(0xFFC5A45E), width: 2),
+                                      border: Border.all(color: const Color(0xFFC5A45E), width: 2.5),
                                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
                                     ),
                                     child: const Text(
@@ -646,7 +646,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 23,
+                                        fontSize: 21,
                                         fontWeight: FontWeight.w900,
                                         fontFamily: 'Amiri',
                                         shadows: [Shadow(color: Colors.black, blurRadius: 5)],
