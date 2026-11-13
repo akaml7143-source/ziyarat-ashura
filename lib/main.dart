@@ -2034,12 +2034,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                     onTap: () async {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
-                      final fullScreenAllowed = true;
-                      if (!fullScreenAllowed && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم تُمنح صلاحية التنبيه بملء الشاشة. فعّلها من: إعدادات الهاتف ← التطبيقات ← زيارة عاشوراء ← وصول خاص للتطبيقات ← التنبيهات بملء الشاشة.')));
-                      }
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُرسل الاختبار. إذا لم يظهر منبثقاً، فعّل صلاحية التنبيهات بملء الشاشة وإشعارات شاشة القفل من إعدادات الهاتف.')));
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.')));
                     },
                   ),
                 ),
