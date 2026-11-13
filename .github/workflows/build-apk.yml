@@ -41,7 +41,6 @@ jobs:
           permissions = [
               "android.permission.POST_NOTIFICATIONS",
               "android.permission.VIBRATE",
-              "android.permission.USE_FULL_SCREEN_INTENT",
               "android.permission.SCHEDULE_EXACT_ALARM",
               "android.permission.RECEIVE_BOOT_COMPLETED",
               "android.permission.WAKE_LOCK",
@@ -110,34 +109,36 @@ jobs:
                   audio_components + "\n</application>"
               )
 
-          # Awesome Notifications scheduled notification receivers
-          if 'me.carda.awesome_notifications.core.broadcasters.receivers.ScheduledNotificationReceiver' not in s:
-              awesome_receivers = '''
+          # Flutter Local Notifications scheduled notification receivers.
+          if 'com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver' not in s:
+              local_receivers = '''
               <receiver
-                  android:name="me.carda.awesome_notifications.core.broadcasters.receivers.ScheduledNotificationReceiver"
-                  android:exported="true" />
+                  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+                  android:exported="false" />
               <receiver
-                  android:name="me.carda.awesome_notifications.core.broadcasters.receivers.RefreshSchedulesReceiver"
-                  android:exported="true">
+                  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+                  android:exported="false">
                   <intent-filter>
                       <action android:name="android.intent.action.BOOT_COMPLETED" />
+                      <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                       <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                   </intent-filter>
               </receiver>
               '''
-              s = s.replace("</application>", awesome_receivers + "\n</application>")
+              s = s.replace("</application>", local_receivers + "\\n</application>")
 
-          # Awesome Notifications requires Android minSdk 23 or newer.
+          # Flutter Local Notifications 17 needs a recent compile SDK.
           gradle = Path("android/app/build.gradle.kts")
           if gradle.exists():
               gs = gradle.read_text()
-              gs = re.sub(r'minSdk\s*=\s*[^,\n]+', 'minSdk = 23', gs)
+              if re.search(r'compileSdk\\s*=\\s*\\d+', gs):
+                  gs = re.sub(r'compileSdk\\s*=\\s*\\d+', 'compileSdk = 35', gs, count=1)
               gradle.write_text(gs)
           else:
               gradle = Path("android/app/build.gradle")
               if gradle.exists():
                   gs = gradle.read_text()
-                  gs = re.sub(r'minSdkVersion\s+[^,\n]+', 'minSdkVersion 23', gs)
+                  gs = re.sub(r'compileSdkVersion\\s+\\d+', 'compileSdkVersion 35', gs, count=1)
                   gradle.write_text(gs)
 
           p.write_text(s)
