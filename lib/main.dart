@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:vibration/vibration.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 
@@ -29,9 +26,7 @@ const Map<String, Color> appColors = {
   'هافان': Color(0xFF8D5A3B),
 };
 
-final FlutterLocalNotificationsPlugin notifications =
-    FlutterLocalNotificationsPlugin();
-
+final AwesomeNotifications notifications = AwesomeNotifications();
 late AudioHandler audioHandler;
 
 Future<void> tapFeedback() async {
@@ -125,59 +120,79 @@ class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 }
 
+const String reminderChannelKey = 'ashura_reminders_awesome_v1';
+
 Future<void> initNotifications() async {
-  tzdata.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
-  const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const settings = InitializationSettings(android: android);
-  await notifications.initialize(settings);
+  await notifications.initialize(
+    null,
+    [
+      NotificationChannel(
+        channelKey: reminderChannelKey,
+        channelName: 'منبّهات زيارة عاشوراء',
+        channelDescription: 'تذكيرات الزيارة والصلاة على محمد وآل محمد',
+        defaultColor: const Color(0xFFC5A45E),
+        importance: NotificationImportance.Max,
+        playSound: true,
+        enableVibration: true,
+        channelShowBadge: true,
+      ),
+    ],
+    debug: false,
+  );
 }
 
 Future<bool> canScheduleExactAlarms() async {
-  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  return await android?.canScheduleExactNotifications() ?? false;
+  final permissions = await notifications.checkPermissionList(
+    channelKey: reminderChannelKey,
+    permissions: [NotificationPermission.PreciseAlarms],
+  );
+  return permissions.contains(NotificationPermission.PreciseAlarms);
 }
 
-NotificationDetails reminderNotificationDetails() => NotificationDetails(
-  android: AndroidNotificationDetails(
-    'ashura_reminders_v5',
-    'منبّهات زيارة عاشوراء',
-    channelDescription: 'تنبيهات زيارة عاشوراء التي تظهر على شاشة القفل',
-    importance: Importance.max,
-    priority: Priority.max,
-    category: AndroidNotificationCategory.alarm,
-    visibility: NotificationVisibility.public,
-    ticker: 'تذكير زيارة عاشوراء',
-    enableVibration: true,
-    vibrationPattern: Int64List.fromList([0, 350, 150, 350]),
-    playSound: true,
-    showWhen: true,
-    autoCancel: true,
-    channelShowBadge: true,
-    fullScreenIntent: true,
-    audioAttributesUsage: AudioAttributesUsage.alarm,
-  ),
-);
-
 Future<void> showReminderTestNotification() async {
-  await notifications.show(90999, 'زيارة عاشوراء', 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails());
+  await notifications.createNotification(
+    content: NotificationContent(
+      id: 90999,
+      channelKey: reminderChannelKey,
+      title: 'زيارة عاشوراء',
+      body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
+      category: NotificationCategory.Reminder,
+      wakeUpScreen: true,
+      notificationLayout: NotificationLayout.Default,
+    ),
+  );
 }
 
 Future<bool> askNotificationPermission() async {
-  final android = notifications.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
-  return await android?.requestNotificationsPermission() ?? true;
+  final allowed = await notifications.isNotificationAllowed();
+  if (allowed) return true;
+  return notifications.requestPermissionToSendNotifications(
+    channelKey: reminderChannelKey,
+    permissions: [
+      NotificationPermission.Alert,
+      NotificationPermission.Sound,
+      NotificationPermission.Vibration,
+    ],
+  );
 }
 
 Future<bool> askFullScreenIntentPermission() async {
-  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  return await android?.requestFullScreenIntentPermission() ?? false;
+  final allowed = await notifications.checkPermissionList(
+    channelKey: reminderChannelKey,
+    permissions: [NotificationPermission.FullScreenIntent],
+  );
+  if (allowed.contains(NotificationPermission.FullScreenIntent)) return true;
+  return notifications.requestPermissionToSendNotifications(
+    channelKey: reminderChannelKey,
+    permissions: [NotificationPermission.FullScreenIntent],
+  );
 }
 
 Future<bool> askExactAlarmPermission() async {
-  final android = notifications.resolvePlatformSpecificImplementation<
-      AndroidFlutterLocalNotificationsPlugin>();
-  return await android?.requestExactAlarmsPermission() ?? false;
+  return notifications.requestPermissionToSendNotifications(
+    channelKey: reminderChannelKey,
+    permissions: [NotificationPermission.PreciseAlarms],
+  );
 }
 
 class AshuraReminder {
@@ -234,10 +249,6 @@ const String reminderMessage =
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
 
 Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
-  for (final day in reminder.weekdays) {
-    await notifications.cancel(_notificationId(reminder.id, day));
-  }
-  // Also cancel all seven IDs in case the selected days were edited earlier.
   for (var day = 1; day <= 7; day++) {
     await notifications.cancel(_notificationId(reminder.id, day));
   }
@@ -246,30 +257,26 @@ Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
 Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
-
-  final details = reminderNotificationDetails();
-  final exactAllowed = await canScheduleExactAlarms();
-  final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
-  const notificationTitle = 'زيارة عاشوراء';
-  const notificationBody = 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟';
-  final now = tz.TZDateTime.now(tz.local);
   for (final weekday in reminder.weekdays) {
-    var scheduled = tz.TZDateTime(
-      tz.local, now.year, now.month, now.day, reminder.hour, reminder.minute,
-    );
-    while (scheduled.weekday != weekday || !scheduled.isAfter(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
-    }
-    await notifications.zonedSchedule(
-      _notificationId(reminder.id, weekday),
-      notificationTitle,
-      notificationBody,
-      scheduled,
-      details,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: scheduleMode,
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    await notifications.createNotification(
+      content: NotificationContent(
+        id: _notificationId(reminder.id, weekday),
+        channelKey: reminderChannelKey,
+        title: 'زيارة عاشوراء',
+        body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
+        category: NotificationCategory.Reminder,
+        wakeUpScreen: true,
+        notificationLayout: NotificationLayout.Default,
+      ),
+      schedule: NotificationCalendar(
+        weekday: weekday,
+        hour: reminder.hour,
+        minute: reminder.minute,
+        timeZone: 'Asia/Baghdad',
+        allowWhileIdle: true,
+        preciseAlarm: true,
+        repeats: true,
+      ),
     );
   }
 }
@@ -318,22 +325,24 @@ Future<void> scheduleSalawatReminder({
 }) async {
   await notifications.cancel(salawatReminderNotificationId);
   if (!enabled) return;
-  final now = tz.TZDateTime.now(tz.local);
-  var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-  if (!scheduled.isAfter(now)) scheduled = scheduled.add(const Duration(days: 1));
-  final details = reminderNotificationDetails();
-  final exactAllowed = await canScheduleExactAlarms();
-  final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
-  await notifications.zonedSchedule(
-    salawatReminderNotificationId,
-    'تذكير الصلاة على محمد وآل محمد',
-    'هل صليت على محمد وآل محمد هذا اليوم؟',
-    scheduled,
-    details,
-    uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-    androidScheduleMode: scheduleMode,
-    matchDateTimeComponents: DateTimeComponents.time,
+  await notifications.createNotification(
+    content: NotificationContent(
+      id: salawatReminderNotificationId,
+      channelKey: reminderChannelKey,
+      title: 'تذكير الصلاة على محمد وآل محمد',
+      body: 'هل صليت على محمد وآل محمد هذا اليوم؟',
+      category: NotificationCategory.Reminder,
+      wakeUpScreen: true,
+      notificationLayout: NotificationLayout.Default,
+    ),
+    schedule: NotificationCalendar(
+      hour: hour,
+      minute: minute,
+      timeZone: 'Asia/Baghdad',
+      allowWhileIdle: true,
+      preciseAlarm: true,
+      repeats: true,
+    ),
   );
 }
 
@@ -358,7 +367,7 @@ Future<void> main() async {
   );
   try {
     await initNotifications();
-    await notifications.cancel(1001); // إلغاء التذكير القديم ذي المعرّف الثابت.
+    // إشعارات Awesome Notifications الجديدة لها قناة ومعرّفات مستقلة.
     await rescheduleSavedReminders();
     await restoreSalawatReminder();
   } catch (error) {
@@ -575,7 +584,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   child: Stack(
                     children: [
                       Positioned(
-                        top: h * 0.025,
+                        top: h * 0.065,
                         left: 12,
                         right: 12,
                         child: const Text(
@@ -583,7 +592,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFC5A45E),
-                            fontSize: 40,
+                            fontSize: 36,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'AmiriQuran',
                             shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
@@ -591,16 +600,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.13,
-                        right: 12,
-                        left: constraints.maxWidth * 0.54,
+                        bottom: h * 0.10,
+                        right: 18,
+                        left: 18,
                         child: Text.rich(
                           highlightImamHussein(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً .. لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\\n'
+                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً .. لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
                             'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً .. عَليهِ غُبارُ زوّارِ الحُسين',
                             const TextStyle(
                               color: Colors.white,
-                              fontSize: 31,
+                              fontSize: 32,
                               height: 1.3,
                               fontFamily: 'AmiriQuran',
                               shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
@@ -610,9 +619,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.18,
-                        left: 12,
-                        right: constraints.maxWidth * 0.58,
+                        top: h * 0.5 - 62,
+                        left: 0,
+                        right: 0,
                         child: Center(
                           child: AnimatedBuilder(
                             animation: _floatAnimation,
@@ -624,7 +633,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: enter,
-                                borderRadius: BorderRadius.circular(100),
+                                borderRadius: BorderRadius.circular(999),
                                 splashFactory: InkRipple.splashFactory,
                                 splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
                                 highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
@@ -642,11 +651,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
                                     ),
                                     child: const Text(
-                                      'الدخول الى\\nالتطبيق',
+                                      'الدخول إلى التطبيق',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 21,
+                                        fontSize: 20,
                                         fontWeight: FontWeight.w900,
                                         fontFamily: 'Amiri',
                                         shadows: [Shadow(color: Colors.black, blurRadius: 5)],
@@ -659,33 +668,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           ),
                         ),
                       ),
-                      Positioned(
-                        left: 12,
-                        right: 12,
-                        bottom: 5,
-                        height: h * 0.51,
-                        child: Center(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: SizedBox(
-                              width: constraints.maxWidth - 36,
-                              child: Text.rich(
-                                highlightImamHussein(
-                                  story,
-                                  const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    height: 1.12,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'Amiri',
-                                  ),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 );
@@ -1788,7 +1771,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
           Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 20), tooltip: 'تغيير خلفية المسبحة')),
           const SizedBox(height: 4),
           Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — سورة الأحزاب، الآية ٥٦',
-            const TextStyle(color: Colors.white, fontSize: 30, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
+            const TextStyle(color: Colors.white, fontSize: 22, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
             style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -2111,10 +2094,10 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     // اطلب صلاحية التنبيه بملء الشاشة مرة واحدة عند إعداد المنبّه.
     // رفضها لا يمنع جدولة الإشعار العادي، لكنه قد يمنع ظهوره كنافذة منبثقة.
     final prefs = await SharedPreferences.getInstance();
-    final fullScreenAsked = prefs.getBool('full_screen_intent_asked') ?? false;
+    final fullScreenAsked = prefs.getBool('full_screen_intent_asked_awesome') ?? false;
     if (!fullScreenAsked) {
       final fullScreenGranted = await askFullScreenIntentPermission();
-      await prefs.setBool('full_screen_intent_asked', true);
+      await prefs.setBool('full_screen_intent_asked_awesome', true);
       if (!fullScreenGranted && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('لظهور التنبيه بملء الشاشة، فعّل صلاحية التنبيهات بملء الشاشة وإشعارات شاشة القفل من إعدادات الهاتف.'),
