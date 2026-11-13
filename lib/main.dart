@@ -455,7 +455,7 @@ class _AshuraAppState extends State<AshuraApp> {
       title: 'زيارة عاشوراء',
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
-        fontFamily: selectedFont,
+         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
@@ -476,7 +476,7 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Color(0xFF1F1F1F)),
       ),
       theme: ThemeData(
-        fontFamily: selectedFont,
+         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF9F6F0),
         cardColor: Colors.white,
@@ -591,13 +591,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.145,
-                        right: 18,
-                        left: 18,
+                        top: h * 0.13,
+                        right: 12,
+                        left: constraints.maxWidth * 0.54,
                         child: Text.rich(
                           highlightImamHussein(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
+                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً .. لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\\n'
+                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسين',
                             const TextStyle(
                               color: Colors.white,
                               fontSize: 27,
@@ -610,9 +610,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.405,
-                        left: 0,
-                        right: 0,
+                        top: h * 0.18,
+                        left: 12,
+                        right: constraints.maxWidth * 0.58,
                         child: Center(
                           child: AnimatedBuilder(
                             animation: _floatAnimation,
@@ -642,7 +642,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
                                     ),
                                     child: const Text(
-                                      'أدخل من هنا',
+                                      'الدخول الى\\nالتطبيق',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
@@ -663,7 +663,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         left: 12,
                         right: 12,
                         bottom: 5,
-                        height: h * 0.39,
+                        height: h * 0.51,
                         child: Center(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
@@ -673,7 +673,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                 highlightImamHussein(
                                   story,
                                   const TextStyle(
-                                    color: Colors.black,
+                                    color: Colors.white,
                                     fontSize: 28,
                                     height: 1.12,
                                     fontWeight: FontWeight.w700,
@@ -826,7 +826,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
-  final expression = RegExp(r'(?:ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*)?ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
+  final expression = RegExp(r'(?:ا[\u064B-\u065F\u0670\u0640]*ل[\u064B-\u065F\u0670\u0640]*)?ح[\u064B-\u065F\u0670\u0640]*س[\u064B-\u065F\u0670\u0640]*ي[\u064B-\u065F\u0670\u0640]*ن[\u064B-\u065F\u0670\u0640]*');
   final spans = <TextSpan>[];
   var cursor = 0;
   for (final match in expression.allMatches(text)) {
@@ -1134,8 +1134,8 @@ class _CounterWidgetState extends State<CounterWidget> {
             Text(widget.title, style: const TextStyle(fontSize: 19,
                 fontWeight: FontWeight.bold, color: gold)),
             const SizedBox(height: 12),
-            SelectableText(widget.phrase, textAlign: TextAlign.center,
-                style: TextStyle(fontSize: widget.fontSize, height: 1.9)),
+            SelectableText.rich(highlightImamHussein(widget.phrase,
+                TextStyle(fontSize: widget.fontSize, height: 1.9)), textAlign: TextAlign.center),
             const SizedBox(height: 18),
             Text('$count / 100', style: const TextStyle(fontSize: 25,
                 fontWeight: FontWeight.bold, color: gold)),
