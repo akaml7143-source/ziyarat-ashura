@@ -50,3 +50,6 @@
 
 
 <!-- Trigger APK build for latest welcome and reader-name updates. -->
+
+
+<!-- Trigger final APK build with reminder permission updates. -->
