@@ -570,7 +570,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       Text.rich(highlightImamHussein(
                         'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
                         'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                        const TextStyle(color: Colors.white, fontSize: 20, height: 1.35, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                        const TextStyle(color: Colors.white, fontSize: 24, height: 1.35, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
                         textAlign: TextAlign.center),
                       const SizedBox(height: 8),
                       Expanded(child: Align(
@@ -748,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
-  final expression = RegExp(r'(?:(?:الإمام|الامام)[\u064B-\u065F\u0670]*\s*)?(?:ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*)?ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
+  final expression = RegExp(r'(?:ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*)?ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
   final spans = <TextSpan>[];
   var cursor = 0;
   for (final match in expression.allMatches(text)) {
@@ -1138,7 +1138,7 @@ class FavorsPage extends StatelessWidget {
 المصدر: كامل الزيارات، الباب ٥٤؛ ونُقل في بحار الأنوار، ج ١٠١، ص ٢١-٢٢.
 
 الحديث: ٤
-قال الإمام الصادق (عليه السلام): «أَيُّمَا مُؤْمِنٍ زَارَ الْحُسَيْنَ (عليه السلام) عَارِفاً بِحَقِّهِ فِي غَيْرِ عِيدٍ وَلَا عَرَفَةَ، كَتَبَ اللهُ لَهُ عِشْرِينَ حِجَّةً وَعِشْرِينَ عُمْرَةً مَبْرُورَاتٍ مُتَقَبَّلَاتٍ».
+قال الإمام الصادق (عليه السلام): «أَيُّمَا مُؤْمِنٍ زَارَ الْحُسَيْنَ (عليه السلام) عَارِفاً بِحَقِّهِ فِي غَيْرِ عِيدٍ وَلَا عَرَفَةَ، كَتَبَ اللهُ لَهُ عِشْرِينَ حِجَّةً وَعِشْرِينَ عُمْرَةً مَبْرُورَاتٍ مُتَقَبَّلَاتٍ وَعِشْرِينَ غَزْوَةً مَعَ نَبِيٍّ مُرْسَلٍ أَوْ إِمَامٍ عَدْلٍ».
 المصدر: كامل الزيارات، الباب ٧٤، الحديث ١.
 
 الحديث: ٥
