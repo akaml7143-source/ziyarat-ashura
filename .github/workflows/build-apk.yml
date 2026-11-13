@@ -74,6 +74,17 @@ jobs:
               if count == 0:
                   raise SystemExit("MainActivity not found in AndroidManifest.xml")
 
+          # إظهار التنبيه على شاشة القفل وإيقاظ الشاشة عند وجود صلاحية ملء الشاشة.
+          activity_pattern = r'<activity\\b(?=[^>]*android:name="com\\.ryanheise\\.audioservice\\.AudioServiceActivity")[^>]*>'
+          match = re.search(activity_pattern, s)
+          if match is None:
+              raise SystemExit("AudioServiceActivity not found for lock-screen notification setup")
+          activity_tag = match.group(0)
+          for attribute in ("android:showWhenLocked", "android:turnScreenOn"):
+              if attribute not in activity_tag:
+                  activity_tag = activity_tag[:-1] + f' {attribute}="true">'
+          s = s[:match.start()] + activity_tag + s[match.end():]
+
           # إضافة خدمة تشغيل الصوت بالخلفية
           if 'android:name="com.ryanheise.audioservice.AudioService"' not in s:
               audio_components = '''
