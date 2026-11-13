@@ -1620,7 +1620,8 @@ class _TasbeehPageState extends State<TasbeehPage> {
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
-      target = prefs.getInt('tasbeeh_target') ?? 1000000;
+      target = 1000000;
+      await prefs.setInt('tasbeeh_target', 1000000);
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
       backgroundColor = Color(prefs.getInt('tasbeeh_background_color') ?? 0xFF121212);
@@ -2053,7 +2054,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       return;
     }
     final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
-    final defaultHour = reminders.length == 0 ? 8 : (reminders.length == 1 ? 14 : 20);
+    const defaultHours = [8, 14, 20, 11, 17];
+    final defaultHour = defaultHours[reminders.length.clamp(0, 4)];
     final draft = AshuraReminder(id: nextId, hour: defaultHour, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
     final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
     if (result == null) return;
