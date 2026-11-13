@@ -62,3 +62,6 @@
 
 
 تحديث إعدادات البناء لإشعارات Awesome Notifications.
+
+
+تصحيح إصدار مكتبات Awesome Notifications لضمان حل الاعتماديات.
