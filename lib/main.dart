@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:vibration/vibration.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
@@ -26,7 +28,9 @@ const Map<String, Color> appColors = {
   'هافان': Color(0xFF8D5A3B),
 };
 
-final AwesomeNotifications notifications = AwesomeNotifications();
+final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
+bool exactAlarmsAllowed = false;
+const String reminderChannelKey = 'ashura_reminders_local_v1';
 late AudioHandler audioHandler;
 
 Future<void> tapFeedback() async {
@@ -120,244 +124,108 @@ class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
   }
 }
 
-const String reminderChannelKey = 'ashura_reminders_awesome_v1';
-
 Future<void> initNotifications() async {
-  await notifications.initialize(
-    null,
-    [
-      NotificationChannel(
-        channelKey: reminderChannelKey,
-        channelName: 'منبّهات زيارة عاشوراء',
-        channelDescription: 'تذكيرات الزيارة والصلاة على محمد وآل محمد',
-        defaultColor: const Color(0xFFC5A45E),
-        importance: NotificationImportance.Max,
-        playSound: true,
-        enableVibration: true,
-        channelShowBadge: true,
-      ),
-    ],
-    debug: false,
-  );
+  tzdata.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
+  const settings = InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher'), iOS: DarwinInitializationSettings());
+  await notifications.initialize(settings);
 }
-
-Future<bool> canScheduleExactAlarms() async {
-  final permissions = await notifications.checkPermissionList(
-    channelKey: reminderChannelKey,
-    permissions: [NotificationPermission.PreciseAlarms],
-  );
-  return permissions.contains(NotificationPermission.PreciseAlarms);
-}
-
-Future<void> showReminderTestNotification() async {
-  await notifications.createNotification(
-    content: NotificationContent(
-      id: 90999,
-      channelKey: reminderChannelKey,
-      title: 'زيارة عاشوراء',
-      body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
-      category: NotificationCategory.Reminder,
-      wakeUpScreen: true,
-      fullScreenIntent: true,
-      notificationLayout: NotificationLayout.Default,
-    ),
-  );
-}
-
+const NotificationDetails reminderNotificationDetails = NotificationDetails(
+  android: AndroidNotificationDetails(reminderChannelKey, 'منبّهات زيارة عاشوراء',
+    channelDescription: 'تذكيرات الزيارة والصلاة على محمد وآل محمد',
+    importance: Importance.max, priority: Priority.high, playSound: true,
+    enableVibration: true, category: AndroidNotificationCategory.reminder),
+  iOS: DarwinNotificationDetails(),
+);
 Future<bool> askNotificationPermission() async {
-  final allowed = await notifications.isNotificationAllowed();
-  if (allowed) return true;
-  return notifications.requestPermissionToSendNotifications(
-    channelKey: reminderChannelKey,
-    permissions: [
-      NotificationPermission.Alert,
-      NotificationPermission.Sound,
-      NotificationPermission.Vibration,
-    ],
-  );
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.requestNotificationsPermission() ?? true;
 }
-
-Future<bool> askFullScreenIntentPermission() async {
-  final allowed = await notifications.checkPermissionList(
-    channelKey: reminderChannelKey,
-    permissions: [NotificationPermission.FullScreenIntent],
-  );
-  if (allowed.contains(NotificationPermission.FullScreenIntent)) return true;
-  return notifications.requestPermissionToSendNotifications(
-    channelKey: reminderChannelKey,
-    permissions: [NotificationPermission.FullScreenIntent],
-  );
+Future<bool> canScheduleExactAlarms() async {
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.canScheduleExactNotifications() ?? true;
 }
-
 Future<bool> askExactAlarmPermission() async {
-  return notifications.requestPermissionToSendNotifications(
-    channelKey: reminderChannelKey,
-    permissions: [NotificationPermission.PreciseAlarms],
-  );
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.requestExactAlarmsPermission() ?? false;
 }
-
+Future<bool> ensureNotificationPermissions() async {
+  if (!await askNotificationPermission()) return false;
+  exactAlarmsAllowed = await canScheduleExactAlarms();
+  if (!exactAlarmsAllowed) exactAlarmsAllowed = await askExactAlarmPermission();
+  return true;
+}
+Future<void> showReminderTestNotification() async {
+  await notifications.show(90999, 'زيارة عاشوراء',
+    'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails);
+}
 class AshuraReminder {
-  final int id;
-  final int hour;
-  final int minute;
-  final List<int> weekdays;
-  final bool enabled;
-
-  const AshuraReminder({
-    required this.id,
-    required this.hour,
-    required this.minute,
-    required this.weekdays,
-    required this.enabled,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'hour': hour,
-        'minute': minute,
-        'weekdays': weekdays,
-        'enabled': enabled,
-      };
-
+  final int id; final int hour; final int minute; final List<int> weekdays; final bool enabled;
+  const AshuraReminder({required this.id, required this.hour, required this.minute, required this.weekdays, required this.enabled});
+  Map<String, dynamic> toJson() => {'id': id, 'hour': hour, 'minute': minute, 'weekdays': weekdays, 'enabled': enabled};
   factory AshuraReminder.fromJson(Map<String, dynamic> json) => AshuraReminder(
-        id: (json['id'] as num).toInt(),
-        hour: (json['hour'] as num).toInt(),
-        minute: (json['minute'] as num).toInt(),
-        weekdays: (json['weekdays'] as List)
-            .map((value) => (value as num).toInt())
-            .where((day) => day >= 1 && day <= 7)
-            .toList(),
-        enabled: json['enabled'] == true,
-      );
-
-  AshuraReminder copyWith({
-    int? hour,
-    int? minute,
-    List<int>? weekdays,
-    bool? enabled,
-  }) => AshuraReminder(
-        id: id,
-        hour: hour ?? this.hour,
-        minute: minute ?? this.minute,
-        weekdays: weekdays ?? this.weekdays,
-        enabled: enabled ?? this.enabled,
-      );
+    id: (json['id'] as num).toInt(), hour: (json['hour'] as num).toInt(), minute: (json['minute'] as num).toInt(),
+    weekdays: (json['weekdays'] as List).map((v) => (v as num).toInt()).where((d) => d >= 1 && d <= 7).toList(),
+    enabled: json['enabled'] == true);
+  AshuraReminder copyWith({int? hour, int? minute, List<int>? weekdays, bool? enabled}) => AshuraReminder(
+    id: id, hour: hour ?? this.hour, minute: minute ?? this.minute, weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled);
 }
-
-const String reminderMessage =
-    'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
-
+const String reminderMessage = 'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
-
-Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
-  for (var day = 1; day <= 7; day++) {
-    await notifications.cancel(_notificationId(reminder.id, day));
-  }
+AndroidScheduleMode get _scheduleMode => exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
+tz.TZDateTime _nextWeekdayTime(int weekday, int hour, int minute) {
+  final now = tz.TZDateTime.now(tz.local);
+  var value = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+  while (value.weekday != weekday || !value.isAfter(now)) { value = value.add(const Duration(days: 1)); }
+  return value;
 }
-
+Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
+  for (var day = 1; day <= 7; day++) { await notifications.cancel(_notificationId(reminder.id, day)); }
+}
 Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
   for (final weekday in reminder.weekdays) {
-    await notifications.createNotification(
-      content: NotificationContent(
-        id: _notificationId(reminder.id, weekday),
-        channelKey: reminderChannelKey,
-        title: 'زيارة عاشوراء',
-        body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
-        category: NotificationCategory.Reminder,
-        wakeUpScreen: true,
-        fullScreenIntent: true,
-        notificationLayout: NotificationLayout.Default,
-      ),
-      schedule: NotificationCalendar(
-        weekday: weekday,
-        hour: reminder.hour,
-        minute: reminder.minute,
-        timeZone: 'Asia/Baghdad',
-        allowWhileIdle: true,
-        preciseAlarm: true,
-        repeats: true,
-      ),
-    );
+    await notifications.zonedSchedule(_notificationId(reminder.id, weekday), 'زيارة عاشوراء',
+      'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
+      reminderNotificationDetails, androidScheduleMode: _scheduleMode,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime);
   }
 }
-
 Future<List<AshuraReminder>> loadSavedReminders() async {
-  final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getString('ashura_reminders_v2');
+  final prefs = await SharedPreferences.getInstance(); final raw = prefs.getString('ashura_reminders_v2');
   if (raw == null || raw.isEmpty) return [];
-  try {
-    final decoded = jsonDecode(raw) as List;
-    return decoded
-        .map((item) => AshuraReminder.fromJson(
-            Map<String, dynamic>.from(item as Map)))
-        .toList();
-  } catch (error) {
-    debugPrint('تعذر قراءة المنبّهات المحفوظة: $error');
-    return [];
-  }
+  try { return (jsonDecode(raw) as List).map((v) => AshuraReminder.fromJson(Map<String, dynamic>.from(v as Map))).toList(); }
+  catch (error) { debugPrint('تعذر قراءة المنبّهات المحفوظة: $error'); return []; }
 }
-
 Future<void> saveReminders(List<AshuraReminder> reminders) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString(
-    'ashura_reminders_v2',
-    jsonEncode(reminders.map((item) => item.toJson()).toList()),
-  );
+  await prefs.setString('ashura_reminders_v2', jsonEncode(reminders.map((v) => v.toJson()).toList()));
 }
-
 Future<void> rescheduleSavedReminders() async {
-  final reminders = await loadSavedReminders();
-  for (final reminder in reminders) {
-    try {
-      await scheduleReminder(reminder);
-    } catch (error) {
-      debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error');
-    }
+  for (final reminder in await loadSavedReminders()) {
+    try { await scheduleReminder(reminder); } catch (error) { debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error'); }
   }
 }
-
 const int salawatReminderNotificationId = 31001;
-
-Future<void> scheduleSalawatReminder({
-  required bool enabled,
-  required int hour,
-  required int minute,
-}) async {
+Future<void> scheduleSalawatReminder({required bool enabled, required int hour, required int minute}) async {
   await notifications.cancel(salawatReminderNotificationId);
   if (!enabled) return;
-  await notifications.createNotification(
-    content: NotificationContent(
-      id: salawatReminderNotificationId,
-      channelKey: reminderChannelKey,
-      title: 'تذكير الصلاة على محمد وآل محمد',
-      body: 'هل صليت على محمد وآل محمد هذا اليوم؟',
-      category: NotificationCategory.Reminder,
-      wakeUpScreen: true,
-      fullScreenIntent: true,
-      notificationLayout: NotificationLayout.Default,
-    ),
-    schedule: NotificationCalendar(
-      hour: hour,
-      minute: minute,
-      timeZone: 'Asia/Baghdad',
-      allowWhileIdle: true,
-      preciseAlarm: true,
-      repeats: true,
-    ),
-  );
+  final now = tz.TZDateTime.now(tz.local);
+  var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+  if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
+  await notifications.zonedSchedule(salawatReminderNotificationId, 'تذكير الصلاة على محمد وآل محمد',
+    'هل صليت على محمد وآل محمد هذا اليوم؟', next, reminderNotificationDetails,
+    androidScheduleMode: _scheduleMode,
+    uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    matchDateTimeComponents: DateTimeComponents.time);
 }
-
 Future<void> restoreSalawatReminder() async {
   final prefs = await SharedPreferences.getInstance();
-  await scheduleSalawatReminder(
-    enabled: prefs.getBool('salawat_reminder_enabled') ?? false,
-    hour: prefs.getInt('salawat_reminder_hour') ?? 9,
-    minute: prefs.getInt('salawat_reminder_minute') ?? 0,
-  );
+  await scheduleSalawatReminder(enabled: prefs.getBool('salawat_reminder_enabled') ?? false,
+    hour: prefs.getInt('salawat_reminder_hour') ?? 9, minute: prefs.getInt('salawat_reminder_minute') ?? 0);
 }
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   audioHandler = await AudioService.init(
@@ -370,7 +238,7 @@ Future<void> main() async {
   );
   try {
     await initNotifications();
-    // إشعارات Awesome Notifications الجديدة لها قناة ومعرّفات مستقلة.
+    // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
     await rescheduleSavedReminders();
     await restoreSalawatReminder();
   } catch (error) {
@@ -2079,30 +1947,13 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<bool> ensurePermissions() async {
-    final notificationGranted = await askNotificationPermission();
-    if (!notificationGranted) {
+    final granted = await ensureNotificationPermissions();
+    if (!granted) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')));
       return false;
     }
-    var exactGranted = await canScheduleExactAlarms();
-    if (!exactGranted) exactGranted = await askExactAlarmPermission();
-    if (!exactGranted && mounted) {
+    if (!exactAlarmsAllowed && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
-    }
-
-    // اطلب صلاحية التنبيه بملء الشاشة مرة واحدة عند إعداد المنبّه.
-    // رفضها لا يمنع جدولة الإشعار العادي، لكنه قد يمنع ظهوره كنافذة منبثقة.
-    final prefs = await SharedPreferences.getInstance();
-    final fullScreenAsked = prefs.getBool('full_screen_intent_asked_awesome') ?? false;
-    if (!fullScreenAsked) {
-      final fullScreenGranted = await askFullScreenIntentPermission();
-      await prefs.setBool('full_screen_intent_asked_awesome', true);
-      if (!fullScreenGranted && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('لظهور التنبيه بملء الشاشة، فعّل صلاحية التنبيهات بملء الشاشة وإشعارات شاشة القفل من إعدادات الهاتف.'),
-          duration: Duration(seconds: 6),
-        ));
-      }
     }
     return true;
   }
@@ -2182,7 +2033,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                     onTap: () async {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
-                      final fullScreenAllowed = await askFullScreenIntentPermission();
+                      final fullScreenAllowed = true;
                       if (!fullScreenAllowed && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم تُمنح صلاحية التنبيه بملء الشاشة. فعّلها من: إعدادات الهاتف ← التطبيقات ← زيارة عاشوراء ← وصول خاص للتطبيقات ← التنبيهات بملء الشاشة.')));
                       }
