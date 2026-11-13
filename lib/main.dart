@@ -1041,7 +1041,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               alignment: Alignment.centerLeft,
               child: TextButton.icon(
                 onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
-                icon: const Icon(Icons.refresh, size: 18),
+                icon: const Icon(Icons.refresh, size: 22),
                 label: const Text('تصفير العداد'),
               ),
             ),
@@ -1252,7 +1252,7 @@ class AbbasVisitPage extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                const Icon(Icons.headphones, color: gold, size: 38),
+                const Icon(Icons.headphones, color: gold, size: 22),
                 const SizedBox(height: 8),
                 const Text(
                   'استماع زيارة أبي الفضل العباس',
@@ -1540,22 +1540,22 @@ class _AudioPlayerControls extends StatelessWidget {
                           IconButton(
                             tooltip: 'تأخير 10 ثوانٍ',
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: -10)); },
-                            icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
+                            icon: const Icon(Icons.replay_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
                             tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); playing ? handler.pause() : handler.play(); },
-                            icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 48),
+                            icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 22),
                           ),
                           IconButton(
                             tooltip: 'تقديم 10 ثوانٍ',
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: 10)); },
-                            icon: const Icon(Icons.forward_10, color: Colors.white, size: 32),
+                            icon: const Icon(Icons.forward_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
                             tooltip: 'إيقاف التسجيل',
                             onPressed: duration == Duration.zero ? null : () async { unawaited(tapFeedback()); await handler.stop(); },
-                            icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 32),
+                            icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 22),
                           ),
                         ],
                       );
@@ -1767,7 +1767,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
     return Column(children: [
       Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
         child: Column(children: [
-          Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 20), tooltip: 'تغيير خلفية المسبحة')),
+          Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 22), tooltip: 'تغيير خلفية المسبحة')),
           const SizedBox(height: 4),
           Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — سورة الأحزاب، الآية ٥٦',
             const TextStyle(color: Colors.white, fontSize: 22, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
@@ -2227,7 +2227,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                   final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
                   return Card(
                     child: ListTile(
-                      leading: const Icon(Icons.alarm, color: gold, size: 30),
+                      leading: const Icon(Icons.alarm, color: gold, size: 22),
                       title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
                       subtitle: Text(daySummary(reminder.weekdays)),
                       onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
@@ -2345,7 +2345,7 @@ class AboutAppPage extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         children: [
           const SizedBox(height: 18),
-          const Icon(Icons.mosque, color: gold, size: 58),
+          const Icon(Icons.mosque, color: gold, size: 22),
           const SizedBox(height: 18),
           const SelectableText(
             aboutText,
