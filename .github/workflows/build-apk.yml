@@ -132,13 +132,13 @@ jobs:
           if gradle.exists():
               gs = gradle.read_text()
               if re.search(r'compileSdk\s*=\s*[^,\n]+', gs):
-                  gs = re.sub(r'compileSdk\s*=\s*[^,\n]+', 'compileSdk = 35', gs, count=1)
+                  gs = re.sub(r'compileSdk\s*=\s*[^,\n]+', 'compileSdk = 36', gs, count=1)
               gradle.write_text(gs)
           else:
               gradle = Path("android/app/build.gradle")
               if gradle.exists():
                   gs = gradle.read_text()
-                  gs = re.sub(r'compileSdkVersion\s+[^,\n]+', 'compileSdkVersion 35', gs, count=1)
+                  gs = re.sub(r'compileSdkVersion\s+[^,\n]+', 'compileSdkVersion 36', gs, count=1)
                   gradle.write_text(gs)
 
           p.write_text(s)
@@ -209,6 +209,9 @@ jobs:
           p.write_text(s)
           print("Core Library Desugaring configured successfully")
           PY
+
+      - name: Install Android SDK 36
+        run: yes | sdkmanager --licenses >/dev/null && sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Get dependencies
         run: flutter pub get
