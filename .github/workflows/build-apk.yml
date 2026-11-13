@@ -125,20 +125,20 @@ jobs:
                   </intent-filter>
               </receiver>
               '''
-              s = s.replace("</application>", local_receivers + "\\n</application>")
+              s = s.replace("</application>", local_receivers + "\n</application>")
 
           # Flutter Local Notifications 17 needs a recent compile SDK.
           gradle = Path("android/app/build.gradle.kts")
           if gradle.exists():
               gs = gradle.read_text()
-              if re.search(r'compileSdk\\s*=\\s*\\d+', gs):
-                  gs = re.sub(r'compileSdk\\s*=\\s*\\d+', 'compileSdk = 35', gs, count=1)
+              if re.search(r'compileSdk\s*=\s*[^,\n]+', gs):
+                  gs = re.sub(r'compileSdk\s*=\s*[^,\n]+', 'compileSdk = 35', gs, count=1)
               gradle.write_text(gs)
           else:
               gradle = Path("android/app/build.gradle")
               if gradle.exists():
                   gs = gradle.read_text()
-                  gs = re.sub(r'compileSdkVersion\\s+\\d+', 'compileSdkVersion 35', gs, count=1)
+                  gs = re.sub(r'compileSdkVersion\s+[^,\n]+', 'compileSdkVersion 35', gs, count=1)
                   gradle.write_text(gs)
 
           p.write_text(s)
