@@ -129,6 +129,7 @@ Future<void> initNotifications() async {
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
   const settings = InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher'), iOS: DarwinInitializationSettings());
   await notifications.initialize(settings);
+  exactAlarmsAllowed = await canScheduleExactAlarms();
 }
 const NotificationDetails reminderNotificationDetails = NotificationDetails(
   android: AndroidNotificationDetails(reminderChannelKey, 'منبّهات زيارة عاشوراء',
