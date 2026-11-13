@@ -523,8 +523,23 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
   bool pressed = false;
+  late final AnimationController _floatController;
+  late final Animation<double> _floatAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _floatController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
+    _floatAnimation = Tween<double>(begin: -6, end: 6).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _floatController.dispose();
+    super.dispose();
+  }
 
   Future<void> enter() async {
     if (pressed) return;
@@ -554,63 +569,127 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
           SafeArea(
             child: LayoutBuilder(
-              builder: (context, constraints) => SizedBox(
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
-                  child: Column(
+              builder: (context, constraints) {
+                final h = constraints.maxHeight;
+                return SizedBox.expand(
+                  child: Stack(
                     children: [
-                      const Text('زيارة عاشوراء', textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFFC5A45E), fontSize: 40, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                      const SizedBox(height: 12),
-                      const Text('اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ', textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 30, height: 1.2, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                      const SizedBox(height: 16),
-                      Text.rich(highlightImamHussein(
-                        'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                        'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                        const TextStyle(color: Colors.white, fontSize: 24, height: 1.35, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                        textAlign: TextAlign.center),
-                      const SizedBox(height: 8),
-                      Expanded(child: Align(
-                        alignment: Alignment.center,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: SizedBox(
-                            width: constraints.maxWidth - 36,
-                            child: Text.rich(
-                              highlightImamHussein(story, const TextStyle(color: Colors.black, fontSize: 28, height: 1.12, fontWeight: FontWeight.w700, fontFamily: 'Amiri')),
-                              textAlign: TextAlign.center),
+                      Positioned(
+                        top: h * 0.025,
+                        left: 12,
+                        right: 12,
+                        child: const Text(
+                          'زيارة عاشوراء',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Color(0xFFC5A45E),
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'AmiriQuran',
+                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                           ),
                         ),
-                      )),
-                      const SizedBox(height: 8),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: enter,
-                          customBorder: const CircleBorder(),
-                          splashFactory: InkRipple.splashFactory,
-                          splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
-                          highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
-                          child: AnimatedScale(
-                            scale: pressed ? 0.94 : 1.0,
-                            duration: const Duration(milliseconds: 160),
-                            child: Container(
-                              width: 92, height: 92, alignment: Alignment.center,
-                              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.10), border: Border.all(color: const Color(0xFFC5A45E), width: 2)),
-                              padding: const EdgeInsets.all(10),
-                              child: const Text('الدخول إلى\nالتطبيق', textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black, blurRadius: 5)])),
+                      ),
+                      Positioned(
+                        top: h * 0.145,
+                        right: 18,
+                        left: 18,
+                        child: Text.rich(
+                          highlightImamHussein(
+                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\\n'
+                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontSize: 27,
+                              height: 1.3,
+                              fontFamily: 'AmiriQuran',
+                              shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
+                            ),
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      Positioned(
+                        top: h * 0.405,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: AnimatedBuilder(
+                            animation: _floatAnimation,
+                            builder: (context, child) => Transform.translate(
+                              offset: Offset(0, _floatAnimation.value),
+                              child: child,
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: enter,
+                                borderRadius: BorderRadius.circular(40),
+                                splashFactory: InkRipple.splashFactory,
+                                splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
+                                highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
+                                child: AnimatedScale(
+                                  scale: pressed ? 0.94 : 1.0,
+                                  duration: const Duration(milliseconds: 160),
+                                  child: Container(
+                                    constraints: const BoxConstraints(minWidth: 154, minHeight: 66),
+                                    padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF17130D).withValues(alpha: 0.58),
+                                      borderRadius: BorderRadius.circular(40),
+                                      border: Border.all(color: const Color(0xFFC5A45E), width: 2),
+                                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
+                                    ),
+                                    child: const Text(
+                                      'أدخل من هنا',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 23,
+                                        fontWeight: FontWeight.w900,
+                                        fontFamily: 'Amiri',
+                                        shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 12,
+                        right: 12,
+                        bottom: 5,
+                        height: h * 0.39,
+                        child: Center(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: constraints.maxWidth - 36,
+                              child: Text.rich(
+                                highlightImamHussein(
+                                  story,
+                                  const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 28,
+                                    height: 1.12,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'Amiri',
+                                  ),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -1249,21 +1328,21 @@ class ListeningPage extends StatefulWidget {
   const ListeningPage({super.key, required this.fontSize});
 
   static const List<Map<String, String>> readers = [
-    {'name': 'الشيخ شبر معله', 'file': 'shibr_maalla.mp3'},
-    {'name': 'الشيخ باقر المقدسي', 'file': 'baqir_almaqdisi.mp3'},
-    {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
-    {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
-    {'name': 'الرادود محمد باقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
-    {'name': 'الرادود أبا ذر الحلواجي', 'file': 'aba_thar_alhelwachi.mp3'},
-    {'name': 'الحاج علي الكعبي', 'file': 'ali_alkabi.mp3'},
-    {'name': 'الحاج مهدي سماواتي', 'file': 'mahdi_samawati.mp3'},
-    {'name': 'الرادود عمار الكناني', 'file': 'ammar_alkinani.mp3'},
-    {'name': 'القارئ أسامة الكربلائي', 'file': 'osama_al_karbalaei.mp3'},
-    {'name': 'الشيخ ميثم كاظم', 'file': 'maytham_kadhim.mp3'},
-    {'name': 'الشيخ ميثم التمار', 'file': 'maytham_al_tammar.mp3'},
-    {'name': 'الحاج عبد الحي قمبر', 'file': 'abdulhay_qambar.mp3'},
-    {'name': 'الحاج علي فاني', 'file': 'ali_fani.mp3'},
-    {'name': 'الحاج علي أبو ريحان', 'file': 'ali_abu_rayhan.mp3'},
+    {'name': 'الشيخ شـــــــبّر معلّــــــه', 'file': 'shibr_maalla.mp3'},
+    {'name': 'الشيخ بـاقر المقـــــدسي', 'file': 'baqir_almaqdisi.mp3'},
+    {'name': 'بــاســـــــــــــم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
+    {'name': 'أحمـــــــــــد الفتـــــلاوي', 'file': 'ahmed_alftlawi.mp3'},
+    {'name': 'الرادود محمدباقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
+    {'name': 'الرادود أبو ذر الحلواجـي', 'file': 'aba_thar_alhelwachi.mp3'},
+    {'name': 'الحاج علــــــــــي فانــــي', 'file': 'ali_fani.mp3'},
+    {'name': 'الحاج علــــــــــي الكعبي', 'file': 'ali_alkabi.mp3'},
+    {'name': 'الرادود عمــــــــار الكناني', 'file': 'ammar_alkinani.mp3'},
+    {'name': 'الحاج مهــــــدي سماواتي', 'file': 'mahdi_samawati.mp3'},
+    {'name': 'الحاج اســــــامة الكربلائي', 'file': 'osama_al_karbalaei.mp3'},
+    {'name': 'الحاج ميـــــــــــــثم كاظم', 'file': 'maytham_kadhim.mp3'},
+    {'name': 'الشيخ ميـــــــــــــثم التمار', 'file': 'maytham_al_tammar.mp3'},
+    {'name': 'الملا عبـــــــد الحجي قمبر', 'file': 'abdulhay_qambar.mp3'},
+    {'name': 'الحاج علــــــــــي أبو ريحان', 'file': 'ali_abu_rayhan.mp3'},
   ];
 
   @override
@@ -1375,7 +1454,7 @@ class _ListeningPageState extends State<ListeningPage> {
                         child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
-                          equalizeReaderName(reader['name']!),
+                          reader['name']!,
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
@@ -1706,15 +1785,10 @@ class _TasbeehPageState extends State<TasbeehPage> {
     return Column(children: [
       Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
         child: Column(children: [
-          Stack(alignment: Alignment.center, children: [
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 42),
-              child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', textAlign: TextAlign.center,
-                style: TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
-            Positioned(right: 0, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة')),
-          ]),
-          const SizedBox(height: 18),
+          Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 20), tooltip: 'تغيير خلفية المسبحة')),
+          const SizedBox(height: 4),
           Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — سورة الأحزاب، الآية ٥٦',
-            const TextStyle(color: Colors.white, fontSize: 16, height: 1.75, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
+            const TextStyle(color: Colors.white, fontSize: 30, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
             style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
