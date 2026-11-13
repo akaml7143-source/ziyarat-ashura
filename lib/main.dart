@@ -267,6 +267,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
         body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
         category: NotificationCategory.Reminder,
         wakeUpScreen: true,
+        fullScreenIntent: true,
         notificationLayout: NotificationLayout.Default,
       ),
       schedule: NotificationCalendar(
@@ -334,6 +335,7 @@ Future<void> scheduleSalawatReminder({
       body: 'هل صليت على محمد وآل محمد هذا اليوم؟',
       category: NotificationCategory.Reminder,
       wakeUpScreen: true,
+      fullScreenIntent: true,
       notificationLayout: NotificationLayout.Default,
     ),
     schedule: NotificationCalendar(
