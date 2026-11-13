@@ -75,7 +75,7 @@ jobs:
                   raise SystemExit("MainActivity not found in AndroidManifest.xml")
 
           # إظهار التنبيه على شاشة القفل وإيقاظ الشاشة عند وجود صلاحية ملء الشاشة.
-          activity_pattern = r'<activity\\b(?=[^>]*android:name="com\\.ryanheise\\.audioservice\\.AudioServiceActivity")[^>]*>'
+          activity_pattern = r'<activity\b(?=[^>]*android:name="com\.ryanheise\.audioservice\.AudioServiceActivity")[^>]*>'
           match = re.search(activity_pattern, s)
           if match is None:
               raise SystemExit("AudioServiceActivity not found for lock-screen notification setup")
