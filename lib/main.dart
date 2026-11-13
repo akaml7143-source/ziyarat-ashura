@@ -140,7 +140,7 @@ Future<bool> canScheduleExactAlarms() async {
 
 NotificationDetails reminderNotificationDetails() => NotificationDetails(
   android: AndroidNotificationDetails(
-    'ashura_reminders_v4',
+    'ashura_reminders_v5',
     'منبّهات زيارة عاشوراء',
     channelDescription: 'تنبيهات زيارة عاشوراء التي تظهر على شاشة القفل',
     importance: Importance.max,
@@ -2106,6 +2106,21 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     if (!exactGranted) exactGranted = await askExactAlarmPermission();
     if (!exactGranted && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
+    }
+
+    // اطلب صلاحية التنبيه بملء الشاشة مرة واحدة عند إعداد المنبّه.
+    // رفضها لا يمنع جدولة الإشعار العادي، لكنه قد يمنع ظهوره كنافذة منبثقة.
+    final prefs = await SharedPreferences.getInstance();
+    final fullScreenAsked = prefs.getBool('full_screen_intent_asked') ?? false;
+    if (!fullScreenAsked) {
+      final fullScreenGranted = await askFullScreenIntentPermission();
+      await prefs.setBool('full_screen_intent_asked', true);
+      if (!fullScreenGranted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('لظهور التنبيه بملء الشاشة، فعّل صلاحية التنبيهات بملء الشاشة وإشعارات شاشة القفل من إعدادات الهاتف.'),
+          duration: Duration(seconds: 6),
+        ));
+      }
     }
     return true;
   }
