@@ -125,19 +125,19 @@ jobs:
                   </intent-filter>
               </receiver>
               '''
-              s = s.replace("</application>", awesome_receivers + "\\n</application>")
+              s = s.replace("</application>", awesome_receivers + "\n</application>")
 
           # Awesome Notifications requires Android minSdk 23 or newer.
           gradle = Path("android/app/build.gradle.kts")
           if gradle.exists():
               gs = gradle.read_text()
-              gs = re.sub(r'minSdk\\s*=\\s*[^,\\n]+', 'minSdk = 23', gs)
+              gs = re.sub(r'minSdk\s*=\s*[^,\n]+', 'minSdk = 23', gs)
               gradle.write_text(gs)
           else:
               gradle = Path("android/app/build.gradle")
               if gradle.exists():
                   gs = gradle.read_text()
-                  gs = re.sub(r'minSdkVersion\\s+[^,\\n]+', 'minSdkVersion 23', gs)
+                  gs = re.sub(r'minSdkVersion\s+[^,\n]+', 'minSdkVersion 23', gs)
                   gradle.write_text(gs)
 
           p.write_text(s)
