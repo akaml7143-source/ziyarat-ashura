@@ -748,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
-  final expression = RegExp(r'(?:(?:الإمام|الامام)[\u064B-\u065F\u0670]*\s*)?ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
+  final expression = RegExp(r'(?:(?:الإمام|الامام)[\u064B-\u065F\u0670]*\s*)?(?:ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*)?ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
   final spans = <TextSpan>[];
   var cursor = 0;
   for (final match in expression.allMatches(text)) {
@@ -1102,8 +1102,7 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      const Text('أحاديث في فضل زيارة الحسين (ع) في يوم عاشوراء', textAlign: TextAlign.center,
-        style: TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)),
+      Text.rich(highlightImamHussein('أحاديث في فضل زيارة الحسين (ع) في يوم عاشوراء', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
       SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
         content: r'''قال الريّان بن شبیب: دخلت على الرضا (عليه السلام) في أوّل يوم من محرّم، فقال (عليه السلام) لي: يا بن شبيب، أ صائم أنت؟ فقلت: لا، فقال: إنّ هذا اليوم هو اليوم الذي دعا فيه زكريّا (عليه السلام) ربّه عزّ وجلّ فقال: ﴿رَبِّ هَبْ لي‏ مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَميعُ الدُّعاءِ﴾ فاستجاب الله له، وأمر الملائكة فنادت زكريا (عليه السلام) ﴿وَهُوَ قائِمٌ يُصَلِّي فِي الْمِحْرابِ أَنَّ اللّهََ يُبَشِّرُكَ بِيَحْيى﴾، فمن صام هذا اليوم، ثمّ دعا الله عزّ وجلّ استجاب الله له كما استجاب لزكريّا (عليه السلام).
@@ -1621,7 +1620,6 @@ class _TasbeehPageState extends State<TasbeehPage> {
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
       target = 1000000;
-      await prefs.setInt('tasbeeh_target', 1000000);
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
       backgroundColor = Color(prefs.getInt('tasbeeh_background_color') ?? 0xFF121212);
@@ -2055,7 +2053,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     }
     final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
     const defaultHours = [8, 14, 20, 11, 17];
-    final defaultHour = defaultHours[reminders.length.clamp(0, 4)];
+    final defaultHour = defaultHours[reminders.length.clamp(0, 4).toInt()];
     final draft = AshuraReminder(id: nextId, hour: defaultHour, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
     final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
     if (result == null) return;
