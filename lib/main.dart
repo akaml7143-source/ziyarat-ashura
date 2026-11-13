@@ -158,6 +158,7 @@ Future<void> showReminderTestNotification() async {
       body: 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟',
       category: NotificationCategory.Reminder,
       wakeUpScreen: true,
+      fullScreenIntent: true,
       notificationLayout: NotificationLayout.Default,
     ),
   );
