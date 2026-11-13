@@ -35,8 +35,9 @@ final FlutterLocalNotificationsPlugin notifications =
 late AudioHandler audioHandler;
 
 Future<void> tapFeedback() async {
+  try { await HapticFeedback.selectionClick(); } catch (_) {}
   try { await HapticFeedback.mediumImpact(); } catch (_) {}
-  try { await Vibration.vibrate(duration: 55, amplitude: 255); } catch (_) {}
+  try { await Vibration.vibrate(duration: 65, amplitude: 255); } catch (_) {}
 }
 
 class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
@@ -139,7 +140,7 @@ Future<bool> canScheduleExactAlarms() async {
 
 NotificationDetails reminderNotificationDetails() => NotificationDetails(
   android: AndroidNotificationDetails(
-    'ashura_reminders_v3',
+    'ashura_reminders_v4',
     'منبّهات زيارة عاشوراء',
     channelDescription: 'تنبيهات زيارة عاشوراء التي تظهر على شاشة القفل',
     importance: Importance.max,
@@ -159,13 +160,18 @@ NotificationDetails reminderNotificationDetails() => NotificationDetails(
 );
 
 Future<void> showReminderTestNotification() async {
-  await notifications.show(90999, 'اختبار إشعارات زيارة عاشوراء', reminderMessage, reminderNotificationDetails());
+  await notifications.show(90999, 'زيارة عاشوراء', 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails());
 }
 
 Future<bool> askNotificationPermission() async {
   final android = notifications.resolvePlatformSpecificImplementation<
       AndroidFlutterLocalNotificationsPlugin>();
   return await android?.requestNotificationsPermission() ?? true;
+}
+
+Future<bool> askFullScreenIntentPermission() async {
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  return await android?.requestFullScreenIntentPermission() ?? false;
 }
 
 Future<bool> askExactAlarmPermission() async {
@@ -244,16 +250,8 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
   final details = reminderNotificationDetails();
   final exactAllowed = await canScheduleExactAlarms();
   final scheduleMode = exactAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
-  final notificationTitle = reminder.id == 2001
-      ? 'زيارة عاشوراء'
-      : reminder.id == 2002
-          ? 'الصلاة على محمد وآل محمد'
-          : 'تذكير بزيارة عاشوراء';
-  final notificationBody = reminder.id == 2001
-      ? 'هل زرت الإمام الحسين هذا اليوم؟'
-      : reminder.id == 2002
-          ? 'هل صليت على محمد وآل محمد هذا اليوم؟'
-          : reminderMessage;
+  const notificationTitle = 'زيارة عاشوراء';
+  const notificationBody = 'هل زرت الإمام الحسين عليه السلام هذا اليوم؟';
   final now = tz.TZDateTime.now(tz.local);
   for (final weekday in reminder.weekdays) {
     var scheduled = tz.TZDateTime(
@@ -394,7 +392,7 @@ class _AshuraAppState extends State<AshuraApp> {
     if (!mounted) return;
     setState(() {
       isDarkMode = prefs.getBool('ashura_dark') ?? true;
-      fontSize = prefs.getDouble('ashura_font') ?? 20;
+      fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
       selectedFont = savedFont == 'AmiriQuran' ? 'AmiriQuran' : 'Amiri';
@@ -418,7 +416,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontSize(double delta) async {
-    setState(() => fontSize = (fontSize + delta).clamp(16.0, 32.0).toDouble());
+    setState(() => fontSize = (fontSize + delta).clamp(16.0, 36.0).toDouble());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('ashura_font', fontSize);
   }
@@ -463,6 +461,8 @@ class _AshuraAppState extends State<AshuraApp> {
         cardColor: const Color(0xFF1E1E1E),
         colorScheme: ColorScheme.dark(primary: primaryColor, secondary: gold, surface: const Color(0xFF1E1E1E)),
         splashFactory: InkRipple.splashFactory,
+        splashColor: primaryColor.withValues(alpha: 0.30),
+        highlightColor: primaryColor.withValues(alpha: 0.16),
         elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
         outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
         switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
@@ -482,6 +482,8 @@ class _AshuraAppState extends State<AshuraApp> {
         cardColor: Colors.white,
         colorScheme: ColorScheme.light(primary: primaryColor, secondary: gold, surface: Colors.white),
         splashFactory: InkRipple.splashFactory,
+        splashColor: primaryColor.withValues(alpha: 0.30),
+        highlightColor: primaryColor.withValues(alpha: 0.16),
         elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(backgroundColor: primaryColor, foregroundColor: Colors.white)),
         outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(foregroundColor: primaryColor, side: BorderSide(color: primaryColor))),
         switchTheme: SwitchThemeData(thumbColor: WidgetStatePropertyAll(primaryColor)),
@@ -560,17 +562,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   child: Column(
                     children: [
                       const Text('زيارة عاشوراء', textAlign: TextAlign.center,
-                        style: TextStyle(color: Color(0xFFC5A45E), fontSize: 34, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                      const SizedBox(height: 5),
+                        style: TextStyle(color: Color(0xFFC5A45E), fontSize: 40, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                      const SizedBox(height: 12),
                       const Text('اللَّهُمَّ صَلِّ عَلَىٰ مُحَمَّدٍ وَآلِ مُحَمَّدٍ', textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 23, height: 1.25, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                      const SizedBox(height: 23),
-                      const Text(
+                        style: TextStyle(color: Colors.white, fontSize: 30, height: 1.2, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                      const SizedBox(height: 16),
+                      Text.rich(highlightImamHussein(
                         'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً ●●● لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
                         'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً ●●● عَليهِ غُبارُ زوّارِ الحُسيــنِ',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 22, height: 1.5, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
-                      const SizedBox(height: 12),
+                        const TextStyle(color: Colors.white, fontSize: 20, height: 1.35, fontFamily: 'AmiriQuran', shadows: [Shadow(color: Colors.black87, blurRadius: 5)])),
+                        textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Expanded(child: Align(
+                        alignment: Alignment.center,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: SizedBox(
+                            width: constraints.maxWidth - 36,
+                            child: Text.rich(
+                              highlightImamHussein(story, const TextStyle(color: Colors.black, fontSize: 28, height: 1.12, fontWeight: FontWeight.w700, fontFamily: 'Amiri')),
+                              textAlign: TextAlign.center),
+                          ),
+                        ),
+                      )),
+                      const SizedBox(height: 8),
                       Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -583,41 +598,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             scale: pressed ? 0.94 : 1.0,
                             duration: const Duration(milliseconds: 160),
                             child: Container(
-                              width: 104,
-                              height: 104,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.10),
-                                border: Border.all(color: const Color(0xFFC5A45E), width: 2),
-                              ),
-                              padding: const EdgeInsets.all(12),
-                              child: const Text('الدخول إلى\nالتطبيق',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black, blurRadius: 5)])),
+                              width: 92, height: 92, alignment: Alignment.center,
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: 0.10), border: Border.all(color: const Color(0xFFC5A45E), width: 2)),
+                              padding: const EdgeInsets.all(10),
+                              child: const Text('الدخول إلى\nالتطبيق', textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900, fontFamily: 'Amiri', shadows: [Shadow(color: Colors.black, blurRadius: 5)])),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Expanded(
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: SizedBox(
-                              width: constraints.maxWidth - 36,
-                              child: Text.rich(
-                                highlightImamHussein(
-                                  'تُروى قصةُ الشاعر أبي الحسن جمال الدين الخليعي الحلّي أنّ أمّه نذرت أن ترسله لقطع الطريق على زوّار الإمام الحسين (عليه السلام). وفي طريقه إلى كربلاء غلبه النوم، فرأى في المنام أنّ غبار الزائرين كان سبب نجاته من النار، فاستيقظ تائباً، واعتنق ولاية أهل البيت، وزار كربلاء، وصار من محبّي الإمام الحسين (عليه السلام).',
-                                  const TextStyle(color: Colors.black, fontSize: 19, height: 1.5, fontWeight: FontWeight.w700, fontFamily: 'Amiri'),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    ],
                     ],
                   ),
                 ),
@@ -670,11 +660,11 @@ class _HomeScreenState extends State<HomeScreen> {
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
     const labels = [
-      'زيارة عاشوراء',
-      'فضل زيارة عاشوراء',
-      'استماع الزيارة',
-      'زيارة الإمام العباس (عليه السلام)',
-      'الحسنات يُذهبن السيئات',
+      'زِيَارَةُ عَاشُورَاءَ',
+      'فَضْلُ زِيَارَةِ عَاشُورَاءَ',
+      'اِسْتِمَاعُ الزِّيَارَةِ',
+      'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)',
+      'الحَسَنَاتُ يُذْهِبْنَ السَّيِّئَاتِ',
     ];
     return Scaffold(
       appBar: AppBar(
@@ -724,7 +714,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 190),
-                      height: 66,
+                      height: 98,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
                       decoration: BoxDecoration(
@@ -739,9 +729,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             labels[index],
                             textAlign: TextAlign.center,
                             softWrap: true,
-                            maxLines: 3,
+                            maxLines: 4,
                             overflow: TextOverflow.clip,
-                            style: TextStyle(color: Colors.white, fontSize: selected ? 10 : 9.5, fontWeight: FontWeight.w900, height: 1.12),
+                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1.05),
                           ),
                         ),
                       ),
@@ -758,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 TextSpan highlightImamHussein(String text, TextStyle baseStyle) {
-  final expression = RegExp(r'(?:(?:الإمام|الامام)\s*)?الحسين');
+  final expression = RegExp(r'(?:(?:الإمام|الامام)[\u064B-\u065F\u0670]*\s*)?ا[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*ح[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ي[\u064B-\u065F\u0670]*ن[\u064B-\u065F\u0670]*');
   final spans = <TextSpan>[];
   var cursor = 0;
   for (final match in expression.allMatches(text)) {
@@ -1108,87 +1098,57 @@ class _CounterWidgetState extends State<CounterWidget> {
 class FavorsPage extends StatelessWidget {
   final double fontSize;
   const FavorsPage({super.key, required this.fontSize});
-
   @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        SectionCard(
-          title: 'زيارة عاشوراء وآثارها العجيبة عند الأئمة (ع) والعلماء الكبار',
-          fontSize: fontSize,
-          highlight: true,
-          content: r'''قد وردت روايات كثيرة حول زيارة عاشوراء. وقد علم الإمام الباقر (عليه السلام) هذه الزيارة لأحد أصحابه وهو علقمة بن محمد الحضري.
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text('أحاديث في فضل زيارة الحسين (ع) في يوم عاشوراء', textAlign: TextAlign.center,
+        style: TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)),
+      const SizedBox(height: 14),
+      SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
+        content: r'''قال الريّان بن شبیب: دخلت على الرضا (عليه السلام) في أوّل يوم من محرّم، فقال (عليه السلام) لي: يا بن شبيب، أ صائم أنت؟ فقلت: لا، فقال: إنّ هذا اليوم هو اليوم الذي دعا فيه زكريّا (عليه السلام) ربّه عزّ وجلّ فقال: ﴿رَبِّ هَبْ لي‏ مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَميعُ الدُّعاءِ﴾ فاستجاب الله له، وأمر الملائكة فنادت زكريا (عليه السلام) ﴿وَهُوَ قائِمٌ يُصَلِّي فِي الْمِحْرابِ أَنَّ اللّهََ يُبَشِّرُكَ بِيَحْيى﴾، فمن صام هذا اليوم، ثمّ دعا الله عزّ وجلّ استجاب الله له كما استجاب لزكريّا (عليه السلام).
 
-إن زيارة عاشوراء تعتبر من الأدعية التي أكد الأئمة المعصومون (عليهم السلام) والعلماء الكبار على مواظبتها، وأن لها آثاراً بناءة وفريدة على الأفراد.''',
-        ),
-        const SizedBox(height: 12),
-        SectionCard(
-          title: 'ثواب قراءة زيارة عاشوراء في كلام الأئمة المعصومين (عليهم السلام)',
-          fontSize: fontSize,
-          highlight: true,
-          content: r'''1- قال الإمام محمد الباقر (ع) لعلقمة بن محمد الحضري الذي سأل عن كيفية زيارة الإمام الحسين (ع) من بعيد:
+ثمّ قال (عليه السلام): يا بن شبيب، إنّ المحرّم هو الشهر الذي كان أهل الجاهلية فيما مضى يحرّمون فيه الظلم والقتال لحرمته، فما عرفت هذه الأمّة حرمة شهرها ولا حرمة نبيّها (صلى الله عليه وآله وسلم)، لقد قتلوا في هذا الشهر ذرّيّته، وسبوا نساءه، وانتهبوا ثقله، فلا غفر الله لهم ذلك أبداً.
 
-"بعد أن تشير إليه بالسلام فتصلي ركعتين ثم تقرأ زيارة عاشوراء. فإذا قرأت هذه الزيارة فقد دعوته بما يدعوه به كل ملك يريد زيارته، وكتب الله لك ألف ألف حسنة، وحط عنك ألف ألف سيئة، ورفع لك ألف ألف ضعف. أنت مثل أولئك الذين بذلوا مهجهم دون الإمام. حتى أنك تشارك في درجاتهم". (كامل الزيارات - ص 74).
+يا بن شبيب، إن كنت باكياً لشيء فابك للحسين بن عليّ بن أبي طالب (عليه السلام)، فإنّه قُتل مظلوماً، وقُتل معه من أهل بيته ثمانية عشر رجلاً ما لهم في الأرض شبيه، ولقد بكت السموات السبع والأرضون لقتله، ولقد نزل إلى الأرض من الملائكة أربعة آلاف لنصره، فوجدوه قد قُتل، فهم عند قبره شعث غبر إلى أن يقوم القائم، فيكونون من أنصاره، وشعارهم «يا لثارات الحسين (عليه السلام)».
 
-2- قال الإمام الصادق (عليه السلام) لأحد أصحابه، صفوان، عن آثار زيارة عاشوراء:
+يا بن شبيب، لقد حدّثني أبي عن أبيه، عن جدّه (عليه السلام) أنّه لمّا قُتل جدّي الحسين (عليه السلام) أمطرت السماء دماً وتراباً أحمر.
 
-"تَعَاهَدْ هَذِهِ الزِّيَارَةَ وَادْعُ بِهَذَا الدُّعَاءِ وَزُرْ بِهِ فَإِنِّي ضَامِنٌ عَلَى اللَّهِ تَعَالَى لِكُلِّ مَنْ زَارَ بِهَذِهِ الزِّيَارَةِ وَدَعَا بِهَذَا الدُّعَاءِ مِنْ قُرْبٍ أَوْ بُعْدٍ أَنَّ زِيَارَتَهُ مَقْبُولَةٌ وَسَعْيَهُ مَشْكُورٌ وَسَلَامَهُ وَاصِلٌ غَيْرُ مَحْجُوبٍ وَحَاجَتَهُ مَقْضِيَّةٌ مِنَ اللَّهِ بَالِغاً مَا بَلَغَتْ وَلَا يُخَيِّبُهُ فَإِنَّ اللَّهَ لَا يُخْلِفُ الْمِيعَادَ". (بحار الأنوار، ج 98، ص 300).
+يا بن شبيب، إن بكيت على الحسين (عليه السلام) حتّى تصير دموعك على خدّيك، غفر الله لك كلّ ذنب أذنبته، صغيراً كان أو كبيراً، قليلاً كان أو كثيراً.
 
-3- جاء في رواية أخرى عن الإمام الباقر (عليه السلام):
+يا بن شبيب، إن سرّك أن تلقى الله عزّ وجلّ ولا ذنب عليك، فزر الحسين (عليه السلام).
 
-"لو يعلم الناس ما في زيارة الحسين (عليه السلام) من الفضل لماتوا شوقاً إليه، وتقطّعت أنفسهم عليه حسرات". (بحار الأنوار - ج 101 - ص 18).
+يا بن شبيب، إن سرّك أن تسكن الغرف المبنيّة في الجنّة مع النبيّ (صلى الله عليه وآله وسلم)، فالعن قتلة الحسين (عليه السلام).
 
-4- قال الإمام الصادق (عليه السلام) أيضاً:
+يا بن شبيب، إن سرّك أن يكون لك من الثواب مثل ما لمن استشهد مع الحسين (عليه السلام)، فقل متى ما ذكرته: يا ليتني كنت معهم فأفوز فوزاً عظيماً.
 
-"أقسم الله تعالى أنه من قرأ هذه الزيارة والدعاء، فإنه -تعالى- سيقبل زيارته ودعاءه ويقضي حاجته، ويعتقه من النار ويسكنه الجنة ويرزقه الشفاعة ومساعدة الناس".
+يا بن شبيب، إن سرّك أن تكون معنا في الدرجات العلى من الجنان، فاحزن لحزننا، وافرح لفرحنا، وعليك بولايتنا، فلو أنّ رجلاً تولّى حجراً لحشره الله معه يوم القيامة.
 
-5- جاء في كتاب مفاتيح الجنان وقبل نص زيارة عاشوراء حديث عن الإمام الباقر عليه السلام في ثواب هذه الزيارة فيقول:
+المصدر الأصلي: عيون أخبار الرضا (عليه السلام)، الأمالي للصدوق.
+المصدر من بحار الأنوار: ج ٩٨، ص ١٠٢-١٠٣.'''),
+      const SizedBox(height: 12),
+      SectionCard(title: 'الحديث: ٢ — ترتيب جواهر البحار: ١٠٢٦٩', fontSize: fontSize, highlight: true,
+        content: r'''قال الصادق (عليه السلام): من بات عند قبر الحسين (عليه السلام) ليلة عاشورا، لقي الله يوم القيامة ملطّخاً بدمه، وكأنّما قُتل معه في عرصة كربلا.
 
-"إن هذا الدعاء دعاء تدعو به الملائكة، ويكتب الله لك مائة ألف ألف درجة، وتكون كمن استشهد مع الحسين عليه السلام. وكتب لك ثواب زيارة كل نبي ورسول، وثواب زيارة كل من زار الحسين (عليه السلام) من يوم استشهاده".
+المصدر الأصلي: مصباح المتهجّد، إقبال الأعمال.
+المصدر من بحار الأنوار: ج ٩٨، ص ١٠٣.'''),
+      const SizedBox(height: 12),
+      SectionCard(title: 'أحاديث في فضل زيارة الإمام الحسين (ع) عموماً', fontSize: fontSize, highlight: true,
+        content: r'''الحديث: ٣
+قال الإمام الصادق (عليه السلام): «مَنْ زَارَ الْحُسَيْنَ (عليه السلام) عَارِفاً بِحَقِّهِ، يَأْتَمُّ بِهِ، غَفَرَ اللهُ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ وَمَا تَأَخَّرَ».
+المصدر: كامل الزيارات، الباب ٥٤؛ ونُقل في بحار الأنوار، ج ١٠١، ص ٢١-٢٢.
 
-6- جاء في كتاب مفاتيح الجنان قبل زيارة الجامعة الكبيرة وبعد دعاء العلقمة كلام عن إمام الزمان (ع) الموجه للسيد الرشتي هكذا:
+الحديث: ٤
+قال الإمام الصادق (عليه السلام): «أَيُّمَا مُؤْمِنٍ زَارَ الْحُسَيْنَ (عليه السلام) عَارِفاً بِحَقِّهِ فِي غَيْرِ عِيدٍ وَلَا عَرَفَةَ، كَتَبَ اللهُ لَهُ عِشْرِينَ حِجَّةً وَعِشْرِينَ عُمْرَةً مَبْرُورَاتٍ مُتَقَبَّلَاتٍ».
+المصدر: كامل الزيارات، الباب ٧٤، الحديث ١.
 
-"لماذا لا تقوم بقراءة زيارة عاشوراء؟: عاشوراء، عاشوراء، عاشوراء".''',
-        ),
-        const SizedBox(height: 12),
-        SectionCard(
-          title: 'فضل قراءة زيارة عاشوراء في أقوال علماء وكبار الدين',
-          fontSize: fontSize,
-          highlight: true,
-          content: r'''1- روى العلامة الشيخ عبد الهادي الحائري المازندراني عن أبيه الحاج ملا أبو الحسن أنني رأيت الحاج ميرزا علي نقي الطباطبائي في المنام بعد وفاته فقلت له: "هل لك أمنية"؟ قال: "لي أمنية واحدة، وهي عدم زيارتي لقراءة زيارة عاشوراء كل يوم في الدنيا".
+الحديث: ٥
+قال الإمام الصادق (عليه السلام): «مَنْ أَتَى قَبْرَ الْحُسَيْنِ (عليه السلام) عَارِفاً بِحَقِّهِ، كَانَ كَمَنْ حَجَّ ثَلَاثَ حِجَجٍ مَعَ رَسُولِ اللهِ (صلى الله عليه وآله وسلم)».
+المصدر: كامل الزيارات، ص ١٤٠.
 
-وكان من عادة السيد أن يؤدي قراءة زيارة عاشوراء طوال العقد الأول من شهر محرم الحرام، ولكن بعد وفاته ندم على عدم تمكنه من أداء قراءتها طوال العام.
-
-2- يقول آية الله الشبيري الزنجاني أحد مراجع التقليد:
-
-"لقد أصبحت إحدى عيني ابن السيد الحاج سيد محمد البجنوردي عمياء بسبب حالة مرضية، وحسب الأطباء، وحتى الأطباء في الخارج، ومع تقدم الحالة، فإن عينه الأخرى سوف تصبح عمياء أيضاً. ولكن الرجل شفي. وقد رأى أحد أقاربه سيد الشهداء في المنام، فقال له: لقد أخذنا من الله سلامة عينه الأخرى لأنه استمر في قراءة زيارة عاشوراء".
-
-3- يقول المرجع الكبير آية الله العظمى بهجت (ره) عن زيارة عاشوراء:
-
-"إن زيارة عاشوراء من الأحاديث القدسية، وهذه الأمور هي التي دفعت علماءنا الكبار وأساتذتنا، أن يقيدوا أنفسهم على قراءتها على الرغم من كثرة انشغالاتهم العلمية وكثرة المراجعات إليهم، بحيث أن أستاذنا المرحوم الحاج الشيخ محمد حسين الأصفهاني، طلب من الله تعالى أن لا يقبض روحه في آخر عمره، إلا وهو في حالة قراءة زيارة عاشوراء؛ فاستجاب الله دعاءه، وقبض الله روحه بعد أن انتهى من قراءة هذه الزيارة".
-
-4- روى المرحوم الشهيد دستغيب (رحمه الله) قصة عن فضل قراءة زيارة عاشوراء هكذا:
-
-"رأى أحد علماء النجف سيدنا عزرائيل في المنام قبل نحو مئة عام، فسلم عليه، ثم سأله: من أين أنت؟ قال ملك الموت: من شيراز! لقد أخذت روح المرحوم ميرزا إبراهيم المحلاتي. فسأل الشيخ: في أي وضع كانت روحه؟ قال عزرائيل: في خير الأحوال وخير حدائق البرزخ. وضع الله ألف ملك لتنفيذ أوامر الشيخ. سأل العالم: ما هذه النعم؟ قال: من أجل قراءة زيارة عاشوراء".
-
-ويقال إن المرحوم الميرزا إبراهيم المحلاتي لم يترك قراءة زيارة عاشوراء طوال الثلاثين سنة الأخيرة من حياته، وكان كل يوم لا يستطيع فيه القيام بها بسبب المرض أو غيره من الأسباب يعين نائباً عنه.
-
-5- روي عن العارف الكبير المرحوم آية الله ميرزا سيد علي آقا قاضي (رحمه الله) (معلم آية الله بهجت والعلامة الطباطبائي) أنه بعد وفاته رآه شخص في المنام وسأله: "أي العمل أهم هناك؟".
-
-قال: "قراءة زيارة عاشوراء، وأنا نادم لأني قرأت زيارة عاشوراء في كل يوم مرة واحدة ولم أقرأه مرتين!".
-
-وكان المرحوم القاضي رحمه الله يقول: "كل ما عندي فهو من سيد الشهداء عليه السلام والقرآن".''',
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'تنبيه: نُقلت النصوص والمراجع كما وردت في المادة المرسلة، ويُستحسن مراجعة ألفاظ الروايات وأرقام الصفحات في مصادرها قبل اعتمادها للنشر.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey, height: 1.7),
-        ),
-      ],
-    );
-  }
+تنبيه علمي: أُثبتت الروايات مع مصادرها، ولا يُراد بهذا العرض إصدار حكم رجالي مستقل بصحّة كل طريق؛ إذ يتطلّب ذلك دراسة أسانيد الروايات بحسب مباني أهل الاختصاص.'''),
+    ],
+  );
 }
 
 class AbbasVisitPage extends StatelessWidget {
@@ -1644,7 +1604,7 @@ const List<String> tasbeehHadithPages = [
 ];
 
 class _TasbeehPageState extends State<TasbeehPage> {
-  int count = 0, target = 500, dailyCount = 0;
+  int count = 0, target = 1000000, dailyCount = 0, dailyTarget = 100;
   Color backgroundColor = const Color(0xFF121212);
   bool loaded = false;
   @override
@@ -1660,8 +1620,9 @@ class _TasbeehPageState extends State<TasbeehPage> {
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
-      target = prefs.getInt('tasbeeh_target') ?? 500;
+      target = prefs.getInt('tasbeeh_target') ?? 1000000;
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
+      dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
       backgroundColor = Color(prefs.getInt('tasbeeh_background_color') ?? 0xFF121212);
       loaded = true;
     });
@@ -1710,6 +1671,22 @@ class _TasbeehPageState extends State<TasbeehPage> {
       ]));
     if (v != null) await _setTarget(v);
   }
+  Future<void> _customDailyTarget() async {
+    final controller = TextEditingController(text: dailyTarget.toString());
+    final value = await showDialog<int>(context: context, builder: (context) => AlertDialog(
+      title: const Text('تحديد الورد اليومي'),
+      content: TextField(controller: controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'عدد الصلوات اليومي')),
+      actions: [
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
+        ElevatedButton(onPressed: () { unawaited(tapFeedback()); final parsed = int.tryParse(controller.text.trim()); if (parsed != null && parsed > 0) Navigator.pop(context, parsed); }, child: const Text('حفظ')),
+      ],
+    ));
+    if (value == null) return;
+    setState(() => dailyTarget = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_daily_target', value);
+  }
+
   Future<void> _chooseBackground() async {
     const colors = <Color>[Color(0xFF121212),Color(0xFF1B4332),Color(0xFF172554),Color(0xFF3B1024),Color(0xFF173D3D),Color(0xFF30234A)];
     final chosen = await showDialog<Color>(context: context, builder: (context) => AlertDialog(
@@ -1727,19 +1704,19 @@ class _TasbeehPageState extends State<TasbeehPage> {
   Widget build(BuildContext context) {
     final accent = Theme.of(context).colorScheme.primary;
     final progress = (count / target).clamp(0.0, 1.0).toDouble();
+    final dailyProgress = (dailyCount / dailyTarget).clamp(0.0, 1.0).toDouble();
     return Column(children: [
       Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
         child: Column(children: [
-          Row(children: [
-            const Expanded(child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', textAlign: TextAlign.center,
-              style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
-            IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة'),
+          Stack(alignment: Alignment.center, children: [
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 42),
+              child: Text('بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيمِ', textAlign: TextAlign.center,
+                style: TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'AmiriQuran'))),
+            Positioned(right: 0, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold), tooltip: 'تغيير خلفية المسبحة')),
           ]),
-          Text('﴿إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً﴾',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.75, fontFamily: 'AmiriQuran')),
-          const Text('سورة الأحزاب — الآية ٥٦', textAlign: TextAlign.center,
-            style: TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 13)),
+          const SizedBox(height: 18),
+          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — سورة الأحزاب، الآية ٥٦',
+            const TextStyle(color: Colors.white, fontSize: 16, height: 1.75, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
             style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -1756,15 +1733,16 @@ class _TasbeehPageState extends State<TasbeehPage> {
             ]))),
           const SizedBox(height: 6),
           Text('الهدف: $target  •  المتبقي: ' + (target-count).clamp(0,target).toString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
-          Text('ورد اليوم: $dailyCount', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+          Text('الورد اليومي: $dailyCount من $dailyTarget', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          SizedBox(width: 230, child: ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: dailyProgress, minHeight: 5, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(gold)))),
           const SizedBox(height: 5),
           SizedBox(width: 230, child: ClipRRect(borderRadius: BorderRadius.circular(20),
             child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(accent)))),
           const SizedBox(height: 7),
           Wrap(alignment: WrapAlignment.center, spacing: 7, runSpacing: 5, children: [
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () { unawaited(tapFeedback()); _setTarget(500); }, child: const Text('تحدي 500')),
             ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () { unawaited(tapFeedback()); _setTarget(1000000); }, child: const Text('تحدي المليون')),
-            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: () { unawaited(tapFeedback()); _customTarget(); }, child: const Text('تحديد العدد')),
+            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: () { unawaited(tapFeedback()); _customDailyTarget(); }, child: const Text('تحديد الورد اليومي')),
             IconButton(onPressed: () { unawaited(tapFeedback()); _reset(); }, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
           ]),
         ])),
@@ -1847,8 +1825,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('منبه الزيارة'),
-              subtitle: const Text('إعداد ثلاثة منبّهات يومية لزيارة عاشوراء'),
+              title: const Text('المنبه'),
+              subtitle: const Text('منبّهات زيارة عاشوراء والصلاة على محمد وآل محمد'),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
@@ -1933,12 +1911,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   IconButton(onPressed: localFontSize <= 16 ? null : () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 32.0).toDouble());
+                    setState(() => localFontSize = (localFontSize - 2).clamp(16.0, 36.0).toDouble());
                     widget.onChangeFontSize(-2);
                   }, icon: const Icon(Icons.remove)),
-                  IconButton(onPressed: localFontSize >= 32 ? null : () {
+                  IconButton(onPressed: localFontSize >= 36 ? null : () {
                     unawaited(tapFeedback());
-                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 32.0).toDouble());
+                    setState(() => localFontSize = (localFontSize + 2).clamp(16.0, 36.0).toDouble());
                     widget.onChangeFontSize(2);
                   }, icon: const Icon(Icons.add)),
                 ],
@@ -2068,9 +2046,9 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> addReminder() async {
-    if (reminders.length >= 3) {
+    if (reminders.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يمكنك إضافة ثلاثة منبّهات فقط.')),
+        const SnackBar(content: Text('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.')),
       );
       return;
     }
@@ -2113,9 +2091,9 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('منبه الزيارة')),
+      appBar: AppBar(title: const Text('المنبه')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: reminders.length >= 3 ? null : () { unawaited(tapFeedback()); addReminder(); },
+        onPressed: reminders.length >= 5 ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_alarm),
@@ -2134,8 +2112,12 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                     onTap: () async {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
+                      final fullScreenAllowed = await askFullScreenIntentPermission();
+                      if (!fullScreenAllowed && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم تُمنح صلاحية التنبيه بملء الشاشة. فعّلها من: إعدادات الهاتف ← التطبيقات ← زيارة عاشوراء ← وصول خاص للتطبيقات ← التنبيهات بملء الشاشة.')));
+                      }
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال الإشعار التجريبي؛ جرّب قفل الشاشة أو فتح تطبيق آخر.')));
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُرسل الاختبار. إذا لم يظهر منبثقاً، فعّل صلاحية التنبيهات بملء الشاشة وإشعارات شاشة القفل من إعدادات الهاتف.')));
                     },
                   ),
                 ),
@@ -2151,7 +2133,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                       ),
                       ListTile(
                         leading: const Icon(Icons.access_time, color: gold),
-                        title: const Text('وقت التذكير المستقل'),
+                        title: const Text('وقت منبّه الصلاة على محمد وآل محمد'),
                         subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
                         trailing: const Icon(Icons.edit, color: gold),
                         onTap: () { unawaited(tapFeedback()); chooseSalawatTime(); },
@@ -2161,7 +2143,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('منبّهات زيارة عاشوراء (حتى ثلاثة أوقات مستقلة)',
+                  child: Text('منبّهات زيارة عاشوراء (حتى خمسة أوقات)',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
                 ),
