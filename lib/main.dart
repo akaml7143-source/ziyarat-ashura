@@ -458,6 +458,27 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 return SizedBox.expand(
                   child: Stack(
                     children: [
+                      Positioned(
+                        top: 2,
+                        left: 12,
+                        right: 12,
+                        child: IgnorePointer(
+                          child: Text(
+                            'زِيَارَةُ عَاشُورَاءَ',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'AmiriQuran',
+                              height: 1.5,
+                              shadows: [
+                                Shadow(color: Colors.white70, blurRadius: 8, offset: Offset(0, 1)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                       Positioned.fill(
                         child: Center(
                           child: AnimatedBuilder(
@@ -507,17 +528,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                       children: [
-                                        const Text(
-                                          'زِيَارَةُ عَاشُورَاءَ',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 34,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'AmiriQuran',
-                                            height: 1.5,
-                                          ),
-                                        ),
                                         Text.rich(
                                           highlightImamHussein(
                                             'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً\n'
