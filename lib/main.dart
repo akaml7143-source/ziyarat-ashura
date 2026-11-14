@@ -10,6 +10,8 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:vibration/vibration.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
@@ -229,6 +231,9 @@ Future<void> restoreSalawatReminder() async {
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   audioHandler = await AudioService.init(
     builder: () => AshuraAudioHandler(),
     config: const AudioServiceConfig(
