@@ -461,23 +461,42 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   child: Stack(
                     children: [
                       Positioned(
-                        top: 2,
-                        left: 12,
-                        right: 12,
+                      Positioned(
+                        top: 8,
+                        left: 10,
+                        right: 10,
                         child: IgnorePointer(
-                          child: Text(
-                            'زِيَارَةُ عَاشُورَاءَ',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 34,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'AmiriQuran',
-                              height: 1.5,
-                              shadows: [
-                                Shadow(color: Colors.white70, blurRadius: 8, offset: Offset(0, 1)),
-                              ],
-                            ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'زِيَارَةُ عَاشُورَاءَ',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFF24170D),
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'AmiriQuran',
+                                  height: 1.45,
+                                  shadows: [
+                                    Shadow(color: Colors.white, blurRadius: 10, offset: Offset(0, 1)),
+                                    Shadow(color: Color(0xFFB78A36), blurRadius: 5, offset: Offset(0, 2)),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Container(
+                                width: 112,
+                                height: 1.5,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF9B702B).withValues(alpha: 0.75),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                           ),
                         ),
                       ),
@@ -487,22 +506,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text.rich(
-                                highlightImamHussein(
-                                  'إِذَا شِئْتَ النَّجَاةَ فَزُرْ حُسَيْنًا\\n'
-                                  'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــنِ\\n\\n'
-                                  'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْمًا\\n'
-                                  'عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَــــيْنِ',
-                                  const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 29,
-                                    height: 1.48,
-                                    fontFamily: 'AmiriQuran',
-                                  ),
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 22),
+                              AnimatedBuilder(
                               AnimatedBuilder(
                                 animation: _floatAnimation,
                                 builder: (context, child) => Transform.translate(
@@ -836,6 +840,56 @@ class SectionCard extends StatelessWidget {
   }
 }
 
+class NajahPoemCard extends StatelessWidget {
+  final double fontSize;
+  const NajahPoemCard({super.key, required this.fontSize});
+
+  static const String poem =
+      'إِذَا شِئْتَ النَّجَاحَ فَزُرْ حُسَيْنًا\\n'
+      'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــــنِ\\n\\n'
+      'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْــمًا\\n'
+      'عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَـــــــيْنِ';
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: gold, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 16, 12, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold, height: 1.7),
+            ),
+            const Divider(height: 22),
+            Text.rich(
+              highlightImamHussein(
+                poem,
+                TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9, fontFamily: 'AmiriQuran'),
+              ),
+              textAlign: TextAlign.center,
+              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ZiyaratPage extends StatelessWidget {
   final double fontSize;
   const ZiyaratPage({super.key, required this.fontSize});
@@ -868,6 +922,8 @@ class ZiyaratPage extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        NajahPoemCard(fontSize: fontSize),
+        const SizedBox(height: 12),
         SectionCard(title: 'نية الزيارة', content: intentionText,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
