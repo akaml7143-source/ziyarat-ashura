@@ -474,7 +474,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        bottom: h * 0.32,
+                        top: h * 0.37,
                         right: 18,
                         left: 18,
                         child: Text.rich(
@@ -493,7 +493,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.5 - 75,
+                        top: h * 0.65 - 75,
                         left: 0,
                         right: 0,
                         child: Center(
@@ -1792,6 +1792,21 @@ class _SettingsPageState extends State<SettingsPage> {
               subtitle: const Text('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟'),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
+            ),
+          ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.forum_outlined, color: gold),
+              title: const Text('آراؤكم ومقترحاتكم حول التطبيق'),
+              subtitle: const Text('مراسلة خاصة مباشرة مع مصمم التطبيق، لا يطّلع على المحادثة غيركما.'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () {
+                unawaited(tapFeedback());
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
+                );
+              },
             ),
           ),
           Card(
