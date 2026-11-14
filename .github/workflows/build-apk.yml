@@ -43,8 +43,8 @@ jobs:
               s = settings.read_text()
               if "com.google.gms.google-services" not in s:
                   s, count = re.subn(
-                      r'plugins\\s*\\{',
-                      lambda m: m.group(0) + '\\n    id("com.google.gms.google-services") version "4.4.4" apply false',
+                      r'plugins\s*\{',
+                      lambda m: m.group(0) + '\n    id("com.google.gms.google-services") version "4.4.4" apply false',
                       s, count=1
                   )
                   if count == 0:
@@ -55,8 +55,8 @@ jobs:
               s = settings.read_text()
               if "com.google.gms.google-services" not in s:
                   s, count = re.subn(
-                      r'plugins\\s*\\{',
-                      lambda m: m.group(0) + "\\n    id 'com.google.gms.google-services' version '4.4.4' apply false",
+                      r'plugins\s*\{',
+                      lambda m: m.group(0) + "\n    id 'com.google.gms.google-services' version '4.4.4' apply false",
                       s, count=1
                   )
                   if count == 0:
@@ -68,8 +68,8 @@ jobs:
               s = app.read_text()
               if 'id("com.google.gms.google-services")' not in s:
                   s, count = re.subn(
-                      r'plugins\\s*\\{',
-                      lambda m: m.group(0) + '\\n    id("com.google.gms.google-services")',
+                      r'plugins\s*\{',
+                      lambda m: m.group(0) + '\n    id("com.google.gms.google-services")',
                       s, count=1
                   )
                   if count == 0:
@@ -80,8 +80,8 @@ jobs:
               s = app.read_text()
               if "com.google.gms.google-services" not in s:
                   s, count = re.subn(
-                      r'plugins\\s*\\{',
-                      lambda m: m.group(0) + "\\n    id 'com.google.gms.google-services'",
+                      r'plugins\s*\{',
+                      lambda m: m.group(0) + "\n    id 'com.google.gms.google-services'",
                       s, count=1
                   )
                   if count == 0:
