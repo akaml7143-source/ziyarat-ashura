@@ -2036,7 +2036,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المنبه')),
+      appBar: AppBar(title: const Text('المنبهات')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: reminders.length >= 5 ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
