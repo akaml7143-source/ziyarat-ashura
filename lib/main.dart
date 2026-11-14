@@ -33,7 +33,7 @@ const Map<String, Color> appColors = {
 
 final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
 bool exactAlarmsAllowed = false;
-const String reminderChannelKey = 'ashura_reminders_local_v1';
+const String reminderChannelKey = 'ashura_reminders_sound_v2';
 late AudioHandler audioHandler;
 
 Future<void> tapFeedback() async {
@@ -479,21 +479,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         left: 18,
                         child: Text.rich(
                           highlightImamHussein(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً .. لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً .. عَليهِ غُبارُ زوّارِ الحُسين',
+                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً\n'
+                            'لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
+                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً\n'
+                            'عَليهِ غُبارُ زوّارِ الحُسين',
                             const TextStyle(
                               color: Colors.white,
-                              fontSize: 32,
-                              height: 1.3,
+                              fontSize: 29,
+                              height: 1.48,
                               fontFamily: 'AmiriQuran',
                               shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
                             ),
                           ),
-                          textAlign: TextAlign.right,
+                          textAlign: TextAlign.center,
                         ),
                       ),
                       Positioned(
-                        top: h * 0.65 - 75,
+                        top: h * 0.73 - 62,
                         left: 0,
                         right: 0,
                         child: Center(
@@ -515,7 +517,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   scale: pressed ? 0.94 : 1.0,
                                   duration: const Duration(milliseconds: 160),
                                   child: Container(
-                                    constraints: const BoxConstraints.tightFor(width: 150, height: 150),
+                                    constraints: const BoxConstraints.tightFor(width: 124, height: 124),
                                     padding: const EdgeInsets.all(12),
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
@@ -529,7 +531,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.w900,
                                         fontFamily: 'Amiri',
                                         shadows: [Shadow(color: Colors.black, blurRadius: 5)],
