@@ -494,6 +494,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               ),
                             ],
                           ),
+                        ),
+                      ),
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(12, 62, 12, 12),
