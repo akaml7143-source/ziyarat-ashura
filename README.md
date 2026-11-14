@@ -74,3 +74,6 @@
 
 
 Build APK after Android SDK 36 compatibility fix.
+
+
+APK build configuration updated.
