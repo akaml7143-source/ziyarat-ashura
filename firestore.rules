@@ -1,6 +1,8 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
     function signedIn() {
       return request.auth != null;
     }
@@ -10,22 +12,32 @@ service cloud.firestore {
         && request.auth.uid == "WvoTCtdUdYhbMluOwfwmBg6CJSL2";
     }
 
-    function canAccessConversation(conversationId) {
-      return signedIn()
-        && (isOwner() || request.auth.uid == conversationId);
+    function isConversationUser(conversationId) {
+      return signedIn() && request.auth.uid == conversationId;
     }
 
     match /conversations/{conversationId} {
-      allow read: if canAccessConversation(conversationId);
-      allow create, update: if canAccessConversation(conversationId);
+      allow read: if isOwner() || isConversationUser(conversationId);
+
+      allow create: if isOwner()
+        || (isConversationUser(conversationId)
+          && request.resource.data.uid == request.auth.uid);
+
+      allow update: if isOwner()
+        || (isConversationUser(conversationId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['updatedAt'])
+          && request.resource.data.updatedAt == request.time);
+
       allow delete: if isOwner();
 
       match /messages/{messageId} {
-        allow read: if canAccessConversation(conversationId);
+        allow read: if isOwner() || isConversationUser(conversationId);
 
-        allow create: if canAccessConversation(conversationId)
-          && request.resource.data.keys().hasAll(['senderUid', 'text', 'createdAt'])
-          && request.resource.data.keys().hasOnly(['senderUid', 'text', 'createdAt'])
+        allow create: if signedIn()
+          && (isOwner() || isConversationUser(conversationId))
+          && request.resource.data.keys().hasOnly([
+            'senderUid', 'text', 'createdAt'
+          ])
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
