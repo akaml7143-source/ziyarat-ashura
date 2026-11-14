@@ -12,6 +12,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'messaging_page.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
@@ -606,6 +607,17 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('زيارة عاشوراء',
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
+          IconButton(
+            onPressed: () {
+              unawaited(tapFeedback());
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
+              );
+            },
+            icon: const Icon(Icons.forum_outlined),
+            tooltip: 'المراسلة الخاصة',
+          ),
           IconButton(
             onPressed: () {
               unawaited(tapFeedback());
