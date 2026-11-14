@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
@@ -457,47 +458,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                 return SizedBox.expand(
                   child: Stack(
                     children: [
-                      Positioned(
-                        top: h * 0.025,
-                        left: 12,
-                        right: 12,
-                        child: const Text(
-                          'زيارة عاشوراء',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFFC5A45E),
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'AmiriQuran',
-                            shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        top: h * 0.37,
-                        right: 18,
-                        left: 18,
-                        child: Text.rich(
-                          highlightImamHussein(
-                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً\n'
-                            'لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً\n'
-                            'عَليهِ غُبارُ زوّارِ الحُسين',
-                            const TextStyle(
-                              color: Colors.white,
-                              fontSize: 29,
-                              height: 1.48,
-                              fontFamily: 'AmiriQuran',
-                              shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
-                            ),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      Positioned(
-                        top: h * 0.73 - 62,
-                        left: 0,
-                        right: 0,
+                      Positioned.fill(
                         child: Center(
                           child: AnimatedBuilder(
                             animation: _floatAnimation,
@@ -505,37 +466,123 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               offset: Offset(0, _floatAnimation.value),
                               child: child,
                             ),
-                            child: Material(
-                              color: Colors.transparent,
-                              child: InkWell(
-                                onTap: enter,
-                                borderRadius: BorderRadius.circular(999),
-                                splashFactory: InkRipple.splashFactory,
-                                splashColor: const Color(0xFFC5A45E).withValues(alpha: 0.42),
-                                highlightColor: const Color(0xFFC5A45E).withValues(alpha: 0.14),
-                                child: AnimatedScale(
-                                  scale: pressed ? 0.94 : 1.0,
-                                  duration: const Duration(milliseconds: 160),
+                            child: SizedBox(
+                              width: math.min(constraints.maxWidth - 28, 390),
+                              height: h * 0.78,
+                              child: CustomPaint(
+                                painter: LakeDropletsPainter(_floatController),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(18),
                                   child: Container(
-                                    constraints: const BoxConstraints.tightFor(width: 124, height: 124),
-                                    padding: const EdgeInsets.all(12),
-                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF17130D).withValues(alpha: 0.58),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: const Color(0xFFC5A45E), width: 2.5),
-                                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
-                                    ),
-                                    child: const Text(
-                                      'الدخول إلى التطبيق',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w900,
-                                        fontFamily: 'Amiri',
-                                        shadows: [Shadow(color: Colors.black, blurRadius: 5)],
+                                      borderRadius: BorderRadius.circular(48),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          const Color(0xFFE4FFFF).withValues(alpha: 0.91),
+                                          const Color(0xFF8EDCE2).withValues(alpha: 0.88),
+                                          const Color(0xFF4DABB8).withValues(alpha: 0.91),
+                                          const Color(0xFFD5F8F4).withValues(alpha: 0.88),
+                                        ],
                                       ),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(alpha: 0.92),
+                                        width: 2.4,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF68D7E5).withValues(alpha: 0.42),
+                                          blurRadius: 34,
+                                          spreadRadius: 5,
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.22),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 12),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        const Text(
+                                          'زِيَارَةُ عَاشُورَاءَ',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 34,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'AmiriQuran',
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          highlightImamHussein(
+                                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً\n'
+                                            'لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
+                                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً\n'
+                                            'عَليهِ غُبارُ زوّارِ الحُسين',
+                                            const TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 29,
+                                              height: 1.48,
+                                              fontFamily: 'AmiriQuran',
+                                            ),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: enter,
+                                            borderRadius: BorderRadius.circular(40),
+                                            splashFactory: InkRipple.splashFactory,
+                                            splashColor: const Color(0xFF167E91).withValues(alpha: 0.28),
+                                            child: AnimatedScale(
+                                              scale: pressed ? 0.96 : 1.0,
+                                              duration: const Duration(milliseconds: 160),
+                                              child: Container(
+                                                constraints: const BoxConstraints(
+                                                  minWidth: 190,
+                                                  minHeight: 58,
+                                                ),
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 24,
+                                                  vertical: 12,
+                                                ),
+                                                alignment: Alignment.center,
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFE9FFFF).withValues(alpha: 0.78),
+                                                  borderRadius: BorderRadius.circular(40),
+                                                  border: Border.all(
+                                                    color: const Color(0xFF287F8B),
+                                                    width: 1.8,
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(0xFF155D69).withValues(alpha: 0.24),
+                                                      blurRadius: 14,
+                                                      offset: const Offset(0, 5),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: const Text(
+                                                  'الدخول إلى الزيارة',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 21,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'Amiri',
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -544,7 +591,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 );
@@ -555,6 +601,65 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       ),
     );
   }
+}
+
+class LakeDropletsPainter extends CustomPainter {
+  final Animation<double> animation;
+  LakeDropletsPainter(this.animation) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final t = animation.value * math.pi * 2;
+    final fill = Paint()
+      ..color = const Color(0xFFDDFBFF).withValues(alpha: 0.92)
+      ..style = PaintingStyle.fill;
+    final shine = Paint()
+      ..color = Colors.white.withValues(alpha: 0.82)
+      ..style = PaintingStyle.fill;
+
+    // قطرات صغيرة تتحرك حول الفقاعة ثم تهبط خارج حافتها.
+    for (var i = 0; i < 22; i++) {
+      final phase = (i / 22) * math.pi * 2;
+      final wave = math.sin(t + phase);
+      final drift = math.cos(t * 0.8 + phase);
+      final side = i % 4;
+      double x;
+      double y;
+      if (side == 0) {
+        x = size.width * (0.12 + (i % 6) * 0.15) + drift * 5;
+        y = 7 + (wave + 1) * 8;
+      } else if (side == 1) {
+        x = size.width - 7 - (wave + 1) * 8;
+        y = size.height * (0.12 + (i % 6) * 0.15) + drift * 5;
+      } else if (side == 2) {
+        x = size.width * (0.12 + (i % 6) * 0.15) + drift * 5;
+        y = size.height - 7 - (wave + 1) * 8;
+      } else {
+        x = 7 + (wave + 1) * 8;
+        y = size.height * (0.12 + (i % 6) * 0.15) + drift * 5;
+      }
+      final radius = 2.0 + (i % 3) * 1.1;
+      canvas.drawCircle(Offset(x, y), radius, fill);
+      canvas.drawCircle(Offset(x - radius * 0.25, y - radius * 0.3), radius * 0.32, shine);
+    }
+
+    // قطرات ساقطة أسفل الفقاعة.
+    for (var i = 0; i < 7; i++) {
+      final x = size.width * (0.16 + i * 0.115) + math.sin(t + i) * 4;
+      final fall = ((animation.value + i * 0.17) % 1.0);
+      final y = size.height - 4 + fall * 20;
+      final drop = Path()
+        ..moveTo(x, y - 5)
+        ..quadraticBezierTo(x - 5, y + 1, x, y + 5)
+        ..quadraticBezierTo(x + 5, y + 1, x, y - 5)
+        ..close();
+      canvas.drawPath(drop, fill);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant LakeDropletsPainter oldDelegate) =>
+      oldDelegate.animation != animation;
 }
 
 class HomeScreen extends StatefulWidget {
