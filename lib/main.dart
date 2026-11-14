@@ -415,12 +415,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   bool pressed = false;
   late final AnimationController _floatController;
   late final Animation<double> _floatAnimation;
+  late final Animation<double> _textPulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _floatController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
-    _floatAnimation = Tween<double>(begin: -6, end: 6).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
+    _floatAnimation = Tween<double>(begin: -9, end: 9).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
+    _textPulseAnimation = Tween<double>(begin: 1.0, end: 1.07).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
   }
 
   @override
@@ -480,124 +482,99 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned.fill(
-                        child: Center(
-                          child: AnimatedBuilder(
-                            animation: _floatAnimation,
-                            builder: (context, child) => Transform.translate(
-                              offset: Offset(0, _floatAnimation.value),
-                              child: child,
-                            ),
-                            child: SizedBox(
-                              width: math.min(constraints.maxWidth - 28, 390),
-                              height: h * 0.78,
-                              child: CustomPaint(
-                                painter: LakeDropletsPainter(_floatController),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(18),
-                                  child: Container(
-                                    padding: const EdgeInsets.fromLTRB(22, 24, 22, 24),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(48),
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          const Color(0xFFE4FFFF).withValues(alpha: 0.91),
-                                          const Color(0xFF8EDCE2).withValues(alpha: 0.88),
-                                          const Color(0xFF4DABB8).withValues(alpha: 0.91),
-                                          const Color(0xFFD5F8F4).withValues(alpha: 0.88),
-                                        ],
-                                      ),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.92),
-                                        width: 2.4,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF68D7E5).withValues(alpha: 0.42),
-                                          blurRadius: 34,
-                                          spreadRadius: 5,
-                                        ),
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.22),
-                                          blurRadius: 18,
-                                          offset: const Offset(0, 12),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Text.rich(
-                                          highlightImamHussein(
-                                            'إذا شئتَ النَّجاةَ فَزُرْ حُسيناً\n'
-                                            'لِكَي تَلْقَى الإلهَ قَريرَ عَينِ\n'
-                                            'فإنَّ النارَ لَيْسَ تَمَسُّ جِسماً\n'
-                                            'عَليهِ غُبارُ زوّارِ الحُسين',
-                                            const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 29,
-                                              height: 1.48,
-                                              fontFamily: 'AmiriQuran',
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 62, 12, 12),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text.rich(
+                                highlightImamHussein(
+                                  'إِذَا شِئْتَ النَّجَاةَ فَزُرْ حُسَيْنًا\\n'
+                                  'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــنِ\\n\\n'
+                                  'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْمًا\\n'
+                                  'عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَــــيْنِ',
+                                  const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 29,
+                                    height: 1.48,
+                                    fontFamily: 'AmiriQuran',
+                                  ),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 22),
+                              AnimatedBuilder(
+                                animation: _floatAnimation,
+                                builder: (context, child) => Transform.translate(
+                                  offset: Offset(0, _floatAnimation.value),
+                                  child: child,
+                                ),
+                                child: SizedBox(
+                                  width: 236,
+                                  height: 236,
+                                  child: CustomPaint(
+                                    painter: LakeDropletsPainter(_floatController),
+                                    child: Center(
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        shape: const CircleBorder(),
+                                        child: InkWell(
+                                          onTap: enter,
+                                          customBorder: const CircleBorder(),
+                                          splashColor: const Color(0xFF167E91).withValues(alpha: 0.22),
+                                          child: Container(
+                                            width: 190,
+                                            height: 190,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: const Color(0xFFBDEFF0).withValues(alpha: 0.24),
+                                              border: Border.all(
+                                                color: Colors.white.withValues(alpha: 0.72),
+                                                width: 2.2,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF8CE5EC).withValues(alpha: 0.20),
+                                                  blurRadius: 26,
+                                                  spreadRadius: 3,
+                                                ),
+                                                BoxShadow(
+                                                  color: Colors.black.withValues(alpha: 0.12),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 6),
+                                                ),
+                                              ],
                                             ),
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            onTap: enter,
-                                            borderRadius: BorderRadius.circular(40),
-                                            splashFactory: InkRipple.splashFactory,
-                                            splashColor: const Color(0xFF167E91).withValues(alpha: 0.28),
-                                            child: AnimatedScale(
-                                              scale: pressed ? 0.96 : 1.0,
-                                              duration: const Duration(milliseconds: 160),
-                                              child: Container(
-                                                constraints: const BoxConstraints(
-                                                  minWidth: 190,
-                                                  minHeight: 58,
-                                                ),
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 24,
-                                                  vertical: 12,
-                                                ),
-                                                alignment: Alignment.center,
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFE9FFFF).withValues(alpha: 0.78),
-                                                  borderRadius: BorderRadius.circular(40),
-                                                  border: Border.all(
-                                                    color: const Color(0xFF287F8B),
-                                                    width: 1.8,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: const Color(0xFF155D69).withValues(alpha: 0.24),
-                                                      blurRadius: 14,
-                                                      offset: const Offset(0, 5),
-                                                    ),
+                                            child: AnimatedBuilder(
+                                              animation: _textPulseAnimation,
+                                              builder: (context, child) => Transform.scale(
+                                                scaleX: _textPulseAnimation.value,
+                                                scaleY: 1.0 + ((_textPulseAnimation.value - 1.0) * 0.35),
+                                                child: child,
+                                              ),
+                                              child: const Text(
+                                                'الدخول إلى التطبيق',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Color(0xFFD50000),
+                                                  fontSize: 23,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Amiri',
+                                                  shadows: [
+                                                    Shadow(color: Colors.white70, blurRadius: 5),
                                                   ],
-                                                ),
-                                                child: const Text(
-                                                  'الدخول إلى الزيارة',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 21,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: 'Amiri',
-                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),
