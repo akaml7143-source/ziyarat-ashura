@@ -26,6 +26,71 @@ jobs:
       - name: Create Android platform
         run: flutter create --platforms=android .
 
+      - name: Configure Firebase Android plugin
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import shutil
+
+          source = Path("google-services.json")
+          if not source.exists():
+              raise SystemExit("google-services.json is missing from repository root")
+          shutil.copy2(source, Path("android/app/google-services.json"))
+
+          settings = Path("android/settings.gradle.kts")
+          if settings.exists():
+              s = settings.read_text()
+              if "com.google.gms.google-services" not in s:
+                  s, count = re.subn(
+                      r'plugins\\s*\\{',
+                      lambda m: m.group(0) + '\\n    id("com.google.gms.google-services") version "4.4.4" apply false',
+                      s, count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("Gradle settings plugins block not found")
+              settings.write_text(s)
+          else:
+              settings = Path("android/settings.gradle")
+              s = settings.read_text()
+              if "com.google.gms.google-services" not in s:
+                  s, count = re.subn(
+                      r'plugins\\s*\\{',
+                      lambda m: m.group(0) + "\\n    id 'com.google.gms.google-services' version '4.4.4' apply false",
+                      s, count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("Gradle settings plugins block not found")
+              settings.write_text(s)
+
+          app = Path("android/app/build.gradle.kts")
+          if app.exists():
+              s = app.read_text()
+              if 'id("com.google.gms.google-services")' not in s:
+                  s, count = re.subn(
+                      r'plugins\\s*\\{',
+                      lambda m: m.group(0) + '\\n    id("com.google.gms.google-services")',
+                      s, count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("App Gradle plugins block not found")
+              app.write_text(s)
+          else:
+              app = Path("android/app/build.gradle")
+              s = app.read_text()
+              if "com.google.gms.google-services" not in s:
+                  s, count = re.subn(
+                      r'plugins\\s*\\{',
+                      lambda m: m.group(0) + "\\n    id 'com.google.gms.google-services'",
+                      s, count=1
+                  )
+                  if count == 0:
+                      raise SystemExit("App Gradle plugins block not found")
+              app.write_text(s)
+
+          print("Firebase Android Gradle plugin configured")
+          PY
+
       - name: Configure notification and audio permissions
         run: |
           python3 - <<'PY'
