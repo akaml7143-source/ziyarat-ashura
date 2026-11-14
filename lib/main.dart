@@ -272,7 +272,7 @@ class _AshuraAppState extends State<AshuraApp> {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      isDarkMode = prefs.getBool('ashura_dark') ?? true;
+      isDarkMode = prefs.getBool('ashura_dark') ?? false;
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
@@ -452,7 +452,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   child: Stack(
                     children: [
                       Positioned(
-                        top: h * 0.065,
+                        top: h * 0.025,
                         left: 12,
                         right: 12,
                         child: const Text(
@@ -460,7 +460,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Color(0xFFC5A45E),
-                            fontSize: 36,
+                            fontSize: 34,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'AmiriQuran',
                             shadows: [Shadow(color: Colors.black87, blurRadius: 5)],
@@ -468,7 +468,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        bottom: h * 0.10,
+                        bottom: h * 0.23,
                         right: 18,
                         left: 18,
                         child: Text.rich(
@@ -487,7 +487,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        top: h * 0.5 - 62,
+                        top: h * 0.5 - 75,
                         left: 0,
                         right: 0,
                         child: Center(
@@ -509,12 +509,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   scale: pressed ? 0.94 : 1.0,
                                   duration: const Duration(milliseconds: 160),
                                   child: Container(
-                                    constraints: const BoxConstraints.tightFor(width: 118, height: 118),
+                                    constraints: const BoxConstraints.tightFor(width: 150, height: 150),
                                     padding: const EdgeInsets.all(12),
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF17130D).withValues(alpha: 0.58),
-                                      borderRadius: BorderRadius.circular(40),
+                                      shape: BoxShape.circle,
                                       border: Border.all(color: const Color(0xFFC5A45E), width: 2.5),
                                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 12)],
                                     ),
@@ -1131,39 +1131,62 @@ class AbbasVisitPage extends StatelessWidget {
                 const SizedBox(height: 6),
                 const Text('القارئ: الشيخ شبر معله', textAlign: TextAlign.center),
                 const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      unawaited(tapFeedback());
-                      try {
-                        await (audioHandler as AshuraAudioHandler).playAsset(
-                          'assets/shibr_maalla_abbas.mp3',
-                          'الشيخ شـبـر مـعـلـه',
-                          album: 'زيارة أبي الفضل العباس',
-                        );
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله')),
-                          );
-                        }
-                      } catch (error) {
-                        debugPrint('Abbas audio error: $error');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3')),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('تشغيل الزيارة'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          unawaited(tapFeedback());
+                          try {
+                            await (audioHandler as AshuraAudioHandler).playAsset(
+                              'assets/shibr_maalla_abbas.mp3',
+                              'الشيخ شـبـر مـعـلـه',
+                              album: 'زيارة أبي الفضل العباس',
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله')),
+                              );
+                            }
+                          } catch (error) {
+                            debugPrint('Abbas audio error: $error');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3')),
+                              );
+                            }
+                          }
+                        },
+                        icon: const Icon(Icons.play_arrow, size: 22),
+                        label: const Text('تشغيل الزيارة'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          unawaited(tapFeedback());
+                          await (audioHandler as AshuraAudioHandler).stop();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('تم إيقاف التشغيل')),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.stop_circle_outlined, size: 22),
+                        label: const Text('إيقاف التشغيل'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1181,8 +1204,8 @@ class ListeningPage extends StatefulWidget {
   static const List<Map<String, String>> readers = [
     {'name': 'الشيخ شـــــــبّر معلّــــــه', 'file': 'shibr_maalla.mp3'},
     {'name': 'الشيخ بـاقر المقـــــدسي', 'file': 'baqir_almaqdisi.mp3'},
-    {'name': 'بــاســـــــــــــم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
-    {'name': 'أحمـــــــــــد الفتـــــلاوي', 'file': 'ahmed_alftlawi.mp3'},
+    {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
+    {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
     {'name': 'الرادود محمدباقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
     {'name': 'الرادود أبو ذر الحلواجـي', 'file': 'aba_thar_alhelwachi.mp3'},
     {'name': 'الحاج علــــــــــي فانــــي', 'file': 'ali_fani.mp3'},
@@ -1369,7 +1392,7 @@ class _AudioPlayerControls extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold, fontSize: 16,
+                        fontWeight: FontWeight.bold, fontSize: snapshot.data == null ? 24 : 16,
                         shadows: const [Shadow(color: Colors.black87, blurRadius: 5)],
                       ),
                     ),
@@ -1638,8 +1661,8 @@ class _TasbeehPageState extends State<TasbeehPage> {
         child: Column(children: [
           Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 22), tooltip: 'تغيير خلفية المسبحة')),
           const SizedBox(height: 4),
-          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — سورة الأحزاب، الآية ٥٦',
-            const TextStyle(color: Colors.white, fontSize: 22, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
+          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — الآية القرآنية الأحزاب ٥٦',
+            const TextStyle(color: Colors.white, fontSize: 20, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
             style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -1748,8 +1771,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('المنبه'),
-              subtitle: const Text('منبّهات زيارة عاشوراء والصلاة على محمد وآل محمد'),
+              title: const Text('المنبهات'),
+              subtitle: const Text('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟'),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
@@ -1849,7 +1872,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: const Text('حول التطبيق'),
+              title: const Text('معلومات ومصمم التطبيق'),
               subtitle: const Text('معلومات التطبيق وحقوق التصميم'),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
