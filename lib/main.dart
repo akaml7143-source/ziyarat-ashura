@@ -468,7 +468,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         ),
                       ),
                       Positioned(
-                        bottom: h * 0.23,
+                        bottom: h * 0.32,
                         right: 18,
                         left: 18,
                         child: Text.rich(
@@ -1661,7 +1661,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
         child: Column(children: [
           Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 22), tooltip: 'تغيير خلفية المسبحة')),
           const SizedBox(height: 4),
-          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾ — الآية القرآنية الأحزاب ٥٦',
+          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾\nالآية القرآنية الأحزاب ٥٦',
             const TextStyle(color: Colors.white, fontSize: 20, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
           const SizedBox(height: 4),
           const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
