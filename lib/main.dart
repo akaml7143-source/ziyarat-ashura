@@ -461,7 +461,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   child: Stack(
                     children: [
                       Positioned(
-                      Positioned(
                         top: 8,
                         left: 10,
                         right: 10,
@@ -495,18 +494,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                          ),
-                        ),
-                      ),
                       Positioned.fill(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(12, 62, 12, 12),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              AnimatedBuilder(
                               AnimatedBuilder(
                                 animation: _floatAnimation,
                                 builder: (context, child) => Transform.translate(
@@ -845,9 +838,9 @@ class NajahPoemCard extends StatelessWidget {
   const NajahPoemCard({super.key, required this.fontSize});
 
   static const String poem =
-      'إِذَا شِئْتَ النَّجَاحَ فَزُرْ حُسَيْنًا\\n'
-      'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــــنِ\\n\\n'
-      'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْــمًا\\n'
+      'إِذَا شِئْتَ النَّجَاحَ فَزُرْ حُسَيْنًا\n'
+      'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــــنِ\n\n'
+      'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْــمًا\n'
       'عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَـــــــيْنِ';
 
   @override
