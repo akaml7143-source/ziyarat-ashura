@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "617449113035",
+    "project_id": "ziyarat-ashura-796c7",
+    "storage_bucket": "ziyarat-ashura-796c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:617449113035:android:6670d3f645394232aaa24e",
+        "android_client_info": {
+          "package_name": "com.example.ashura_visit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6ZtHvfUDA3y6zFDnc5PCJlOgfFR3R4Xw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
