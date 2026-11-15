@@ -1902,7 +1902,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
     final millionProgress = (count / target).clamp(0.0, 1.0).toDouble();
     final dailyProgress = (dailyCount / dailyTarget).clamp(0.0, 1.0).toDouble();
     final formattedCount = count.toString().replaceAllMapped(
-      RegExp(r'\\B(?=(\\d{3})+(?!\\d))'),
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (match) => ',',
     );
     final mutedText = textColor.withValues(alpha: 0.68);
