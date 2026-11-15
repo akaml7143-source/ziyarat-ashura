@@ -41,7 +41,7 @@ jobs:
             exit 1
           fi
           cp "$FONT_FILE" assets/fonts/LaylaThuluth.ttf
-          LICENSE_FILE="$(find /tmp/layla-thuluth -type f \\( -iname '*OFL*' -o -iname '*license*' \\) | head -n 1 || true)"
+          LICENSE_FILE="$(find /tmp/layla-thuluth -type f | grep -Ei 'OFL|license' | head -n 1 || true)"
           if [ -n "$LICENSE_FILE" ]; then
             cp "$LICENSE_FILE" assets/fonts/LaylaThuluth-LICENSE.txt
           fi
