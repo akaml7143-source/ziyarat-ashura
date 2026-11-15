@@ -39,3 +39,6 @@ flutter:
     - family: AmiriQuran
       fonts:
         - asset: assets/AmiriQuran.ttf
+    - family: LaylaThuluth
+      fonts:
+        - asset: assets/fonts/LaylaThuluth.ttf
