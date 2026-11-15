@@ -484,22 +484,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       children: [
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 52,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const RadialGradient(
-                              center: Alignment.center,
-                              radius: 1.15,
-                              colors: [
-                                Color(0xFF151515),
-                                Color(0xFF080808),
-                                Color(0xFF030303),
-                              ],
-                            ),
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 27),
+                          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.22), border: Border.all(color: Colors.white, width: 1.4)),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -540,7 +526,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                               const SizedBox(height: 12),
                               FractionallySizedBox(
-                                widthFactor: 0.75,
+                                widthFactor: 0.48,
                                 child: Container(
                                   height: 1,
                                   decoration: const BoxDecoration(
@@ -559,17 +545,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: pressed ? null : enter,
-                                  borderRadius: BorderRadius.circular(22),
+                                  borderRadius: BorderRadius.circular(13),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 28,
-                                      vertical: 7,
+                                      horizontal: 12,
+                                      vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF090909),
                                       border: Border.all(
                                         color: Colors.white,
-                                        width: 2,
+                                        width: 1.2,
                                       ),
                                       borderRadius: BorderRadius.circular(22),
                                       boxShadow: const [
@@ -580,12 +566,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ],
                                     ),
                                     child: const Text(
-                                      '● تَفَضَّلْ بِالدُّخُولِ ●',
+                                      '● تَفَضَّلْ بِالدُّخُولِ. ●',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontFamily: 'Amiri',
-                                        fontSize: 25,
+                                        fontSize: 17,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
