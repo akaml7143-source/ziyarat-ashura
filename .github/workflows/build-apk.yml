@@ -47,6 +47,30 @@ jobs:
             cp "$LICENSE_FILE" assets/LaylaThuluth-LICENSE.txt
           fi
           test -s assets/LaylaThuluth.ttf
+
+          # Additional Arabic fonts (bundled locally in the APK).
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf" \
+            -o assets/NotoNaskhArabic.ttf
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/cairo/Cairo%5Bslnt%2Cwght%5D.ttf" \
+            -o assets/Cairo.ttf
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/arefruqaa/ArefRuqaa-Regular.ttf" \
+            -o assets/ArefRuqaa-Regular.ttf
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/OFL.txt" \
+            -o assets/NotoNaskhArabic-OFL.txt
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/cairo/OFL.txt" \
+            -o assets/Cairo-OFL.txt
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/arefruqaa/OFL.txt" \
+            -o assets/ArefRuqaa-OFL.txt
+          test -s assets/NotoNaskhArabic.ttf
+          test -s assets/Cairo.ttf
+          test -s assets/ArefRuqaa-Regular.ttf
+          echo "Three additional Arabic fonts prepared"
           echo "Layla Thuluth font prepared"
 
       - name: Create Android platform

@@ -296,7 +296,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'LaylaThuluth'].contains(savedFont) ? savedFont : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'LaylaThuluth', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -323,7 +323,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'LaylaThuluth'].contains(value)) return;
+    if (!const ['Amiri', 'AmiriQuran', 'LaylaThuluth', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -500,7 +500,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                'زِيَارَةُ عَاشُورَاءَ',
+                                '❀ زِيَارَةُ عَاشُورَاءَ ❀',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -518,7 +518,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                               const SizedBox(height: 12),
                               const Text(
-                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ\\nوَابْــدَأْ زِيَــارَةَ عَاشُورَاءَ',
+                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ\nوَابْــدَأْ زِيَــارَةَ عَاشُورَاءَ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -1810,7 +1810,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   }
 
   Future<void> _increment() async {
-    if (!loaded) return;
+    if (!loaded || count >= target) return;
     unawaited(tapFeedback());
     setState(() {
       count++;
@@ -2034,7 +2034,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            'تحدي المليون صلاة على محمد وآل محمد',
+                            'تحدي المليون',
                             textAlign: TextAlign.right,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -2378,8 +2378,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: const Text('معلومات ومصمم التطبيق'),
-              subtitle: const Text('معلومات التطبيق وحقوق التصميم'),
+              title: const Text('حول التطبيق'),
+              subtitle: const Text('معلومات التطبيق والإهداء وحقوق التصميم'),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),

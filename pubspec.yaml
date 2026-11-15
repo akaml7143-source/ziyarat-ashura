@@ -42,3 +42,12 @@ flutter:
     - family: LaylaThuluth
       fonts:
         - asset: assets/LaylaThuluth.ttf
+    - family: NotoNaskhArabic
+      fonts:
+        - asset: assets/NotoNaskhArabic.ttf
+    - family: Cairo
+      fonts:
+        - asset: assets/Cairo.ttf
+    - family: ArefRuqaa
+      fonts:
+        - asset: assets/ArefRuqaa-Regular.ttf
