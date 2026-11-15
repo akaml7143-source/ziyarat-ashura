@@ -283,7 +283,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = savedFont == 'AmiriQuran' ? 'AmiriQuran' : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'LaylaThuluth'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -310,7 +310,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (value != 'Amiri' && value != 'AmiriQuran') return;
+    if (!const ['Amiri', 'AmiriQuran', 'LaylaThuluth'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -411,23 +411,23 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
   bool pressed = false;
-  late final AnimationController _floatController;
-  late final Animation<double> _floatAnimation;
-  late final Animation<double> _textPulseAnimation;
+  late final AnimationController _motionController;
 
   @override
   void initState() {
     super.initState();
-    _floatController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
-    _floatAnimation = Tween<double>(begin: -9, end: 9).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
-    _textPulseAnimation = Tween<double>(begin: 1.0, end: 1.07).animate(CurvedAnimation(parent: _floatController, curve: Curves.easeInOut));
+    _motionController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    )..repeat();
   }
 
   @override
   void dispose() {
-    _floatController.dispose();
+    _motionController.dispose();
     super.dispose();
   }
 
@@ -435,16 +435,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     if (pressed) return;
     setState(() => pressed = true);
     unawaited(tapFeedback());
-    await Future.delayed(const Duration(milliseconds: 220));
+    await Future.delayed(const Duration(milliseconds: 420));
     if (mounted) widget.onEnter();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color(0xFF06130F),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -453,118 +451,144 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
             fit: BoxFit.cover,
             alignment: Alignment.center,
           ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xA8061712),
+                  Color(0x70101A14),
+                  Color(0xD906120F),
+                ],
+              ),
+            ),
+          ),
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final h = constraints.maxHeight;
-                return SizedBox.expand(
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        top: 8,
-                        left: 10,
-                        right: 10,
-                        child: IgnorePointer(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'زِيَارَةُ عَاشُورَاءَ',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Color(0xFF24170D),
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'AmiriQuran',
-                                  height: 1.45,
-                                  shadows: [
-                                    Shadow(color: Colors.white, blurRadius: 10, offset: Offset(0, 1)),
-                                    Shadow(color: Color(0xFFB78A36), blurRadius: 5, offset: Offset(0, 2)),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Container(
-                                width: 112,
-                                height: 1.5,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF9B702B).withValues(alpha: 0.75),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+            child: Column(
+              children: [
+                const SizedBox(height: 18),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 1100),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) => Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, (1 - value) * -14),
+                        child: child,
                       ),
-                      Positioned.fill(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 62, 12, 12),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              AnimatedBuilder(
-                                animation: _floatAnimation,
-                                builder: (context, child) => Transform.translate(
-                                  offset: Offset(0, _floatAnimation.value),
-                                  child: child,
-                                ),
-                                child: SizedBox(
-                                  width: 236,
-                                  height: 236,
-                                  child: CustomPaint(
-                                    painter: LakeDropletsPainter(_floatController),
-                                    child: Center(
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        shape: const CircleBorder(),
-                                        child: InkWell(
-                                          onTap: enter,
-                                          customBorder: const CircleBorder(),
-                                          splashColor: const Color(0xFF167E91).withValues(alpha: 0.22),
-                                          child: Container(
-                                            width: 190,
-                                            height: 190,
-                                            alignment: Alignment.center,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: const Color(0xFFBDEFF0).withValues(alpha: 0.24),
-                                              border: Border.all(
-                                                color: Colors.white.withValues(alpha: 0.72),
-                                                width: 2.2,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(0xFF8CE5EC).withValues(alpha: 0.20),
-                                                  blurRadius: 26,
-                                                  spreadRadius: 3,
-                                                ),
-                                                BoxShadow(
-                                                  color: Colors.black.withValues(alpha: 0.12),
-                                                  blurRadius: 12,
-                                                  offset: const Offset(0, 6),
-                                                ),
-                                              ],
+                    ),
+                    child: const Text(
+                      'زِيَارَةُ عَاشُورَاءَ',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 42,
+                        fontWeight: FontWeight.w400,
+                        fontFamily: 'LaylaThuluth',
+                        height: 1.5,
+                        shadows: [
+                          Shadow(
+                            color: Color(0xFFFFD76A),
+                            blurRadius: 18,
+                            offset: Offset(0, 1),
+                          ),
+                          Shadow(
+                            color: Color(0xAA000000),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: 108,
+                  height: 1.5,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0x00FFD76A),
+                        Color(0xFFFFD76A),
+                        Color(0x00FFD76A),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: AnimatedBuilder(
+                      animation: _motionController,
+                      builder: (context, child) => Transform.translate(
+                        offset: Offset(
+                          0,
+                          math.sin(_motionController.value * math.pi * 2) * 6,
+                        ),
+                        child: child,
+                      ),
+                      child: AnimatedScale(
+                        scale: pressed ? 1.08 : 1.0,
+                        duration: const Duration(milliseconds: 380),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedOpacity(
+                          opacity: pressed ? 0.0 : 1.0,
+                          duration: const Duration(milliseconds: 380),
+                          child: SizedBox(
+                            width: 292,
+                            height: 342,
+                            child: CustomPaint(
+                              painter: GoldenPortalPainter(_motionController),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 54),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: enter,
+                                      borderRadius: BorderRadius.circular(30),
+                                      splashColor: Colors.white24,
+                                      child: Ink(
+                                        width: 194,
+                                        height: 62,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(30),
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFFFFE9A8),
+                                              Color(0xFFD9A441),
+                                              Color(0xFF9D7026),
+                                            ],
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFFFF2C9),
+                                            width: 1.5,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFFFFD76A)
+                                                  .withValues(alpha: 0.30),
+                                              blurRadius: 24,
+                                              spreadRadius: 2,
                                             ),
-                                            child: AnimatedBuilder(
-                                              animation: _textPulseAnimation,
-                                              builder: (context, child) => Transform.scale(
-                                                scaleX: _textPulseAnimation.value,
-                                                scaleY: 1.0 + ((_textPulseAnimation.value - 1.0) * 0.35),
-                                                child: child,
-                                              ),
-                                              child: const Text(
-                                                'الدخول إلى التطبيق',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Color(0xFFD50000),
-                                                  fontSize: 23,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Amiri',
-                                                  shadows: [
-                                                    Shadow(color: Colors.white70, blurRadius: 5),
-                                                  ],
-                                                ),
-                                              ),
+                                          ],
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            'الدخول إلى التطبيق',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: Color(0xFF241A0B),
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Amiri',
                                             ),
                                           ),
                                         ),
@@ -573,14 +597,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 18),
+              ],
             ),
           ),
         ],
@@ -589,62 +614,83 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 }
 
-class LakeDropletsPainter extends CustomPainter {
+class GoldenPortalPainter extends CustomPainter {
   final Animation<double> animation;
-  LakeDropletsPainter(this.animation) : super(repaint: animation);
+
+  GoldenPortalPainter(this.animation) : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
     final t = animation.value * math.pi * 2;
-    final fill = Paint()
-      ..color = const Color(0xFFDDFBFF).withValues(alpha: 0.92)
-      ..style = PaintingStyle.fill;
-    final shine = Paint()
-      ..color = Colors.white.withValues(alpha: 0.82)
-      ..style = PaintingStyle.fill;
+    final cx = size.width / 2;
+    final top = size.height * 0.10;
+    final bottom = size.height * 0.91;
+    final side = size.width * 0.16;
+    final crown = size.height * 0.24;
 
-    // قطرات صغيرة تتحرك حول الفقاعة ثم تهبط خارج حافتها.
+    final arch = Path()
+      ..moveTo(side, bottom)
+      ..lineTo(side, top + crown)
+      ..cubicTo(side, top - 8, cx - 42, top - 8, cx, top + 2)
+      ..cubicTo(cx + 42, top - 8, size.width - side, top - 8,
+          size.width - side, top + crown)
+      ..lineTo(size.width - side, bottom);
+
+    final glow = Paint()
+      ..color = const Color(0xFFFFD76A)
+          .withValues(alpha: 0.15 + 0.08 * math.sin(t))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 13
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawPath(arch, glow);
+
+    final outer = Paint()
+      ..color = const Color(0xFFFFD76A).withValues(alpha: 0.88)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(arch, outer);
+
+    final innerArch = Path()
+      ..moveTo(side + 9, bottom)
+      ..lineTo(side + 9, top + crown + 2)
+      ..cubicTo(side + 9, top + 12, cx - 35, top + 12, cx, top + 18)
+      ..cubicTo(cx + 35, top + 12, size.width - side - 9, top + 12,
+          size.width - side - 9, top + crown + 2)
+      ..lineTo(size.width - side - 9, bottom);
+    final innerPaint = Paint()
+      ..color = const Color(0xFFFFE8A6).withValues(alpha: 0.44)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1;
+    canvas.drawPath(innerArch, innerPaint);
+
+    final particlePaint = Paint()..style = PaintingStyle.fill;
     for (var i = 0; i < 22; i++) {
       final phase = (i / 22) * math.pi * 2;
-      final wave = math.sin(t + phase);
-      final drift = math.cos(t * 0.8 + phase);
-      final side = i % 4;
-      double x;
-      double y;
-      if (side == 0) {
-        x = size.width * (0.12 + (i % 6) * 0.15) + drift * 5;
-        y = 7 + (wave + 1) * 8;
-      } else if (side == 1) {
-        x = size.width - 7 - (wave + 1) * 8;
-        y = size.height * (0.12 + (i % 6) * 0.15) + drift * 5;
-      } else if (side == 2) {
-        x = size.width * (0.12 + (i % 6) * 0.15) + drift * 5;
-        y = size.height - 7 - (wave + 1) * 8;
-      } else {
-        x = 7 + (wave + 1) * 8;
-        y = size.height * (0.12 + (i % 6) * 0.15) + drift * 5;
-      }
-      final radius = 2.0 + (i % 3) * 1.1;
-      canvas.drawCircle(Offset(x, y), radius, fill);
-      canvas.drawCircle(Offset(x - radius * 0.25, y - radius * 0.3), radius * 0.32, shine);
+      final angle = phase + t * 0.16;
+      final x = cx + math.cos(angle) * size.width * 0.43;
+      final y = size.height * 0.49 + math.sin(angle) * size.height * 0.39;
+      final pulse = 0.55 + 0.45 * math.sin(t * 1.5 + phase);
+      particlePaint.color = const Color(0xFFFFE6A0)
+          .withValues(alpha: 0.28 + pulse * 0.62);
+      canvas.drawCircle(Offset(x, y), 1.2 + pulse * 1.7, particlePaint);
     }
 
-    // قطرات ساقطة أسفل الفقاعة.
-    for (var i = 0; i < 7; i++) {
-      final x = size.width * (0.16 + i * 0.115) + math.sin(t + i) * 4;
-      final fall = ((animation.value + i * 0.17) % 1.0);
-      final y = size.height - 4 + fall * 20;
-      final drop = Path()
-        ..moveTo(x, y - 5)
-        ..quadraticBezierTo(x - 5, y + 1, x, y + 5)
-        ..quadraticBezierTo(x + 5, y + 1, x, y - 5)
-        ..close();
-      canvas.drawPath(drop, fill);
-    }
+    final starPaint = Paint()
+      ..color = const Color(0xFFFFE6A0).withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    final star = Path()
+      ..moveTo(cx, top - 5)
+      ..lineTo(cx, top + 17)
+      ..moveTo(cx - 11, top + 6)
+      ..lineTo(cx + 11, top + 6);
+    canvas.drawPath(star, starPaint);
   }
 
   @override
-  bool shouldRepaint(covariant LakeDropletsPainter oldDelegate) =>
+  bool shouldRepaint(covariant GoldenPortalPainter oldDelegate) =>
       oldDelegate.animation != animation;
 }
 
@@ -2011,6 +2057,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     items: const [
                       DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
+                      DropdownMenuItem<String>(value: 'LaylaThuluth', child: Text('خط الثلث - ليلى')),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());
