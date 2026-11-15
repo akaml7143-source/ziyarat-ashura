@@ -41,4 +41,4 @@ flutter:
         - asset: assets/AmiriQuran.ttf
     - family: LaylaThuluth
       fonts:
-        - asset: assets/fonts/LaylaThuluth.ttf
+        - asset: assets/LaylaThuluth.ttf
