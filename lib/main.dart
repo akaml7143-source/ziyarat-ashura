@@ -1744,12 +1744,13 @@ class _TasbeehPageState extends State<TasbeehPage> {
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
-      target = prefs.getInt('tasbeeh_target') ?? 1000000;
+      target = 1000000;
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
       zahraCount = prefs.getInt('zahra_tasbeeh_count') ?? 0;
       zahraStageIndex = (prefs.getInt('zahra_tasbeeh_stage') ?? 0)
-          .clamp(0, zahraTargets.length - 1);
+          .clamp(0, zahraTargets.length - 1)
+          .toInt();
       zahraStageDone = prefs.getBool('zahra_tasbeeh_stage_done') ?? false;
       loaded = true;
     });
