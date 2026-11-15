@@ -425,28 +425,22 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   bool pressed = false;
-  late final AnimationController _motionController;
-  late final AnimationController _buttonController;
+  late final AnimationController _floatController;
 
   @override
   void initState() {
     super.initState();
-    _motionController = AnimationController(
+    _floatController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
-    )..repeat();
-    _buttonController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _motionController.dispose();
-    _buttonController.dispose();
+    _floatController.dispose();
     super.dispose();
   }
 
@@ -454,288 +448,202 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     if (pressed) return;
     setState(() => pressed = true);
     unawaited(tapFeedback());
-    await Future.delayed(const Duration(milliseconds: 420));
+    await Future.delayed(const Duration(milliseconds: 180));
     if (mounted) widget.onEnter();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF06130F),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/welcome_background.png',
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-          ),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xA8061712),
-                  Color(0x70101A14),
-                  Color(0xD906120F),
-                ],
+      backgroundColor: const Color(0xFF080808),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(18),
+            child: AnimatedBuilder(
+              animation: _floatController,
+              builder: (context, child) => Transform.translate(
+                offset: Offset(0, -7 * _floatController.value),
+                child: child,
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                const SizedBox(height: 18),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 1100),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, value, child) => Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(0, (1 - value) * -14),
-                        child: child,
-                      ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: Container(
+                    margin: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF777777), width: 1),
                     ),
-                    child: const Text(
-                      'زِيَارَةُ عَاشُورَاءَ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 42,
-                        fontWeight: FontWeight.w400,
-                        fontFamily: 'Amiri',
-                        height: 1.5,
-                        shadows: [
-                          Shadow(
-                            color: Color(0x99FFFFFF),
-                            blurRadius: 9,
-                            offset: Offset(0, 1),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 52,
                           ),
-                          Shadow(
-                            color: Color(0xAA000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 3),
+                          decoration: BoxDecoration(
+                            gradient: const RadialGradient(
+                              center: Alignment.center,
+                              radius: 1.15,
+                              colors: [
+                                Color(0xFF151515),
+                                Color(0xFF080808),
+                                Color(0xFF030303),
+                              ],
+                            ),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 108,
-                  height: 1.5,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0x00FFD76A),
-                        Color(0xFFFFD76A),
-                        Color(0x00FFD76A),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: AnimatedBuilder(
-                      animation: _motionController,
-                      builder: (context, child) => Transform.translate(
-                        offset: Offset(
-                          0,
-                          math.sin(_motionController.value * math.pi * 2) * 6,
-                        ),
-                        child: child,
-                      ),
-                      child: AnimatedScale(
-                        scale: pressed ? 1.08 : 1.0,
-                        duration: const Duration(milliseconds: 380),
-                        curve: Curves.easeOutCubic,
-                        child: AnimatedOpacity(
-                          opacity: pressed ? 0.0 : 1.0,
-                          duration: const Duration(milliseconds: 380),
-                          child: SizedBox(
-                            width: 292,
-                            height: 342,
-                            child: CustomPaint(
-                              painter: GoldenPortalPainter(_motionController),
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(top: 54),
-                                  child: AnimatedBuilder(
-                                    animation: _buttonController,
-                                    builder: (context, child) => Transform.translate(
-                                      offset: Offset(
-                                        0,
-                                        -15 * Curves.easeInOut.transform(_buttonController.value),
-                                      ),
-                                      child: child,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'زِيَارَةُ عَاشُورَاءَ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Amiri',
+                                  fontSize: 38,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.5,
+                                  shadows: [
+                                    Shadow(
+                                      color: Color(0x66FFFFFF),
+                                      blurRadius: 8,
                                     ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: enter,
-                                        borderRadius: BorderRadius.circular(16),
-                                        splashColor: Colors.white24,
-                                        child: Ink(
-                                          width: 258,
-                                          height: 104,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(16),
-                                            gradient: const LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                Color(0xFFE32636),
-                                                Color(0xFFA80012),
-                                                Color(0xFFE32636),
-                                              ],
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 2,
-                                            ),
-                                            boxShadow: const [
-                                              BoxShadow(
-                                                color: Color(0x66BE0014),
-                                                blurRadius: 18,
-                                                offset: Offset(0, 6),
-                                              ),
-                                              BoxShadow(
-                                                color: Color(0x55FFFFFF),
-                                                blurRadius: 5,
-                                                offset: Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
-                                          child: const Center(
-                                            child: Padding(
-                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                              child: Text(
-                                                'ادخل لزيــــــارة سيد الشهداء\\nالإمام الحسين روحي له الفداء',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 19,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Amiri',
-                                                  height: 1.65,
-                                                  shadows: [
-                                                    Shadow(
-                                                      color: Color(0x77000000),
-                                                      blurRadius: 4,
-                                                      offset: Offset(0, 1),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ\\nوَابْــدَأْ زِيَــارَةَ عَاشُورَاءَ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Amiri',
+                                  fontSize: 27,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.8,
+                                  shadows: [
+                                    Shadow(
+                                      color: Color(0x40FFFFFF),
+                                      blurRadius: 7,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              FractionallySizedBox(
+                                widthFactor: 0.75,
+                                child: Container(
+                                  height: 1,
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.transparent,
+                                        Colors.white,
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: pressed ? null : enter,
+                                  borderRadius: BorderRadius.circular(22),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 28,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF090909),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(22),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0x26777777),
+                                          blurRadius: 8,
                                         ),
+                                      ],
+                                    ),
+                                    child: const Text(
+                                      '● تَفَضَّلْ بِالدُّخُولِ ●',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'Amiri',
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                      ),
+                        const Positioned(
+                          top: -28,
+                          child: _WelcomeOrnament(text: '❀ ۞ ❀', size: 38),
+                        ),
+                        const Positioned(
+                          bottom: -28,
+                          child: _WelcomeOrnament(text: '❀ ۞ ❀', size: 38),
+                        ),
+                        const Positioned(
+                          right: -18,
+                          child: _WelcomeOrnament(text: '❀', size: 30),
+                        ),
+                        const Positioned(
+                          left: -18,
+                          child: _WelcomeOrnament(text: '❀', size: 30),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
-              ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class GoldenPortalPainter extends CustomPainter {
-  final Animation<double> animation;
-
-  GoldenPortalPainter(this.animation) : super(repaint: animation);
+class _WelcomeOrnament extends StatelessWidget {
+  final String text;
+  final double size;
+  const _WelcomeOrnament({required this.text, required this.size});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final t = animation.value * math.pi * 2;
-    final cx = size.width / 2;
-    final top = size.height * 0.10;
-    final bottom = size.height * 0.91;
-    final side = size.width * 0.16;
-    final crown = size.height * 0.24;
-
-    final arch = Path()
-      ..moveTo(side, bottom)
-      ..lineTo(side, top + crown)
-      ..cubicTo(side, top - 8, cx - 42, top - 8, cx, top + 2)
-      ..cubicTo(cx + 42, top - 8, size.width - side, top - 8,
-          size.width - side, top + crown)
-      ..lineTo(size.width - side, bottom);
-
-    final glow = Paint()
-      ..color = const Color(0xFFFFD76A)
-          .withValues(alpha: 0.15 + 0.08 * math.sin(t))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 13
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-    canvas.drawPath(arch, glow);
-
-    final outer = Paint()
-      ..color = const Color(0xFFFFD76A).withValues(alpha: 0.88)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(arch, outer);
-
-    final innerArch = Path()
-      ..moveTo(side + 9, bottom)
-      ..lineTo(side + 9, top + crown + 2)
-      ..cubicTo(side + 9, top + 12, cx - 35, top + 12, cx, top + 18)
-      ..cubicTo(cx + 35, top + 12, size.width - side - 9, top + 12,
-          size.width - side - 9, top + crown + 2)
-      ..lineTo(size.width - side - 9, bottom);
-    final innerPaint = Paint()
-      ..color = const Color(0xFFFFE8A6).withValues(alpha: 0.44)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1;
-    canvas.drawPath(innerArch, innerPaint);
-
-    final particlePaint = Paint()..style = PaintingStyle.fill;
-    for (var i = 0; i < 22; i++) {
-      final phase = (i / 22) * math.pi * 2;
-      final angle = phase + t * 0.16;
-      final x = cx + math.cos(angle) * size.width * 0.43;
-      final y = size.height * 0.49 + math.sin(angle) * size.height * 0.39;
-      final pulse = 0.55 + 0.45 * math.sin(t * 1.5 + phase);
-      particlePaint.color = const Color(0xFFFFE6A0)
-          .withValues(alpha: 0.28 + pulse * 0.62);
-      canvas.drawCircle(Offset(x, y), 1.2 + pulse * 1.7, particlePaint);
-    }
-
-    final starPaint = Paint()
-      ..color = const Color(0xFFFFE6A0).withValues(alpha: 0.8)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    final star = Path()
-      ..moveTo(cx, top - 5)
-      ..lineTo(cx, top + 17)
-      ..moveTo(cx - 11, top + 6)
-      ..lineTo(cx + 11, top + 6);
-    canvas.drawPath(star, starPaint);
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF080808),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: size,
+          height: 1,
+          shadows: const [
+            Shadow(color: Color(0xFFAAAAAA), blurRadius: 5),
+          ],
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant GoldenPortalPainter oldDelegate) =>
-      oldDelegate.animation != animation;
 }
 
 class HomeScreen extends StatefulWidget {
@@ -782,7 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'فَضْلُ زِيَارَةِ عَاشُورَاءَ',
       'اِسْتِمَاعُ الزِّيَارَةِ',
       'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)',
-      'الحَسَنَاتُ يُذْهِبْنَ السَّيِّئَاتِ',
+      'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ',
     ];
     return Scaffold(
       appBar: AppBar(
@@ -1807,11 +1715,24 @@ const List<String> tasbeehHadithPages = [
 ];
 
 class _TasbeehPageState extends State<TasbeehPage> {
+  static const List<String> zahraPhrases = [
+    'اللَّهُ أَكْبَرُ',
+    'الْحَمْدُ لِلَّهِ',
+    'سُبْحَانَ اللَّهِ',
+  ];
+  static const List<int> zahraTargets = [34, 33, 33];
+
   int count = 0, target = 1000000, dailyCount = 0, dailyTarget = 100;
-  Color backgroundColor = const Color(0xFF121212);
+  int zahraCount = 0, zahraStageIndex = 0;
+  bool zahraStageDone = false;
   bool loaded = false;
+
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+  }
+
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
@@ -1823,148 +1744,464 @@ class _TasbeehPageState extends State<TasbeehPage> {
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
-      target = 1000000;
+      target = prefs.getInt('tasbeeh_target') ?? 1000000;
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
-      backgroundColor = Color(prefs.getInt('tasbeeh_background_color') ?? 0xFF121212);
+      zahraCount = prefs.getInt('zahra_tasbeeh_count') ?? 0;
+      zahraStageIndex = (prefs.getInt('zahra_tasbeeh_stage') ?? 0)
+          .clamp(0, zahraTargets.length - 1);
+      zahraStageDone = prefs.getBool('zahra_tasbeeh_stage_done') ?? false;
       loaded = true;
     });
   }
+
+  Future<void> _incrementZahra() async {
+    if (!loaded || zahraStageDone) return;
+    final stageTarget = zahraTargets[zahraStageIndex];
+    setState(() {
+      zahraCount++;
+      if (zahraCount >= stageTarget) {
+        zahraCount = stageTarget;
+        zahraStageDone = true;
+      }
+    });
+    if (zahraStageDone) {
+      await HapticFeedback.heavyImpact();
+    } else {
+      await HapticFeedback.lightImpact();
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('zahra_tasbeeh_count', zahraCount);
+    await prefs.setInt('zahra_tasbeeh_stage', zahraStageIndex);
+    await prefs.setBool('zahra_tasbeeh_stage_done', zahraStageDone);
+  }
+
+  Future<void> _advanceZahraStage() async {
+    if (!zahraStageDone) return;
+    final finishedAll = zahraStageIndex == zahraTargets.length - 1;
+    setState(() {
+      zahraCount = 0;
+      zahraStageDone = false;
+      zahraStageIndex = finishedAll ? 0 : zahraStageIndex + 1;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('zahra_tasbeeh_count', 0);
+    await prefs.setInt('zahra_tasbeeh_stage', zahraStageIndex);
+    await prefs.setBool('zahra_tasbeeh_stage_done', false);
+    if (finishedAll && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.')),
+      );
+    }
+  }
+
+  Future<void> _resetZahra() async {
+    setState(() {
+      zahraCount = 0;
+      zahraStageIndex = 0;
+      zahraStageDone = false;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('zahra_tasbeeh_count', 0);
+    await prefs.setInt('zahra_tasbeeh_stage', 0);
+    await prefs.setBool('zahra_tasbeeh_stage_done', false);
+    await HapticFeedback.mediumImpact();
+  }
+
   Future<void> _increment() async {
     if (!loaded) return;
     unawaited(tapFeedback());
-    setState(() { count++; dailyCount++; });
-    final p = await SharedPreferences.getInstance();
-    await p.setInt('tasbeeh_salawat_count', count);
-    await p.setInt('tasbeeh_daily_count', dailyCount);
-    if (count == target && mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أحسنت، أتممت العدد المحدد')));
+    setState(() {
+      count++;
+      dailyCount++;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_salawat_count', count);
+    await prefs.setInt('tasbeeh_daily_count', dailyCount);
+    if (count == target && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('أحسنت، أتممت العدد المحدد')),
+      );
+    }
   }
+
   Future<void> _reset() async {
-    final ok = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-      title: const Text('إعادة العداد'), content: const Text('هل تريد تصفير العدد الكلي؟'),
-      actions: [
-        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context, false); }, child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context, true); }, child: const Text('تصفير')),
-      ]));
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إعادة عدّاد الصلاة'),
+        content: const Text('هل تريد تصفير العدد الكلي والورد اليومي للصلاة؟'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              unawaited(tapFeedback());
+              Navigator.pop(context, false);
+            },
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              unawaited(tapFeedback());
+              Navigator.pop(context, true);
+            },
+            child: const Text('تصفير'),
+          ),
+        ],
+      ),
+    );
     if (ok != true) return;
-    setState(() { count = 0; dailyCount = 0; });
-    final p = await SharedPreferences.getInstance();
-    await p.setInt('tasbeeh_salawat_count', 0);
-    await p.setInt('tasbeeh_daily_count', 0);
+    setState(() {
+      count = 0;
+      dailyCount = 0;
+    });
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_salawat_count', 0);
+    await prefs.setInt('tasbeeh_daily_count', 0);
   }
-  Future<void> _setTarget(int v) async {
-    if (v < 1) return;
-    setState(() => target = v);
-    final p = await SharedPreferences.getInstance();
-    await p.setInt('tasbeeh_target', v);
-    await tapFeedback();
-  }
-  Future<void> _customTarget() async {
-    final controller = TextEditingController(text: target.toString());
-    final v = await showDialog<int>(context: context, builder: (context) => AlertDialog(
-      title: const Text('تحديد عدد الصلاة'),
-      content: TextField(controller: controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'العدد المطلوب')),
-      actions: [
-        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () {
-          unawaited(tapFeedback());
-          final n = int.tryParse(controller.text.trim());
-          if (n != null && n > 0) Navigator.pop(context, n);
-        }, child: const Text('حفظ')),
-      ]));
-    if (v != null) await _setTarget(v);
-  }
+
   Future<void> _customDailyTarget() async {
     final controller = TextEditingController(text: dailyTarget.toString());
-    final value = await showDialog<int>(context: context, builder: (context) => AlertDialog(
-      title: const Text('تحديد الورد اليومي'),
-      content: TextField(controller: controller, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'عدد الصلوات اليومي')),
-      actions: [
-        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
-        ElevatedButton(onPressed: () { unawaited(tapFeedback()); final parsed = int.tryParse(controller.text.trim()); if (parsed != null && parsed > 0) Navigator.pop(context, parsed); }, child: const Text('حفظ')),
-      ],
-    ));
+    final value = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تحديد الورد اليومي'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'عدد الصلوات اليومي'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              unawaited(tapFeedback());
+              Navigator.pop(context);
+            },
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              unawaited(tapFeedback());
+              final parsed = int.tryParse(controller.text.trim());
+              if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
     if (value == null) return;
     setState(() => dailyTarget = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('tasbeeh_daily_target', value);
   }
 
-  Future<void> _chooseBackground() async {
-    const colors = <Color>[Color(0xFF121212),Color(0xFF1B4332),Color(0xFF172554),Color(0xFF3B1024),Color(0xFF173D3D),Color(0xFF30234A)];
-    final chosen = await showDialog<Color>(context: context, builder: (context) => AlertDialog(
-      title: const Text('خلفية المسبحة'),
-      content: Wrap(spacing: 12, runSpacing: 12, children: colors.map((color) => InkWell(
-        onTap: () { unawaited(tapFeedback()); Navigator.pop(context, color); },
-        child: CircleAvatar(backgroundColor: color, radius: 22, child: const Icon(Icons.check, color: Colors.white)),
-      )).toList())));
-    if (chosen == null) return;
-    setState(() => backgroundColor = chosen);
-    final p = await SharedPreferences.getInstance();
-    await p.setInt('tasbeeh_background_color', chosen.value);
+  Widget _buildTasbeehControl(Color accent, Color textColor, Color pageColor) {
+    final stageTarget = zahraTargets[zahraStageIndex];
+    final stageProgress = (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
+    final millionProgress = (count / target).clamp(0.0, 1.0).toDouble();
+    final dailyProgress = (dailyCount / dailyTarget).clamp(0.0, 1.0).toDouble();
+
+    return Container(
+      color: pageColor,
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 5),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'مسبحة الزهراء (ع)',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Text(
+                'المرحلة ${zahraStageIndex + 1} من 3',
+                style: TextStyle(color: textColor.withValues(alpha: 0.72), fontSize: 12),
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: 'إعادة تسبيح الزهراء',
+                onPressed: _resetZahra,
+                icon: Icon(Icons.refresh, color: accent, size: 20),
+              ),
+            ],
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: zahraStageDone ? null : _incrementZahra,
+                  customBorder: const CircleBorder(),
+                  child: SizedBox(
+                    width: 94,
+                    height: 94,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CircularProgressIndicator(
+                          value: stageProgress,
+                          strokeWidth: 7,
+                          backgroundColor: textColor.withValues(alpha: 0.12),
+                          valueColor: AlwaysStoppedAnimation<Color>(accent),
+                        ),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '$zahraCount',
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 27,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'من $stageTarget',
+                                style: TextStyle(
+                                  color: textColor.withValues(alpha: 0.65),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        zahraPhrases[zahraStageIndex],
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        zahraStageDone
+                            ? 'اكتملت هذه المرحلة'
+                            : 'اضغط على الدائرة للتسبيح',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: textColor.withValues(alpha: 0.68),
+                          fontSize: 11,
+                        ),
+                      ),
+                      if (zahraStageDone)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _advanceZahraStage,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            child: Text(
+                              zahraStageIndex == 2 ? 'إكمال وإعادة' : 'المرحلة التالية',
+                              style: TextStyle(color: accent, fontSize: 12),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'تحدي المليون صلاة على محمد وآل محمد',
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '$count / 1,000,000',
+                          style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: millionProgress,
+                        minHeight: 4,
+                        backgroundColor: textColor.withValues(alpha: 0.12),
+                        valueColor: AlwaysStoppedAnimation<Color>(accent),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'الورد اليومي ضمن المليون: $dailyCount / $dailyTarget',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: textColor.withValues(alpha: 0.72),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints.tightFor(width: 30, height: 28),
+                          tooltip: 'إضافة صلاة على محمد وآل محمد',
+                          onPressed: _increment,
+                          icon: Icon(Icons.add_circle, color: accent, size: 22),
+                        ),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints.tightFor(width: 30, height: 28),
+                          tooltip: 'تحديد الورد اليومي',
+                          onPressed: _customDailyTarget,
+                          icon: Icon(Icons.flag_outlined, color: accent, size: 20),
+                        ),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints.tightFor(width: 30, height: 28),
+                          tooltip: 'تصفير عداد المليون',
+                          onPressed: _reset,
+                          icon: Icon(Icons.restart_alt, color: accent, size: 20),
+                        ),
+                      ],
+                    ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: dailyProgress,
+                        minHeight: 3,
+                        backgroundColor: textColor.withValues(alpha: 0.12),
+                        valueColor: const AlwaysStoppedAnimation<Color>(gold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pageColor = isDark ? Colors.black : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
     final accent = Theme.of(context).colorScheme.primary;
-    final progress = (count / target).clamp(0.0, 1.0).toDouble();
-    final dailyProgress = (dailyCount / dailyTarget).clamp(0.0, 1.0).toDouble();
-    return Column(children: [
-      Container(width: double.infinity, color: backgroundColor, padding: const EdgeInsets.fromLTRB(12,5,12,8),
-        child: Column(children: [
-          Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () { unawaited(tapFeedback()); _chooseBackground(); }, icon: const Icon(Icons.palette_outlined, color: gold, size: 22), tooltip: 'تغيير خلفية المسبحة')),
-          const SizedBox(height: 4),
-          Text.rich(highlightImamHussein('﴿إِنَّ اللَّهَ وَمَلَائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يَا أَيُّهَا الَّذِينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْلِيمًا﴾\nالآية القرآنية الأحزاب ٥٦',
-            const TextStyle(color: Colors.white, fontSize: 20, height: 1.55, fontFamily: 'AmiriQuran')), textAlign: TextAlign.center),
-          const SizedBox(height: 4),
-          const Text('المسبحة الإلكترونية', textAlign: TextAlign.center,
-            style: TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 6),
-          InkWell(onTap: _increment, customBorder: const CircleBorder(), splashFactory: InkRipple.splashFactory, child: AnimatedContainer(duration: const Duration(milliseconds: 200),
-            width: 154, height: 154,
-            decoration: BoxDecoration(shape: BoxShape.circle,
-              gradient: RadialGradient(colors: [accent.withValues(alpha: 0.88), backgroundColor]),
-              border: Border.all(color: accent, width: 5),
-              boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.3), blurRadius: 16, spreadRadius: 2)]),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('$count', style: const TextStyle(color: gold, fontSize: 35, fontWeight: FontWeight.bold)),
-              const Text('اضغط للتسبيح', style: TextStyle(color: Colors.white, fontSize: 12)),
-            ]))),
-          const SizedBox(height: 6),
-          Text('الهدف: $target  •  المتبقي: ' + (target-count).clamp(0,target).toString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
-          Text('الورد اليومي: $dailyCount من $dailyTarget', style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          SizedBox(width: 230, child: ClipRRect(borderRadius: BorderRadius.circular(20), child: LinearProgressIndicator(value: dailyProgress, minHeight: 5, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(gold)))),
-          const SizedBox(height: 5),
-          SizedBox(width: 230, child: ClipRRect(borderRadius: BorderRadius.circular(20),
-            child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.white24, valueColor: AlwaysStoppedAnimation<Color>(accent)))),
-          const SizedBox(height: 7),
-          Wrap(alignment: WrapAlignment.center, spacing: 7, runSpacing: 5, children: [
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white), onPressed: () { unawaited(tapFeedback()); _setTarget(1000000); }, child: const Text('تحدي المليون')),
-            OutlinedButton(style: OutlinedButton.styleFrom(foregroundColor: accent, side: BorderSide(color: accent)), onPressed: () { unawaited(tapFeedback()); _customDailyTarget(); }, child: const Text('تحديد الورد اليومي')),
-            IconButton(onPressed: () { unawaited(tapFeedback()); _reset(); }, icon: Icon(Icons.refresh, color: accent), tooltip: 'تصفير العداد'),
-          ]),
-        ])),
-      Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(12,14,12,24), children: [
-        const SizedBox(height: 8),
-        const Text('أحاديث في فضل الصلاة على محمّد وآل محمّد', textAlign: TextAlign.center, style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        const Text('أحاديث في فضل الصلاة على محمّد وآل محمّد، وأنّ الصلاة عليهم تكفّر الذنوب وتثقّل الميزان، وفي ما يقال عند ذكر الأنبياء، وعلّة اتّخاذ الله إبراهيم خليلاً. هذه النصوص من مجموعة «جواهر البحار» المقتبسة من «بحار الأنوار» للعلامة المجلسي، مع إبقاء أرقامها ومصادرها كما وردت في النص المرسل.', textAlign: TextAlign.justify, style: TextStyle(height: 1.8)),
-        const SizedBox(height: 10),
-        ...List.generate(tasbeehHadithTexts.length, (index) => Card(
-          margin: const EdgeInsets.symmetric(vertical: 7), elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2)),
-          child: Padding(padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('الحديث: ' + (index+1).toString() + '  |  ترتيب جواهر البحار: ' + (9455+index).toString(),
-              textAlign: TextAlign.right, style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16)),
-            const Divider(),
-            SelectableText(tasbeehHadithTexts[index], textAlign: TextAlign.justify, style: TextStyle(fontSize: widget.fontSize-2, height: 1.9)),
-            const SizedBox(height: 9),
-            Text('المصدر الأصلي: ' + tasbeehHadithOriginalSources[index], style: const TextStyle(color: Colors.grey, height: 1.6)),
-            Text('المصدر من بحار الأنوار: ج ٩١، ص ' + tasbeehHadithPages[index], style: const TextStyle(color: Colors.grey, height: 1.6)),
-          ])),
-        )),
-      ])),
-    ]);
+
+    if (!loaded) {
+      return Container(
+        color: pageColor,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Container(
+      color: pageColor,
+      child: Column(
+        children: [
+          Expanded(
+            flex: 1,
+            child: _buildTasbeehControl(accent, textColor, pageColor),
+          ),
+          Expanded(
+            flex: 2,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+              children: [
+                const SizedBox(height: 5),
+                const Text(
+                  'أحاديث في فضل الصلاة على محمّد وآل محمّد',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'أحاديث في فضل الصلاة على محمّد وآل محمّد، وأنّ الصلاة عليهم تكفّر الذنوب وتثقّل الميزان، وفي ما يقال عند ذكر الأنبياء، وعلّة اتّخاذ الله إبراهيم خليلاً. هذه النصوص من مجموعة «جواهر البحار» المقتبسة من «بحار الأنوار» للعلامة المجلسي، مع إبقاء أرقامها ومصادرها كما وردت في النص المرسل.',
+                  textAlign: TextAlign.justify,
+                  style: TextStyle(height: 1.8),
+                ),
+                const SizedBox(height: 10),
+                ...List.generate(
+                  tasbeehHadithTexts.length,
+                  (index) => Card(
+                    margin: const EdgeInsets.symmetric(vertical: 7),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          const Divider(),
+                          SelectableText(
+                            tasbeehHadithTexts[index],
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(fontSize: widget.fontSize - 2, height: 1.9),
+                          ),
+                          const SizedBox(height: 9),
+                          Text(
+                            'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}',
+                            style: const TextStyle(color: Colors.grey, height: 1.6),
+                          ),
+                          Text(
+                            'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}',
+                            style: const TextStyle(color: Colors.grey, height: 1.6),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -2469,22 +2706,50 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
-  static const String aboutText = '''تطبيق «زيارة عاشوراء» وهو تطبيق ديني روحاني متكامل يُعنى بتيسير قراءة واستماع «زيارة عاشوراء» المباركة ليكون رفيقاً إيمانياً يومياً للمؤمنين أينما كانوا.
 
-اللهم اغفر لي ولوالديّ وارحمهما كما ربّياني صغيراً، واجزهما عني خير ما جزيت والداً عن ولده. اللهم اغفر للمؤمنين والمؤمنات، والمسلمين والمسلمات، الأحياء منهم والأموات، واجمعنا وإياهم في جنات النعيم بجوار محمد وآله الطاهرين.
+  static const String aboutText = '''زِيَارَةُ عَاشُورَاءَ
++
+تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
 
-تصميم كامل الكميتي 11/11/2026
-جميع الحقوق محفوظة''';
+يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالاسْتِمَاعِ إِلَى أَصْوَاتِ القُرَّاءِ.
+
+أَقْسَامُ التَّطْبِيقِ
+
+● زِيَارَةُ عَاشُورَاءَ
+قِرَاءَةُ الزِّيَارَةِ المُبَارَكَةِ مَكْتُوبَةً بِالتَّشْكِيلِ، لِتَسْهِيلِ القِرَاءَةِ وَالمُوَاظَبَةِ عَلَيْهَا.
+
+● فَضْلُ زِيَارَةِ عَاشُورَاءَ
+التَّعَرُّفُ عَلَى فَضْلِ زِيَارَةِ عَاشُورَاءَ وَمَكَانَتِهَا، وَمَا وَرَدَ فِي فَضْلِهَا مِنْ رِوَايَاتٍ وَأَحَادِيثٍ.
+
+● اسْتِمَاعُ الزِّيَارَةِ
+الاسْتِمَاعُ إِلَى زِيَارَةِ عَاشُورَاءَ بِأَصْوَاتِ مَجْمُوعَةٍ مِنَ القُرَّاءِ، مَعَ إِمْكَانِيَّةِ التَّحَكُّمِ فِي التَّشْغِيلِ وَالإِيقَافِ وَتَقْدِيمِ المَقْطَعِ وَتَأْخِيرِهِ.
+
+● زِيَارَةُ الإِمَامِ العَبَّاسِ (عَلَيْهِ السَّلَامُ)
+قِرَاءَةُ زِيَارَةِ أَبِي الفَضْلِ العَبَّاسِ (عَلَيْهِ السَّلَامُ) مَكْتُوبَةً، وَإِمْكَانِيَّةُ الاسْتِمَاعِ إِلَيْهَا بِأَصْوَاتِ القُرَّاءِ.
+
+● إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ
+مِسْبَحَةٌ إِلِكْتُرُونِيَّةٌ لِلتَّسْبِيحِ وَالذِّكْرِ، وَالإِكْثَارِ مِنَ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ (عَلَيْهِمُ السَّلَامُ)، مَعَ إِمْكَانِيَّةِ الوُصُولِ إِلَى مِلْيُونِ صَلَاةٍ.
+
+● مُنَبِّهُ الذِّكْرِ وَالزِّيَارَةِ
+مُنَبِّهٌ لِلتَّذْكِيرِ بِالصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ (عَلَيْهِمُ السَّلَامُ)، وَالتَّذْكِيرِ بِقِرَاءَةِ زِيَارَةِ عَاشُورَاءَ، لِلْمُسَاعَدَةِ عَلَى المُوَاظَبَةِ عَلَى الذِّكْرِ وَالزِّيَارَةِ.
+
+الإِهْدَاءُ
+
+إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الفَضْلِ العَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ البَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا العَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
+
+تَصْمِيمُ كَامِل الكُمَيْتِي 11/11/2026
+
+جَمِيعُ الحُقُوقِ مَحْفُوظَةٌ''';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حول التطبيق')),
+      appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
       body: ListView(
         padding: const EdgeInsets.all(18),
         children: [
           const SizedBox(height: 18),
-          const Icon(Icons.mosque, color: gold, size: 22),
+          const Icon(Icons.mosque, color: gold, size: 30),
           const SizedBox(height: 18),
           const SelectableText(
             aboutText,
