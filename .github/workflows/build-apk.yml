@@ -26,6 +26,28 @@ jobs:
         with:
           channel: stable
 
+      - name: Prepare Arabic Thuluth font
+        run: |
+          set -euo pipefail
+          mkdir -p assets/fonts
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://ar.arabicfont.net/wp-content/uploads/af-fonts/layla-thuluth/layla-thuluth.zip" \
+            -o /tmp/layla-thuluth.zip
+          mkdir -p /tmp/layla-thuluth
+          unzip -oq /tmp/layla-thuluth.zip -d /tmp/layla-thuluth
+          FONT_FILE="$(find /tmp/layla-thuluth -type f -iname 'LaylaThuluth.ttf' | head -n 1)"
+          if [ -z "$FONT_FILE" ]; then
+            echo "LaylaThuluth.ttf was not found in the font archive"
+            exit 1
+          fi
+          cp "$FONT_FILE" assets/fonts/LaylaThuluth.ttf
+          LICENSE_FILE="$(find /tmp/layla-thuluth -type f \\( -iname '*OFL*' -o -iname '*license*' \\) | head -n 1 || true)"
+          if [ -n "$LICENSE_FILE" ]; then
+            cp "$LICENSE_FILE" assets/fonts/LaylaThuluth-LICENSE.txt
+          fi
+          test -s assets/fonts/LaylaThuluth.ttf
+          echo "Layla Thuluth font prepared"
+
       - name: Create Android platform
         run: flutter create --platforms=android .
 
