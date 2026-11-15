@@ -29,23 +29,24 @@ jobs:
       - name: Prepare Arabic Thuluth font
         run: |
           set -euo pipefail
-          mkdir -p assets/fonts
           curl -fL --retry 3 --connect-timeout 20 \
             "https://ar.arabicfont.net/wp-content/uploads/af-fonts/layla-thuluth/layla-thuluth.zip" \
             -o /tmp/layla-thuluth.zip
+          rm -rf /tmp/layla-thuluth
           mkdir -p /tmp/layla-thuluth
           unzip -oq /tmp/layla-thuluth.zip -d /tmp/layla-thuluth
-          FONT_FILE="$(find /tmp/layla-thuluth -type f -iname 'LaylaThuluth.ttf' | head -n 1)"
+          FONT_FILE="$(find /tmp/layla-thuluth -type f -iname '*.ttf' | head -n 1)"
           if [ -z "$FONT_FILE" ]; then
-            echo "LaylaThuluth.ttf was not found in the font archive"
+            echo "No TTF font was found in the Layla Thuluth archive"
+            find /tmp/layla-thuluth -maxdepth 4 -type f -print
             exit 1
           fi
-          cp "$FONT_FILE" assets/fonts/LaylaThuluth.ttf
+          cp "$FONT_FILE" assets/LaylaThuluth.ttf
           LICENSE_FILE="$(find /tmp/layla-thuluth -type f | grep -Ei 'OFL|license' | head -n 1 || true)"
           if [ -n "$LICENSE_FILE" ]; then
-            cp "$LICENSE_FILE" assets/fonts/LaylaThuluth-LICENSE.txt
+            cp "$LICENSE_FILE" assets/LaylaThuluth-LICENSE.txt
           fi
-          test -s assets/fonts/LaylaThuluth.ttf
+          test -s assets/LaylaThuluth.ttf
           echo "Layla Thuluth font prepared"
 
       - name: Create Android platform
