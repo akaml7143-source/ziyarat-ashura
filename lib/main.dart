@@ -456,7 +456,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF080808),
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(image: DecorationImage(image: AssetImage('assets/welcome_background.png'), fit: BoxFit.cover)),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.28)),
+          child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(18),
@@ -500,12 +504,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                '❀ زِيَارَةُ عَاشُورَاءَ ❀',
+                                'زِيَارَةُ عَاشُورَاءَ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontFamily: 'Amiri',
-                                  fontSize: 38,
+                                  fontFamily: 'NotoNaskhArabic',
+                                  fontSize: 32,
                                   fontWeight: FontWeight.bold,
                                   height: 1.5,
                                   shadows: [
@@ -518,7 +522,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                               const SizedBox(height: 12),
                               const Text(
-                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ\nوَابْــدَأْ زِيَــارَةَ عَاشُورَاءَ',
+                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ...\nوَابْــــدَأْ زِيَارَةَ عَاشُورَاءَ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -613,6 +617,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
             ),
+          ),
+        ),
           ),
         ),
       ),
@@ -1726,6 +1732,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   int zahraCount = 0, zahraStageIndex = 0;
   bool zahraStageDone = false;
   bool loaded = false;
+  bool isMillionMode = false;
 
   @override
   void initState() {
@@ -1897,248 +1904,95 @@ class _TasbeehPageState extends State<TasbeehPage> {
   }
 
   Widget _buildTasbeehControl(Color accent, Color textColor, Color pageColor) {
+    final isMillion = isMillionMode;
     final stageTarget = zahraTargets[zahraStageIndex];
-    final stageProgress = (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
-    final millionProgress = (count / target).clamp(0.0, 1.0).toDouble();
-    final dailyProgress = (dailyCount / dailyTarget).clamp(0.0, 1.0).toDouble();
-    final formattedCount = count.toString().replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (match) => ',',
-    );
+    final currentProgress = isMillion ? (count / target).clamp(0.0, 1.0).toDouble() : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
+    final currentCount = isMillion ? count : zahraCount;
+    final formattedCount = currentCount.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
     final mutedText = textColor.withValues(alpha: 0.68);
-    final panelColor = accent.withValues(alpha: 0.08);
+
+    Widget modeButton(String label, bool selected, VoidCallback onTap) {
+      return Expanded(
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 34),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+            decoration: BoxDecoration(
+              color: selected ? accent.withValues(alpha: 0.18) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.4 : 1),
+            ),
+            alignment: Alignment.center,
+            child: Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 11, fontWeight: FontWeight.bold, height: 1.15)),
+          ),
+        ),
+      );
+    }
 
     return Container(
       color: pageColor,
-      padding: const EdgeInsets.fromLTRB(8, 3, 8, 4),
+      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'مسبحة الزهراء (ع)',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    color: accent,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+          Text('أَفْضَلُ الأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ عَلَيْهَا السَّلَامُ وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
+            textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
+          const SizedBox(height: 5),
+          InkWell(
+            onTap: isMillion ? _increment : (zahraStageDone ? null : _incrementZahra),
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 116, height: 116,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CircularProgressIndicator(value: currentProgress, strokeWidth: 7,
+                    backgroundColor: textColor.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(accent)),
+                  Center(
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      FittedBox(fit: BoxFit.scaleDown,
+                        child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
+                      Text(isMillion ? 'من مليون' : 'من $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
+                      if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ]),
                   ),
-                ),
+                ],
               ),
-              Text(
-                'المرحلة ${zahraStageIndex + 1} من 3',
-                style: TextStyle(color: mutedText, fontSize: 10),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                constraints: const BoxConstraints.tightFor(width: 30, height: 28),
-                padding: EdgeInsets.zero,
-                tooltip: 'إعادة تسبيح الزهراء',
-                onPressed: _resetZahra,
-                icon: Icon(Icons.refresh, color: accent, size: 18),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsetsDirectional.only(end: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: panelColor,
-                      borderRadius: BorderRadius.circular(13),
-                      border: Border.all(color: accent.withValues(alpha: 0.30)),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          zahraPhrases[zahraStageIndex],
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        InkWell(
-                          onTap: zahraStageDone ? null : _incrementZahra,
-                          customBorder: const CircleBorder(),
-                          child: SizedBox(
-                            width: 78,
-                            height: 78,
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                CircularProgressIndicator(
-                                  value: stageProgress,
-                                  strokeWidth: 6,
-                                  backgroundColor: textColor.withValues(alpha: 0.12),
-                                  valueColor: AlwaysStoppedAnimation<Color>(accent),
-                                ),
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        '$zahraCount',
-                                        style: TextStyle(
-                                          color: textColor,
-                                          fontSize: 23,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        'من $stageTarget',
-                                        style: TextStyle(color: mutedText, fontSize: 9),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        if (zahraStageDone)
-                          TextButton(
-                            onPressed: _advanceZahraStage,
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(0, 24),
-                              padding: const EdgeInsets.symmetric(horizontal: 5),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              zahraStageIndex == 2 ? 'إكمال وإعادة' : 'المرحلة التالية',
-                              style: TextStyle(color: accent, fontSize: 10),
-                            ),
-                          )
-                        else
-                          Text(
-                            'اضغط للعدّ',
-                            style: TextStyle(color: mutedText, fontSize: 9),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsetsDirectional.only(start: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: panelColor,
-                      borderRadius: BorderRadius.circular(13),
-                      border: Border.all(color: accent.withValues(alpha: 0.30)),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'تحدي المليون',
-                          style: TextStyle(
-                            color: accent,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        InkWell(
-                          onTap: _increment,
-                          customBorder: const CircleBorder(),
-                          child: SizedBox(
-                            width: 78,
-                            height: 78,
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                CircularProgressIndicator(
-                                  value: millionProgress,
-                                  strokeWidth: 6,
-                                  backgroundColor: textColor.withValues(alpha: 0.12),
-                                  valueColor: AlwaysStoppedAnimation<Color>(accent),
-                                ),
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            formattedCount,
-                                            style: TextStyle(
-                                              color: textColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Text(
-                                        'من مليون',
-                                        style: TextStyle(color: mutedText, fontSize: 9),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                'اليومي $dailyCount / $dailyTarget',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: mutedText, fontSize: 9),
-                              ),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints.tightFor(width: 25, height: 23),
-                              padding: EdgeInsets.zero,
-                              tooltip: 'تحديد الورد اليومي',
-                              onPressed: _customDailyTarget,
-                              icon: Icon(Icons.flag_outlined, color: accent, size: 16),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              constraints: const BoxConstraints.tightFor(width: 25, height: 23),
-                              padding: EdgeInsets.zero,
-                              tooltip: 'تصفير عداد المليون',
-                              onPressed: _reset,
-                              icon: Icon(Icons.restart_alt, color: accent, size: 16),
-                            ),
-                          ],
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: dailyProgress,
-                            minHeight: 3,
-                            backgroundColor: textColor.withValues(alpha: 0.12),
-                            valueColor: AlwaysStoppedAnimation<Color>(accent),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
+          const SizedBox(height: 6),
+          Row(children: [
+            modeButton('تَسْبِيحُ الزَّهْرَاءِ', !isMillion, () => setState(() => isMillionMode = false)),
+            const SizedBox(width: 7),
+            modeButton('تَحَدِّي المِلْيُونِ صَلَاةً عَلَى مُحَمَّدٍ', isMillion, () => setState(() => isMillionMode = true)),
+          ]),
+          const SizedBox(height: 2),
+          if (isMillion)
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 10)),
+              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
+                padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
+                icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
+              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
+                padding: EdgeInsets.zero, tooltip: 'تصفير عداد المليون', onPressed: _reset,
+                icon: Icon(Icons.restart_alt, color: accent, size: 17)),
+            ])
+          else
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('المَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3', style: TextStyle(color: mutedText, fontSize: 10)),
+              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
+                padding: EdgeInsets.zero, tooltip: 'إعادة تسبيح الزهراء', onPressed: _resetZahra,
+                icon: Icon(Icons.refresh, color: accent, size: 17)),
+              if (zahraStageDone)
+                TextButton(onPressed: _advanceZahraStage,
+                  style: TextButton.styleFrom(minimumSize: const Size(0, 25), padding: const EdgeInsets.symmetric(horizontal: 5), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                  child: Text(zahraStageIndex == 2 ? 'إكمال وإعادة' : 'التالية', style: TextStyle(color: accent, fontSize: 10))),
+            ]),
         ],
       ),
     );
@@ -2737,10 +2591,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
-  static const String aboutText = '''زِيَارَةُ عَاشُورَاءَ
-+
-تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
-
+  static const String aboutText = '''هَذَا التَّطْبِيقُ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
 يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالاسْتِمَاعِ إِلَى أَصْوَاتِ القُرَّاءِ.
 
 أَقْسَامُ التَّطْبِيقِ
@@ -2763,11 +2614,11 @@ class AboutAppPage extends StatelessWidget {
 ● مُنَبِّهُ الذِّكْرِ وَالزِّيَارَةِ
 مُنَبِّهٌ لِلتَّذْكِيرِ بِالصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ (عَلَيْهِمُ السَّلَامُ)، وَالتَّذْكِيرِ بِقِرَاءَةِ زِيَارَةِ عَاشُورَاءَ، لِلْمُسَاعَدَةِ عَلَى المُوَاظَبَةِ عَلَى الذِّكْرِ وَالزِّيَارَةِ.
 
-الإِهْدَاءُ
-
+● الإِهْدَاءُ
 إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الفَضْلِ العَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ البَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا العَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
 
-تَصْمِيمُ كَامِل الكُمَيْتِي 11/11/2026
+اسْأَلُكُمُ الدُّعَاءَ
+كَامِل الكُمَيْتِي 11/11/2026
 
 جَمِيعُ الحُقُوقِ مَحْفُوظَةٌ''';
 
@@ -2775,18 +2626,21 @@ class AboutAppPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
-      body: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          const SizedBox(height: 18),
-          const Icon(Icons.mosque, color: gold, size: 30),
-          const SizedBox(height: 18),
-          const SelectableText(
-            aboutText,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 18, height: 2.0),
+      body: LayoutBuilder(
+        builder: (context, constraints) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          child: SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.topCenter,
+              child: SizedBox(
+                width: constraints.maxWidth - 18,
+                child: Text(aboutText, textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, height: 1.28)),
+              ),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
