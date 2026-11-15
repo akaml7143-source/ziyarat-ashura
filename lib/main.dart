@@ -142,6 +142,19 @@ const NotificationDetails reminderNotificationDetails = NotificationDetails(
     enableVibration: true, category: AndroidNotificationCategory.reminder),
   iOS: DarwinNotificationDetails(),
 );
+const NotificationDetails salawatNotificationDetails = NotificationDetails(
+  android: AndroidNotificationDetails(
+    'salawat_daily_reminder_v1',
+    'منبّه الصلاة على محمد وآل محمد',
+    channelDescription: 'تذكير يومي بالصلاة على محمد وآل محمد',
+    importance: Importance.max,
+    priority: Priority.high,
+    playSound: true,
+    enableVibration: true,
+    category: AndroidNotificationCategory.reminder,
+  ),
+  iOS: DarwinNotificationDetails(),
+);
 Future<bool> askNotificationPermission() async {
   final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
   return await android?.requestNotificationsPermission() ?? true;
@@ -221,7 +234,7 @@ Future<void> scheduleSalawatReminder({required bool enabled, required int hour, 
   var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
   if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
   await notifications.zonedSchedule(salawatReminderNotificationId, 'تذكير الصلاة على محمد وآل محمد',
-    'هل صليت على محمد وآل محمد هذا اليوم؟', next, reminderNotificationDetails,
+    'هل صليت على محمد وآل محمد هذا اليوم؟', next, salawatNotificationDetails,
     androidScheduleMode: _scheduleMode,
     uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     matchDateTimeComponents: DateTimeComponents.time);
@@ -412,9 +425,10 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool pressed = false;
   late final AnimationController _motionController;
+  late final AnimationController _buttonController;
 
   @override
   void initState() {
@@ -423,11 +437,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
       duration: const Duration(seconds: 7),
     )..repeat();
+    _buttonController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _motionController.dispose();
+    _buttonController.dispose();
     super.dispose();
   }
 
@@ -488,12 +507,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         color: Colors.white,
                         fontSize: 42,
                         fontWeight: FontWeight.w400,
-                        fontFamily: 'LaylaThuluth',
+                        fontFamily: 'Amiri',
                         height: 1.5,
                         shadows: [
                           Shadow(
-                            color: Color(0xFFFFD76A),
-                            blurRadius: 18,
+                            color: Color(0x99FFFFFF),
+                            blurRadius: 9,
                             offset: Offset(0, 1),
                           ),
                           Shadow(
@@ -547,48 +566,73 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               child: Center(
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 54),
-                                  child: Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: enter,
-                                      borderRadius: BorderRadius.circular(30),
-                                      splashColor: Colors.white24,
-                                      child: Ink(
-                                        width: 194,
-                                        height: 62,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(30),
-                                          gradient: const LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [
-                                              Color(0xFFFFE9A8),
-                                              Color(0xFFD9A441),
-                                              Color(0xFF9D7026),
+                                  child: AnimatedBuilder(
+                                    animation: _buttonController,
+                                    builder: (context, child) => Transform.translate(
+                                      offset: Offset(
+                                        0,
+                                        -15 * Curves.easeInOut.transform(_buttonController.value),
+                                      ),
+                                      child: child,
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: enter,
+                                        borderRadius: BorderRadius.circular(16),
+                                        splashColor: Colors.white24,
+                                        child: Ink(
+                                          width: 258,
+                                          height: 104,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(16),
+                                            gradient: const LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Color(0xFFE32636),
+                                                Color(0xFFA80012),
+                                                Color(0xFFE32636),
+                                              ],
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2,
+                                            ),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x66BE0014),
+                                                blurRadius: 18,
+                                                offset: Offset(0, 6),
+                                              ),
+                                              BoxShadow(
+                                                color: Color(0x55FFFFFF),
+                                                blurRadius: 5,
+                                                offset: Offset(0, 1),
+                                              ),
                                             ],
                                           ),
-                                          border: Border.all(
-                                            color: const Color(0xFFFFF2C9),
-                                            width: 1.5,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: const Color(0xFFFFD76A)
-                                                  .withValues(alpha: 0.30),
-                                              blurRadius: 24,
-                                              spreadRadius: 2,
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Center(
-                                          child: Text(
-                                            'الدخول إلى التطبيق',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: Color(0xFF241A0B),
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Amiri',
+                                          child: const Center(
+                                            child: Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                              child: Text(
+                                                'ادخل لزيــــــارة سيد الشهداء\\nالإمام الحسين روحي له الفداء',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 19,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Amiri',
+                                                  height: 1.65,
+                                                  shadows: [
+                                                    Shadow(
+                                                      color: Color(0x77000000),
+                                                      blurRadius: 4,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
