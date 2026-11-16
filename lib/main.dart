@@ -1935,7 +1935,6 @@ class _TasbeehPageState extends State<TasbeehPage> {
                       FittedBox(fit: BoxFit.scaleDown,
                         child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
                       Text(isMillion ? 'مِنْ مِلْيُونٍ' : 'مِنْ $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
-                      if (isMillion) Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount', style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                       if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ]),
                   ),
@@ -1943,6 +1942,13 @@ class _TasbeehPageState extends State<TasbeehPage> {
               ),
             ),
           ),
+          if (isMillion)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
+            ),
           const SizedBox(height: 6),
           Row(children: [
             modeButton('تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
