@@ -39,6 +39,12 @@ jobs:
             "https://raw.githubusercontent.com/google/fonts/main/ofl/arefruqaa/ArefRuqaa-Regular.ttf" \
             -o assets/ArefRuqaa-Regular.ttf
           curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/Tajawal-Regular.ttf" \
+            -o assets/Tajawal-Regular.ttf
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notokufiarabic/NotoKufiArabic%5Bwght%5D.ttf" \
+            -o assets/NotoKufiArabic.ttf
+          curl -fL --retry 3 --connect-timeout 20 \
             "https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/OFL.txt" \
             -o assets/NotoNaskhArabic-OFL.txt
           curl -fL --retry 3 --connect-timeout 20 \
@@ -47,10 +53,18 @@ jobs:
           curl -fL --retry 3 --connect-timeout 20 \
             "https://raw.githubusercontent.com/google/fonts/main/ofl/arefruqaa/OFL.txt" \
             -o assets/ArefRuqaa-OFL.txt
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/tajawal/OFL.txt" \
+            -o assets/Tajawal-OFL.txt
+          curl -fL --retry 3 --connect-timeout 20 \
+            "https://raw.githubusercontent.com/google/fonts/main/ofl/notokufiarabic/OFL.txt" \
+            -o assets/NotoKufiArabic-OFL.txt
           test -s assets/NotoNaskhArabic.ttf
           test -s assets/Cairo.ttf
           test -s assets/ArefRuqaa-Regular.ttf
-          echo "Three additional Arabic fonts prepared"
+          test -s assets/Tajawal-Regular.ttf
+          test -s assets/NotoKufiArabic.ttf
+          echo "Five additional Arabic fonts prepared"
 
       - name: Create Android platform
         run: flutter create --platforms=android .

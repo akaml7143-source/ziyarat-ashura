@@ -296,7 +296,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(savedFont) ? savedFont : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -323,7 +323,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(value)) return;
+    if (!const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -2206,6 +2206,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text('Noto Naskh Arabic - النسخ العربي')),
                       DropdownMenuItem<String>(value: 'Cairo', child: Text('Cairo - خط كايرو')),
                       DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('Aref Ruqaa - خط الرقعة')),
+                      DropdownMenuItem<String>(value: 'Tajawal', child: Text('Tajawal - خط تجوال الواضح')),
+                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text('Noto Kufi Arabic - الخط الكوفي الواضح')),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());

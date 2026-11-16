@@ -48,3 +48,9 @@ flutter:
     - family: ArefRuqaa
       fonts:
         - asset: assets/ArefRuqaa-Regular.ttf
+    - family: Tajawal
+      fonts:
+        - asset: assets/Tajawal-Regular.ttf
+    - family: NotoKufiArabic
+      fonts:
+        - asset: assets/NotoKufiArabic.ttf
