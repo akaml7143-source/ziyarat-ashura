@@ -296,7 +296,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'LaylaThuluth', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(savedFont) ? savedFont : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -323,7 +323,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'LaylaThuluth', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(value)) return;
+    if (!const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -830,10 +830,8 @@ class NajahPoemCard extends StatelessWidget {
   const NajahPoemCard({super.key, required this.fontSize});
 
   static const String poem =
-      'إِذَا شِئْتَ النَّجَاحَ فَزُرْ حُسَيْنًا\n'
-      'لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْـــــنِ\n\n'
-      'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْــمًا\n'
-      'عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَـــــــيْنِ';
+      'إِذَا شِئْتَ النَّجَاةَ فَزُرْ حُسَيْنًا    لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْنِ\\n'
+      'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْمًا     عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَيْنِ';
 
   @override
   Widget build(BuildContext context) {
@@ -1924,7 +1922,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('أَفْضَلُ الأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ عَلَيْهَا السَّلَامُ وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
+          Text('أَفْضَلُ الأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
             textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
           const SizedBox(height: 5),
@@ -2205,7 +2203,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     items: const [
                       DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
-                      DropdownMenuItem<String>(value: 'LaylaThuluth', child: Text('خط الثلث - ليلى')),
                       DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text('Noto Naskh Arabic - النسخ العربي')),
                       DropdownMenuItem<String>(value: 'Cairo', child: Text('Cairo - خط كايرو')),
                       DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('Aref Ruqaa - خط الرقعة')),
@@ -2577,34 +2574,15 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
-  static const String aboutText = '''هَذَا التَّطْبِيقُ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
+  static const String aboutText = '''تَطْبِيقُ «زِيَارَةِ عَاشُورَاءَ» هُوَ تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
+
 يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالاسْتِمَاعِ إِلَى أَصْوَاتِ القُرَّاءِ.
-
-أَقْسَامُ التَّطْبِيقِ
-
-● زِيَارَةُ عَاشُورَاءَ
-قِرَاءَةُ الزِّيَارَةِ المُبَارَكَةِ مَكْتُوبَةً بِالتَّشْكِيلِ، لِتَسْهِيلِ القِرَاءَةِ وَالمُوَاظَبَةِ عَلَيْهَا.
-
-● فَضْلُ زِيَارَةِ عَاشُورَاءَ
-التَّعَرُّفُ عَلَى فَضْلِ زِيَارَةِ عَاشُورَاءَ وَمَكَانَتِهَا، وَمَا وَرَدَ فِي فَضْلِهَا مِنْ رِوَايَاتٍ وَأَحَادِيثٍ.
-
-● اسْتِمَاعُ الزِّيَارَةِ
-الاسْتِمَاعُ إِلَى زِيَارَةِ عَاشُورَاءَ بِأَصْوَاتِ مَجْمُوعَةٍ مِنَ القُرَّاءِ، مَعَ إِمْكَانِيَّةِ التَّحَكُّمِ فِي التَّشْغِيلِ وَالإِيقَافِ وَتَقْدِيمِ المَقْطَعِ وَتَأْخِيرِهِ.
-
-● زِيَارَةُ الإِمَامِ العَبَّاسِ (عَلَيْهِ السَّلَامُ)
-قِرَاءَةُ زِيَارَةِ أَبِي الفَضْلِ العَبَّاسِ (عَلَيْهِ السَّلَامُ) مَكْتُوبَةً، وَإِمْكَانِيَّةُ الاسْتِمَاعِ إِلَيْهَا بِأَصْوَاتِ القُرَّاءِ.
-
-● إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ
-مِسْبَحَةٌ إِلِكْتُرُونِيَّةٌ لِلتَّسْبِيحِ وَالذِّكْرِ، وَالإِكْثَارِ مِنَ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ (عَلَيْهِمُ السَّلَامُ)، مَعَ إِمْكَانِيَّةِ الوُصُولِ إِلَى مِلْيُونِ صَلَاةٍ.
-
-● مُنَبِّهُ الذِّكْرِ وَالزِّيَارَةِ
-مُنَبِّهٌ لِلتَّذْكِيرِ بِالصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ (عَلَيْهِمُ السَّلَامُ)، وَالتَّذْكِيرِ بِقِرَاءَةِ زِيَارَةِ عَاشُورَاءَ، لِلْمُسَاعَدَةِ عَلَى المُوَاظَبَةِ عَلَى الذِّكْرِ وَالزِّيَارَةِ.
 
 ● الإِهْدَاءُ
 إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الفَضْلِ العَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ البَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا العَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
 
-اسْأَلُكُمُ الدُّعَاءَ
-كَامِل الكُمَيْتِي 11/11/2026
+أَسْأَلُكُمُ الدُّعَاءَ
+كامل الكميتي 11/11/2026
 
 جَمِيعُ الحُقُوقِ مَحْفُوظَةٌ''';
 
