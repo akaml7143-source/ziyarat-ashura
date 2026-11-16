@@ -557,7 +557,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         color: Colors.white,
                                         width: 1.2,
                                       ),
-                                      borderRadius: BorderRadius.circular(22),
+                                      borderRadius: BorderRadius.circular(13),
                                       boxShadow: const [
                                         BoxShadow(
                                           color: Color(0x26777777),
@@ -830,7 +830,7 @@ class NajahPoemCard extends StatelessWidget {
   const NajahPoemCard({super.key, required this.fontSize});
 
   static const String poem =
-      'إِذَا شِئْتَ النَّجَاةَ فَزُرْ حُسَيْنًا    لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْنِ\\n'
+      'إِذَا شِئْتَ النَّجَاةَ فَزُرْ حُسَيْنًا    لِكَيْ تَلْقَى الإِلَهَ قَرِيرَ عَيْنِ\n'
       'فَإِنَّ النَّارَ لَيْسَ تَمَسُّ جِسْمًا     عَلَيْهِ غُبَارُ زُوَّارِ الْحُسَيْنِ';
 
   @override
