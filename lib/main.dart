@@ -1357,7 +1357,7 @@ class ListeningPage extends StatefulWidget {
     {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
     {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
     {'name': 'الرادود محمدباقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
-    {'name': 'الرادود أبو ذر الحلواجـي', 'file': 'aba_thar_alhelwachi.mp3'},
+    {'name': 'الرادود أبا ذر الحلواجـي', 'file': 'aba_thar_alhelwachi.mp3'},
     {'name': 'الحاج علــــــــــي فانــــي', 'file': 'ali_fani.mp3'},
     {'name': 'الحاج علــــــــــي الكعبي', 'file': 'ali_alkabi.mp3'},
     {'name': 'الرادود عمــــــــار الكناني', 'file': 'ammar_alkinani.mp3'},
@@ -2132,21 +2132,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.forum_outlined, color: gold),
-              title: const Text('آراؤكم ومقترحاتكم حول التطبيق'),
-              subtitle: const Text('مراسلة خاصة مباشرة مع مصمم التطبيق، لا يطّلع على المحادثة غيركما.'),
-              trailing: const Icon(Icons.chevron_left),
-              onTap: () {
-                unawaited(tapFeedback());
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
-                );
-              },
-            ),
-          ),
-          Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
               title: const Text('الوضع الليلي'),
@@ -2592,17 +2577,25 @@ class AboutAppPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
-      body: LayoutBuilder(
-        builder: (context, constraints) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-          child: SizedBox.expand(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.topCenter,
-              child: SizedBox(
-                width: constraints.maxWidth - 18,
-                child: Text(aboutText, textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, height: 1.28)),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - 42),
+              child: Center(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    aboutText,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      height: 1.75,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
