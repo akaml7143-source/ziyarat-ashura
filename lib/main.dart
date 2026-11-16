@@ -1724,7 +1724,11 @@ class _TasbeehPageState extends State<TasbeehPage> {
   }
 
   Future<void> _incrementZahra() async {
-    if (!loaded || zahraStageDone) return;
+    if (!loaded) return;
+    if (zahraStageDone) {
+      await _advanceZahraStage();
+      return;
+    }
     final stageTarget = zahraTargets[zahraStageIndex];
     setState(() {
       zahraCount++;
@@ -1777,7 +1781,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
   }
 
   Future<void> _increment() async {
-    if (!loaded || count >= target) return;
+    if (!loaded) return;
     unawaited(tapFeedback());
     setState(() {
       count++;
@@ -1786,12 +1790,21 @@ class _TasbeehPageState extends State<TasbeehPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('tasbeeh_salawat_count', count);
     await prefs.setInt('tasbeeh_daily_count', dailyCount);
-    if (count == target && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أحسنت، أتممت العدد المحدد')),
-      );
-    }
   }
+
+  String _millionChallengeTitle() {
+    final milestone = (count ~/ 1000000) + 1;
+    if (milestone == 1) return 'تَحَدِّي الْمِلْيُونِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
+    if (milestone == 2) return 'تَحَدِّي الْمِلْيُونَيْنِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
+    if (milestone == 3) return 'تَحَدِّي ثَلَاثَةِ مَلَايِينَ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
+    if (milestone >= 1000) return 'تَحَدِّي الْمِلْيَارِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
+    return 'تَحَدِّي $milestone مِلْيُونٍ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
+  }
+
+  String _formatCount(int value) => value.toString().replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (match) => ',',
+  );
 
   Future<void> _reset() async {
     final ok = await showDialog<bool>(
@@ -1866,9 +1879,13 @@ class _TasbeehPageState extends State<TasbeehPage> {
   Widget _buildTasbeehControl(Color accent, Color textColor, Color pageColor) {
     final isMillion = isMillionMode;
     final stageTarget = zahraTargets[zahraStageIndex];
-    final currentProgress = isMillion ? (count / target).clamp(0.0, 1.0).toDouble() : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
-    final currentCount = isMillion ? count : zahraCount;
-    final formattedCount = currentCount.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
+    final millionProgressCount = count % 1000000;
+    final currentProgress = isMillion
+        ? (millionProgressCount / 1000000).clamp(0.0, 1.0).toDouble()
+        : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
+    final currentCount = isMillion ? millionProgressCount : zahraCount;
+    final formattedCount = _formatCount(currentCount);
+    final totalFormattedCount = _formatCount(count);
     final mutedText = textColor.withValues(alpha: 0.68);
 
     Widget modeButton(String label, bool selected, VoidCallback onTap) {
@@ -1898,12 +1915,12 @@ class _TasbeehPageState extends State<TasbeehPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('أَفْضَلُ الأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
+          Text('أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
             textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
           const SizedBox(height: 5),
           InkWell(
-            onTap: isMillion ? _increment : (zahraStageDone ? null : _incrementZahra),
+            onTap: isMillion ? _increment : _incrementZahra,
             customBorder: const CircleBorder(),
             child: SizedBox(
               width: 116, height: 116,
@@ -1917,7 +1934,8 @@ class _TasbeehPageState extends State<TasbeehPage> {
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       FittedBox(fit: BoxFit.scaleDown,
                         child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
-                      Text(isMillion ? 'من مليون' : 'من $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
+                      Text(isMillion ? 'مِنْ مِلْيُونٍ' : 'مِنْ $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
+                      if (isMillion) Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount', style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                       if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ]),
                   ),
@@ -1927,9 +1945,9 @@ class _TasbeehPageState extends State<TasbeehPage> {
           ),
           const SizedBox(height: 6),
           Row(children: [
-            modeButton('تَسْبِيحُ الزَّهْرَاءِ', !isMillion, () => setState(() => isMillionMode = false)),
+            modeButton('تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
             const SizedBox(width: 7),
-            modeButton('تَحَدِّي المِلْيُونِ صَلَاةً عَلَى مُحَمَّدٍ', isMillion, () => setState(() => isMillionMode = true)),
+            modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
           ]),
           const SizedBox(height: 2),
           if (isMillion)
@@ -1938,20 +1956,15 @@ class _TasbeehPageState extends State<TasbeehPage> {
               IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
                 padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
-              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: 'تصفير عداد المليون', onPressed: _reset,
-                icon: Icon(Icons.restart_alt, color: accent, size: 17)),
+              // لا يوجد زر تصفير؛ الرصيد الكلي محفوظ ولا يتوقف عند مليون.
             ])
           else
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('المَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3', style: TextStyle(color: mutedText, fontSize: 10)),
-              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: 'إعادة تسبيح الزهراء', onPressed: _resetZahra,
-                icon: Icon(Icons.refresh, color: accent, size: 17)),
-              if (zahraStageDone)
-                TextButton(onPressed: _advanceZahraStage,
-                  style: TextButton.styleFrom(minimumSize: const Size(0, 25), padding: const EdgeInsets.symmetric(horizontal: 5), tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                  child: Text(zahraStageIndex == 2 ? 'إكمال وإعادة' : 'التالية', style: TextStyle(color: accent, fontSize: 10))),
+              Text(zahraStageDone
+                  ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
+                  : 'الْمَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: mutedText, fontSize: 10)),
             ]),
         ],
       ),
