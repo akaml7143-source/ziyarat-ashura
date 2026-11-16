@@ -26,29 +26,9 @@ jobs:
         with:
           channel: stable
 
-      - name: Prepare Arabic Thuluth font
+      - name: Prepare additional Arabic fonts
         run: |
           set -euo pipefail
-          curl -fL --retry 3 --connect-timeout 20 \
-            "https://ar.arabicfont.net/wp-content/uploads/af-fonts/layla-thuluth/layla-thuluth.zip" \
-            -o /tmp/layla-thuluth.zip
-          rm -rf /tmp/layla-thuluth
-          mkdir -p /tmp/layla-thuluth
-          unzip -oq /tmp/layla-thuluth.zip -d /tmp/layla-thuluth
-          FONT_FILE="$(find /tmp/layla-thuluth -type f -iname '*.ttf' | head -n 1)"
-          if [ -z "$FONT_FILE" ]; then
-            echo "No TTF font was found in the Layla Thuluth archive"
-            find /tmp/layla-thuluth -maxdepth 4 -type f -print
-            exit 1
-          fi
-          cp "$FONT_FILE" assets/LaylaThuluth.ttf
-          LICENSE_FILE="$(find /tmp/layla-thuluth -type f | grep -Ei 'OFL|license' | head -n 1 || true)"
-          if [ -n "$LICENSE_FILE" ]; then
-            cp "$LICENSE_FILE" assets/LaylaThuluth-LICENSE.txt
-          fi
-          test -s assets/LaylaThuluth.ttf
-
-          # Additional Arabic fonts (bundled locally in the APK).
           curl -fL --retry 3 --connect-timeout 20 \
             "https://raw.githubusercontent.com/google/fonts/main/ofl/notonaskharabic/NotoNaskhArabic%5Bwght%5D.ttf" \
             -o assets/NotoNaskhArabic.ttf
@@ -71,7 +51,6 @@ jobs:
           test -s assets/Cairo.ttf
           test -s assets/ArefRuqaa-Regular.ttf
           echo "Three additional Arabic fonts prepared"
-          echo "Layla Thuluth font prepared"
 
       - name: Create Android platform
         run: flutter create --platforms=android .
