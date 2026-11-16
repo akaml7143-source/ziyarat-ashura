@@ -508,7 +508,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               ),
                               const SizedBox(height: 12),
                               const Text(
-                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَرْبَلَاءَ...\nوَابْــــدَأْ زِيَارَةَ عَاشُورَاءَ',
+                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَربَلاء...\nوَابْــــدَأْ زِيَارَةَ عَاشُورَاءَ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -541,39 +541,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: pressed ? null : enter,
-                                  borderRadius: BorderRadius.circular(13),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF090909),
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 1.2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(13),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Color(0x26777777),
-                                          blurRadius: 8,
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Text(
-                                      '● تَفَضَّلْ بِالدُّخُولِ. ●',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'Amiri',
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              GestureDetector(
+                                onTap: pressed ? null : enter,
+                                child: Center(
+                                  child: ClipRect(
+                                    child: Image.asset(
+                                      'assets/entry_button.png',
+                                      fit: BoxFit.none,
+                                      alignment: Alignment.center,
+                                      filterQuality: FilterQuality.high,
                                     ),
                                   ),
                                 ),
@@ -1357,7 +1333,7 @@ class ListeningPage extends StatefulWidget {
     {'name': 'الرادود باسم الكربلائي', 'file': 'basim_alkarbalaei.mp3'},
     {'name': 'الرادود أحمد الفتلاوي', 'file': 'ahmed_alftlawi.mp3'},
     {'name': 'الرادود محمدباقر الخاقاني', 'file': 'mohammed_baqir_alkhaqani.mp3'},
-    {'name': 'الرادود أبا ذر الحلواجـي', 'file': 'aba_thar_alhelwachi.mp3'},
+    {'name': 'الرادود أبا ذر الحلواجي', 'file': 'aba_thar_alhelwachi.mp3'},
     {'name': 'الحاج علــــــــــي فانــــي', 'file': 'ali_fani.mp3'},
     {'name': 'الحاج علــــــــــي الكعبي', 'file': 'ali_alkabi.mp3'},
     {'name': 'الرادود عمــــــــار الكناني', 'file': 'ammar_alkinani.mp3'},
@@ -2590,9 +2566,9 @@ class AboutAppPage extends StatelessWidget {
                     aboutText,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 18,
-                      height: 1.75,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 20,
+                      height: 1.9,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
