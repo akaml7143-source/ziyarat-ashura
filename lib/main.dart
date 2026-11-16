@@ -457,7 +457,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return Scaffold(
       backgroundColor: const Color(0xFF080808),
       body: Container(
-        decoration: const BoxDecoration(image: DecorationImage(image: AssetImage('assets/welcome_background.png'), fit: BoxFit.cover)),
+        decoration: const BoxDecoration(image: DecorationImage(image: AssetImage('assets/intro_background.png'), fit: BoxFit.cover)),
         child: DecoratedBox(
           decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.28)),
           child: SafeArea(
@@ -541,15 +541,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              GestureDetector(
-                                onTap: pressed ? null : enter,
-                                child: Center(
-                                  child: ClipRect(
-                                    child: Image.asset(
-                                      'assets/entry_button.png',
-                                      fit: BoxFit.none,
-                                      alignment: Alignment.center,
-                                      filterQuality: FilterQuality.high,
+                              Center(
+                                child: ElevatedButton(
+                                  onPressed: pressed ? null : enter,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFD4AF37),
+                                    foregroundColor: const Color(0xFF17120A),
+                                    elevation: 8,
+                                    padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 13),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                      side: const BorderSide(color: Color(0xFFFFE7A0), width: 1.4),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'تَفَضَّلْ بِالدُّخُولِ',
+                                    style: TextStyle(
+                                      fontFamily: 'Amiri',
+                                      fontSize: 23,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -1157,7 +1167,7 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein('أحاديث في فضل زيارة الحسين (ع) في يوم عاشوراء', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
+      Text.rich(highlightImamHussein('أَحَادِيثُ فَضْلِ زِيَارَةِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
       SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
         content: r'''قال الريّان بن شبیب: دخلت على الرضا (عليه السلام) في أوّل يوم من محرّم، فقال (عليه السلام) لي: يا بن شبيب، أ صائم أنت؟ فقلت: لا، فقال: إنّ هذا اليوم هو اليوم الذي دعا فيه زكريّا (عليه السلام) ربّه عزّ وجلّ فقال: ﴿رَبِّ هَبْ لي‏ مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَميعُ الدُّعاءِ﴾ فاستجاب الله له، وأمر الملائكة فنادت زكريا (عليه السلام) ﴿وَهُوَ قائِمٌ يُصَلِّي فِي الْمِحْرابِ أَنَّ اللّهََ يُبَشِّرُكَ بِيَحْيى﴾، فمن صام هذا اليوم، ثمّ دعا الله عزّ وجلّ استجاب الله له كما استجاب لزكريّا (عليه السلام).
@@ -1187,7 +1197,7 @@ class FavorsPage extends StatelessWidget {
 المصدر الأصلي: مصباح المتهجّد، إقبال الأعمال.
 المصدر من بحار الأنوار: ج ٩٨، ص ١٠٣.'''),
       const SizedBox(height: 12),
-      SectionCard(title: 'أحاديث في فضل زيارة الإمام الحسين (ع) عموماً', fontSize: fontSize, highlight: true,
+      SectionCard(title: 'أَحَادِيثُ فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) عُمُومًا', fontSize: fontSize, highlight: true,
         content: r'''الحديث: ٣
 قال الإمام الصادق (عليه السلام): «مَنْ زَارَ الْحُسَيْنَ (عليه السلام) عَارِفاً بِحَقِّهِ، يَأْتَمُّ بِهِ، غَفَرَ اللهُ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ وَمَا تَأَخَّرَ».
 المصدر: كامل الزيارات، الباب ٥٤؛ ونُقل في بحار الأنوار، ج ١٠١، ص ٢١-٢٢.
@@ -2006,7 +2016,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
               children: [
                 const SizedBox(height: 5),
                 const Text(
-                  'أحاديث في فضل الصلاة على محمّد وآل محمّد',
+                  'أَحَادِيثُ فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
