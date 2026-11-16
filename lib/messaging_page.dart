@@ -21,6 +21,34 @@ class MessagingEntryPage extends StatelessWidget {
   );
 }
 
+class DesignerContactCard extends StatelessWidget {
+  const DesignerContactCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.primary;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFD700), width: 1),
+      ),
+      child: const Column(
+        children: [
+          Text('مُصَمِّمُ التَّطْبِيقِ', style: TextStyle(fontSize: 14, color: Color(0xFFFFD700), fontWeight: FontWeight.bold)),
+          SizedBox(height: 5),
+          Text('كامل الكميتي', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+          SizedBox(height: 7),
+          Text('للاقتراحات والملاحظات والاستفسارات، يمكنك مراسلتي مباشرةً من خلال هذه الصفحة.',
+            textAlign: TextAlign.center, style: TextStyle(height: 1.5)),
+        ],
+      ),
+    );
+  }
+}
+
 class MessagingAuthPage extends StatefulWidget {
   const MessagingAuthPage({super.key});
   @override
@@ -77,6 +105,8 @@ class _MessagingAuthPageState extends State<MessagingAuthPage> {
     body: Center(child: SingleChildScrollView(
       padding: const EdgeInsets.all(22),
       child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Column(children: [
+        const DesignerContactCard(),
+        const SizedBox(height: 16),
         const Icon(Icons.lock_outline, size: 54, color: Color(0xFFFFD700)),
         const SizedBox(height: 12),
         Text(_register ? 'إنشاء حساب جديد' : 'تسجيل الدخول',
