@@ -12,6 +12,7 @@ import 'package:vibration/vibration.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
 
@@ -230,14 +231,24 @@ const int salawatReminderNotificationId = 31001;
 Future<void> scheduleSalawatReminder({required bool enabled, required int hour, required int minute}) async {
   await notifications.cancel(salawatReminderNotificationId);
   if (!enabled) return;
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+    throw ArgumentError('وقت منبّه الصلاة غير صالح');
+  }
   final now = tz.TZDateTime.now(tz.local);
   var next = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-  if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
-  await notifications.zonedSchedule(salawatReminderNotificationId, 'تذكير الصلاة على محمد وآل محمد',
-    'هل صليت على محمد وآل محمد هذا اليوم؟', next, salawatNotificationDetails,
+  if (!next.isAfter(now)) {
+    next = tz.TZDateTime(tz.local, now.year, now.month, now.day + 1, hour, minute);
+  }
+  await notifications.zonedSchedule(
+    salawatReminderNotificationId,
+    'تذكير الصلاة على محمد وآل محمد',
+    'حان وقت الصلاة على محمد وآل محمد؛ لا تنسَ وردك اليومي.',
+    next,
+    salawatNotificationDetails,
     androidScheduleMode: _scheduleMode,
     uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-    matchDateTimeComponents: DateTimeComponents.time);
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
 }
 Future<void> restoreSalawatReminder() async {
   final prefs = await SharedPreferences.getInstance();
@@ -486,46 +497,60 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                 animation: _pulseController,
                                 builder: (context, child) {
                                   final progress = _pulseController.value;
-                                  return Transform.scale(
-                                    scale: 1 + (0.08 * progress),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: pressed ? null : enter,
-                                        borderRadius: BorderRadius.circular(30),
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 10,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xD9B41414),
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            border: Border.all(
-                                              color: const Color(0xFFFF4D4D),
-                                              width: 2,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(0x99FF0000),
-                                                blurRadius: 10 + (15 * progress),
-                                                spreadRadius: 1,
+                                  return Transform.translate(
+                                    offset: Offset(0, -9 * math.sin(progress * math.pi)),
+                                    child: Transform.scale(
+                                      scale: 1 + (0.025 * progress),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: pressed ? null : enter,
+                                          customBorder: const CircleBorder(),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: double.infinity,
+                                                constraints: const BoxConstraints(minHeight: 76),
+                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 19),
+                                                decoration: BoxDecoration(
+                                                  gradient: const LinearGradient(
+                                                    begin: Alignment.topLeft,
+                                                    end: Alignment.bottomRight,
+                                                    colors: [Color(0xFFF2C66D), Color(0xFF9C1717), Color(0xFF5D0808)],
+                                                  ),
+                                                  borderRadius: BorderRadius.circular(48),
+                                                  border: Border.all(color: const Color(0xFFFFE2A0), width: 2),
+                                                  boxShadow: [
+                                                    BoxShadow(color: const Color(0x99FFB52E),
+                                                      blurRadius: 13 + (9 * progress), spreadRadius: 1,
+                                                      offset: const Offset(0, 5)),
+                                                  ],
+                                                ),
+                                                child: const Center(
+                                                  child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text('تَفَضَّلْ بِالدُّخُولِ',
+                                                      textAlign: TextAlign.center, maxLines: 1,
+                                                      style: TextStyle(color: Colors.white, fontFamily: 'Amiri',
+                                                        fontSize: 21, fontWeight: FontWeight.bold,
+                                                        shadows: [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 2))])),
+                                                  ),
+                                                ),
+                                              ),
+                                              Transform.translate(
+                                                offset: const Offset(0, -3),
+                                                child: Transform.rotate(
+                                                  angle: math.pi / 4,
+                                                  child: Container(width: 17, height: 17,
+                                                    decoration: const BoxDecoration(
+                                                      gradient: LinearGradient(colors: [Color(0xFF9C1717), Color(0xFF5D0808)]),
+                                                      border: Border(right: BorderSide(color: Color(0xFFFFE2A0), width: 1.5),
+                                                        bottom: BorderSide(color: Color(0xFFFFE2A0), width: 1.5)),
+                                                    )),
+                                                ),
                                               ),
                                             ],
-                                          ),
-                                          child: const Text(
-                                            '• تَفَضَّلْ بِالدُّخُولِ •',
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontFamily: 'Amiri',
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              letterSpacing: 1,
-                                            ),
                                           ),
                                         ),
                                       ),
@@ -1571,6 +1596,26 @@ String vocalizeHadithText(String source) {
     'قال رجل عند الصادق (عليه السلام):': 'قَالَ رَجُلٌ عِنْدَ الصَّادِقِ (عَلَيْهِ السَّلَامُ):',
     'قال الرضا (عليه السلام):': 'قَالَ الرِّضَا (عَلَيْهِ السَّلَامُ):',
     'قال الصادق (عليه السلام):': 'قَالَ الصَّادِقُ (عَلَيْهِ السَّلَامُ):',
+    'قال العسكري (عليه السلام):': 'قَالَ الْعَسْكَرِيُّ (عَلَيْهِ السَّلَامُ):',
+    'قال أبو الحسن (عليه السلام):': 'قَالَ أَبُو الْحَسَنِ (عَلَيْهِ السَّلَامُ):',
+    'قال (عليه السلام):': 'قَالَ (عَلَيْهِ السَّلَامُ):',
+    'إذا ذكر أحد من الأنبياء فابدأ بالصلاة على محمّد ثمّ عليه': 'إِذَا ذُكِرَ أَحَدٌ مِنَ الْأَنْبِيَاءِ فَابْدَأْ بِالصَّلَاةِ عَلَى مُحَمَّدٍ ثُمَّ عَلَيْهِ',
+    'وعلى جميع الأنبياء': 'وَعَلَى جَمِيعِ الْأَنْبِيَاءِ',
+    'الصلاة على محمّد وعلى أهل بيته': 'الصَّلَاةُ عَلَى مُحَمَّدٍ وَعَلَى أَهْلِ بَيْتِهِ',
+    'إنّما اتّخذ الله إبراهيم خليلاً': 'إِنَّمَا اتَّخَذَ اللَّهُ إِبْرَاهِيمَ خَلِيلًا',
+    'لكثرة صلاته على محمّد وأهل بيته': 'لِكَثْرَةِ صَلَاتِهِ عَلَى مُحَمَّدٍ وَأَهْلِ بَيْتِهِ',
+    'ارفعوا أصواتكم بالصلاة عليّ': 'ارْفَعُوا أَصْوَاتَكُمْ بِالصَّلَاةِ عَلَيَّ',
+    'فإنّها تذهب بالنفاق': 'فَإِنَّهَا تَذْهَبُ بِالنِّفَاقِ',
+    'من صلّى عليّ يوم الجمعة مائة مرّة': 'مَنْ صَلَّى عَلَيَّ يَوْمَ الْجُمُعَةِ مِائَةَ مَرَّةٍ',
+    'قضى الله له ستّين حاجة': 'قَضَى اللَّهُ لَهُ سِتِّينَ حَاجَةً',
+    'من صلّى عليّ مرة صلّى الله عليه عشراً': 'مَنْ صَلَّى عَلَيَّ مَرَّةً صَلَّى اللَّهُ عَلَيْهِ عَشْرًا',
+    'من ذكرني فلم يصلّ عليّ فقد شقي': 'مَنْ ذَكَرَنِي فَلَمْ يُصَلِّ عَلَيَّ فَقَدْ شَقِيَ',
+    'ما من دعاء إلّا بينه وبين السماء حجاب': 'مَا مِنْ دُعَاءٍ إِلَّا بَيْنَهُ وَبَيْنَ السَّمَاءِ حِجَابٌ',
+    'ذكر الله عزّ وجلّ عبادة، وذكري عبادة': 'ذِكْرُ اللَّهِ عَزَّ وَجَلَّ عِبَادَةٌ، وَذِكْرِي عِبَادَةٌ',
+    'من صلّى عليّ كلّ يوم ثلاث مرّات': 'مَنْ صَلَّى عَلَيَّ كُلَّ يَوْمٍ ثَلَاثَ مَرَّاتٍ',
+    'من صلّى عليّ في كتاب': 'مَنْ صَلَّى عَلَيَّ فِي كِتَابٍ',
+    'لم تزل الملائكة تستغفر له': 'لَمْ تَزَلِ الْمَلَائِكَةُ تَسْتَغْفِرُ لَهُ',
+
     'قال النبيّ (صلى الله عليه وآله وسلم):': 'قَالَ النَّبِيُّ (صَلَّى اللَّهُ عَلَيْهِ وَآلِهِ وَسَلَّمَ):',
     'قال رسول الله (صلى الله عليه وآله وسلم):': 'قَالَ رَسُولُ اللَّهِ (صَلَّى اللَّهُ عَلَيْهِ وَآلِهِ وَسَلَّمَ):',
     'قال النبيّ (صلى الله عليه وآله وسلم) في فضل شهر رمضان:': 'قَالَ النَّبِيُّ (صَلَّى اللَّهُ عَلَيْهِ وَآلِهِ وَسَلَّمَ) فِي فَضْلِ شَهْرِ رَمَضَانَ:',
@@ -2267,7 +2312,77 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
           ),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.campaign_outlined, color: gold),
+              title: const Text('التحديثات'),
+              subtitle: const Text('آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق'),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () {
+                unawaited(tapFeedback());
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AppUpdatesPage()));
+              },
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class AppUpdatesPage extends StatelessWidget {
+  const AppUpdatesPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final stream = FirebaseFirestore.instance.collection('app_updates')
+      .orderBy('createdAt', descending: true).limit(50).snapshots();
+    return Scaffold(
+      appBar: AppBar(title: const Text('التحديثات')),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return const Center(child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text('تعذّر تحميل التحديثات حالياً. تحقّق من اتصال الإنترنت ثم حاول مجدداً.',
+              textAlign: TextAlign.center)));
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          final docs = snapshot.data?.docs ?? [];
+          if (docs.isEmpty) return const Center(child: Text('لا توجد تحديثات جديدة حالياً.',
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 17)));
+          return ListView.builder(
+            padding: const EdgeInsets.all(14), itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final data = docs[index].data();
+              final title = (data['title'] as String?)?.trim() ?? 'تحديث جديد';
+              final body = (data['body'] as String?)?.trim() ?? '';
+              final stamp = data['createdAt'];
+              final date = stamp is Timestamp ? stamp.toDate().toLocal() : null;
+              final dateText = date == null ? '' :
+                '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14),
+                  side: const BorderSide(color: gold, width: 0.8)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    Text(title, textAlign: TextAlign.right,
+                      style: const TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
+                    if (dateText.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(dateText, textAlign: TextAlign.right,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                    const Divider(),
+                    Text(body, textAlign: TextAlign.right,
+                      style: const TextStyle(fontSize: 16, height: 1.7)),
+                  ]),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -2311,18 +2426,23 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       ];
       await saveReminders(saved);
     }
+    final prefs = await SharedPreferences.getInstance();
+    final savedSalawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
+    final savedSalawatHour = prefs.getInt('salawat_reminder_hour') ?? 9;
+    final savedSalawatMinute = prefs.getInt('salawat_reminder_minute') ?? 0;
     if (canSchedule) {
       for (final reminder in saved.where((item) => item.enabled)) {
         await scheduleReminder(reminder);
       }
+      await scheduleSalawatReminder(enabled: savedSalawatEnabled,
+        hour: savedSalawatHour, minute: savedSalawatMinute);
     }
-    final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
       reminders = saved;
-      salawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
-      salawatHour = prefs.getInt('salawat_reminder_hour') ?? 9;
-      salawatMinute = prefs.getInt('salawat_reminder_minute') ?? 0;
+      salawatEnabled = savedSalawatEnabled;
+      salawatHour = savedSalawatHour;
+      salawatMinute = savedSalawatMinute;
       loading = false;
     });
   }
@@ -2336,11 +2456,14 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     await prefs.setBool('salawat_reminder_enabled', nextEnabled);
     await prefs.setInt('salawat_reminder_hour', nextHour);
     await prefs.setInt('salawat_reminder_minute', nextMinute);
-    await scheduleSalawatReminder(
-      enabled: nextEnabled,
-      hour: nextHour,
-      minute: nextMinute,
-    );
+    try {
+      await scheduleSalawatReminder(enabled: nextEnabled, hour: nextHour, minute: nextMinute);
+    } catch (error) {
+      await prefs.setBool('salawat_reminder_enabled', salawatEnabled);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تعذرت جدولة منبّه الصلاة: $error')));
+      return;
+    }
     if (!mounted) return;
     setState(() {
       salawatEnabled = nextEnabled;
@@ -2591,16 +2714,20 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
-  static const String aboutText = '''تَطْبِيقُ «زِيَارَةِ عَاشُورَاءَ» هُوَ تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ الْمُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالِاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
-يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالْأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالِاسْتِمَاعِ إِلَى أَصْوَاتِ الْقُرَّاءِ.
-● الْإِهْدَاءُ
-إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الْفَضْلِ الْعَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ الْبَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللَّهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا الْعَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
-أَسْأَلُكُمُ الدُّعَاءَ
+  static const String aboutText = '''زِيَارَةُ عَاشُورَاءَ
+
+تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَةِ عَاشُورَاءَ، وَتَعْزِيزِ الِارْتِبَاطِ بِسَيِّدِ الشُّهَدَاءِ وَأَهْلِ بَيْتِهِ (عَلَيْهِمُ السَّلَامُ).
+
+● يَضُمُّ التَّطْبِيقُ نَصَّ زِيَارَةِ عَاشُورَاءَ وَفَضْلَهَا، وَزِيَارَةَ الْإِمَامِ الْعَبَّاسِ (عَلَيْهِ السَّلَامُ)، بِالْإِضَافَةِ إِلَى الِاسْتِمَاعِ إِلَى الزِّيَارَةِ بِأَصْوَاتِ عَدَدٍ مِنَ الْقُرَّاءِ، مَعَ مَجْمُوعَةٍ مِنَ الْخَصَائِصِ الَّتِي تُسَهِّلُ الْقِرَاءَةَ وَالِاسْتِمَاعَ وَالتَّذْكِيرَ الْيَوْمِيَّ بِالزِّيَارَةِ.
+
+● رِسَالَتُنَا: أَنْ تَكُونَ زِيَارَةُ عَاشُورَاءَ حَاضِرَةً فِي قُلُوبِنَا وَأَيَّامِنَا، وَأَنْ نُسَاهِمَ فِي نَشْرِ مَعَارِفِ أَهْلِ الْبَيْتِ (عَلَيْهِمُ السَّلَامُ) بِأُسْلُوبٍ سَهْلٍ وَمُيَسَّرٍ.
+
+الإِهْدَاءُ
+
+إِلَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى أَهْلِ بَيْتِهِ الْأَطْهَارِ (عَلَيْهِمُ السَّلَامُ)، وَمُحِبِّيهِ وَمُوَالِيهِ، نُهْدِي هَذَا الْعَمَلَ الْمُتَوَاضِعَ، رَاجِينَ مِنَ اللَّهِ تَعَالَى الْقَبُولَ وَالتَّوْفِيقَ لِخِدْمَةِ مُحَمَّدٍ وَآلِ مُحَمَّدٍ.
+
 تَصْمِيمُ كَامِلِ الْكُمَيْتِيِّ 11/11/2026
 جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ''';
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
       body: SafeArea(
@@ -2612,14 +2739,12 @@ class AboutAppPage extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: SizedBox(
                   width: constraints.maxWidth - 24,
-                  child: Text(
-                    aboutText,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 17,
-                      height: 1.42,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'AmiriQuran',
+                  child: SingleChildScrollView(
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Text(aboutText, textAlign: TextAlign.right,
+                        style: const TextStyle(fontSize: 17, height: 1.7,
+                          fontWeight: FontWeight.w600, fontFamily: 'AmiriQuran')),
                     ),
                   ),
                 ),
