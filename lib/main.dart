@@ -2735,17 +2735,15 @@ class AboutAppPage extends StatelessWidget {
           builder: (context, constraints) => Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: SizedBox(
-                  width: constraints.maxWidth - 24,
-                  child: SingleChildScrollView(
-                    child: Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Text(aboutText, textAlign: TextAlign.right,
-                        style: const TextStyle(fontSize: 17, height: 1.7,
-                          fontWeight: FontWeight.w600, fontFamily: 'AmiriQuran')),
-                    ),
+              child: SizedBox(
+                width: constraints.maxWidth - 24,
+                height: constraints.maxHeight - 16,
+                child: SingleChildScrollView(
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(aboutText, textAlign: TextAlign.right,
+                      style: const TextStyle(fontSize: 17, height: 1.7,
+                        fontWeight: FontWeight.w600, fontFamily: 'AmiriQuran')),
                   ),
                 ),
               ),
