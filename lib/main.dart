@@ -206,7 +206,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
   for (final weekday in reminder.weekdays) {
     await notifications.zonedSchedule(_notificationId(reminder.id, weekday), 'زيارة عاشوراء',
-      'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
+      reminderMessage, _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
       reminderNotificationDetails, androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime);
