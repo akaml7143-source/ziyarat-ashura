@@ -427,20 +427,20 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen>
     with SingleTickerProviderStateMixin {
   bool pressed = false;
-  late final AnimationController _floatController;
+  late final AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
-    _floatController = AnimationController(
+    _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _floatController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -455,143 +455,94 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF080808),
-      body: Container(
-        decoration: const BoxDecoration(image: DecorationImage(image: AssetImage('assets/intro_background.png'), fit: BoxFit.cover)),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.28)),
-          child: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(18),
-            child: AnimatedBuilder(
-              animation: _floatController,
-              builder: (context, child) => Transform.translate(
-                offset: Offset(0, -7 * _floatController.value),
-                child: child,
-              ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 900),
-                  child: Container(
-                    margin: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF777777), width: 1),
-                    ),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 27),
-                          decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.22), border: Border.all(color: Colors.white, width: 1.4)),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'زِيَارَةُ عَاشُورَاءَ',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'NotoNaskhArabic',
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.5,
-                                  shadows: [
-                                    Shadow(
-                                      color: Color(0x66FFFFFF),
-                                      blurRadius: 8,
+      backgroundColor: const Color(0xFF0B0B0B),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final imageWidth = math.min(constraints.maxWidth, 480.0);
+            return Center(
+              child: SingleChildScrollView(
+                child: SizedBox(
+                  width: imageWidth,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Image.asset(
+                        'assets/intro_background.png',
+                        width: imageWidth,
+                        fit: BoxFit.fitWidth,
+                        filterQuality: FilterQuality.high,
+                        errorBuilder: (_, __, ___) =>
+                            const SizedBox(height: 600, width: 480),
+                      ),
+                      Positioned.fill(
+                        child: Align(
+                          alignment: const Alignment(0, 0.39),
+                          child: FractionalTranslation(
+                            translation: const Offset(0, -0.5),
+                            child: FractionallySizedBox(
+                              widthFactor: 0.60,
+                              child: AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (context, child) {
+                                  final progress = _pulseController.value;
+                                  return Transform.scale(
+                                    scale: 1 + (0.08 * progress),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: pressed ? null : enter,
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xD9B41414),
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            border: Border.all(
+                                              color: const Color(0xFFFF4D4D),
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0x99FF0000),
+                                                blurRadius: 10 + (15 * progress),
+                                                spreadRadius: 1,
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Text(
+                                            '• تَفَضَّلْ بِالدُّخُولِ •',
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontFamily: 'Amiri',
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'أَقْبِلْ بِقَلْبِكَ نَحْوَ كَربَلاء...\nوَابْــــدَأْ زِيَارَةَ عَاشُورَاءَ',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontFamily: 'Amiri',
-                                  fontSize: 27,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.8,
-                                  shadows: [
-                                    Shadow(
-                                      color: Color(0x40FFFFFF),
-                                      blurRadius: 7,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              FractionallySizedBox(
-                                widthFactor: 0.48,
-                                child: Container(
-                                  height: 1,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.transparent,
-                                        Colors.white,
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              Center(
-                                child: ElevatedButton(
-                                  onPressed: pressed ? null : enter,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFD4AF37),
-                                    foregroundColor: const Color(0xFF17120A),
-                                    elevation: 8,
-                                    padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 13),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                      side: const BorderSide(color: Color(0xFFFFE7A0), width: 1.4),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'تَفَضَّلْ بِالدُّخُولِ',
-                                    style: TextStyle(
-                                      fontFamily: 'Amiri',
-                                      fontSize: 23,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        const Positioned(
-                          top: -28,
-                          child: _WelcomeOrnament(text: '❀ ۞ ❀', size: 38),
-                        ),
-                        const Positioned(
-                          bottom: -28,
-                          child: _WelcomeOrnament(text: '❀ ۞ ❀', size: 38),
-                        ),
-                        const Positioned(
-                          right: -18,
-                          child: _WelcomeOrnament(text: '❀', size: 30),
-                        ),
-                        const Positioned(
-                          left: -18,
-                          child: _WelcomeOrnament(text: '❀', size: 30),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -803,7 +754,7 @@ class SectionCard extends StatelessWidget {
           children: [
             Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
             const Divider(),
-            SelectableText.rich(highlightImamHussein(content, TextStyle(fontSize: fontSize, height: 1.95))),
+            SelectableText.rich(highlightImamHussein(content, TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
           ],
         ),
       ),
@@ -1167,7 +1118,7 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein('أَحَادِيثُ فَضْلِ زِيَارَةِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
+      Text.rich(highlightImamHussein('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
       SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
         content: r'''قال الريّان بن شبیب: دخلت على الرضا (عليه السلام) في أوّل يوم من محرّم، فقال (عليه السلام) لي: يا بن شبيب، أ صائم أنت؟ فقلت: لا، فقال: إنّ هذا اليوم هو اليوم الذي دعا فيه زكريّا (عليه السلام) ربّه عزّ وجلّ فقال: ﴿رَبِّ هَبْ لي‏ مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَميعُ الدُّعاءِ﴾ فاستجاب الله له، وأمر الملائكة فنادت زكريا (عليه السلام) ﴿وَهُوَ قائِمٌ يُصَلِّي فِي الْمِحْرابِ أَنَّ اللّهََ يُبَشِّرُكَ بِيَحْيى﴾، فمن صام هذا اليوم، ثمّ دعا الله عزّ وجلّ استجاب الله له كما استجاب لزكريّا (عليه السلام).
@@ -1690,7 +1641,7 @@ const List<String> tasbeehHadithPages = [
   "٧١"
 ];
 
-class _TasbeehPageState extends State<TasbeehPage> {
+class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStateMixin {
   static const List<String> zahraPhrases = [
     'اللَّهُ أَكْبَرُ',
     'الْحَمْدُ لِلَّهِ',
@@ -1704,10 +1655,36 @@ class _TasbeehPageState extends State<TasbeehPage> {
   bool loaded = false;
   bool isMillionMode = false;
 
+  late final AnimationController _tapPulseController;
+  late final Animation<double> _tapPulse;
+
   @override
   void initState() {
     super.initState();
+    _tapPulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 190),
+    );
+    _tapPulse = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 0.91),
+        weight: 45,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0.91, end: 1.0),
+        weight: 55,
+      ),
+    ]).animate(CurvedAnimation(
+      parent: _tapPulseController,
+      curve: Curves.easeInOut,
+    ));
     _load();
+  }
+
+  @override
+  void dispose() {
+    _tapPulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -1929,11 +1906,20 @@ class _TasbeehPageState extends State<TasbeehPage> {
             textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
           const SizedBox(height: 5),
-          InkWell(
-            onTap: isMillion ? _increment : _incrementZahra,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: 116, height: 116,
+          ScaleTransition(
+            scale: _tapPulse,
+            child: InkWell(
+              onTap: () {
+                unawaited(_tapPulseController.forward(from: 0));
+                if (isMillion) {
+                  _increment();
+                } else {
+                  _incrementZahra();
+                }
+              },
+              customBorder: const CircleBorder(),
+              child: SizedBox(
+                width: 116, height: 116,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -1949,6 +1935,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                     ]),
                   ),
                 ],
+              ),
               ),
             ),
           ),
@@ -2022,7 +2009,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'أحاديث في فضل الصلاة على محمّد وآل محمّد، وأنّ الصلاة عليهم تكفّر الذنوب وتثقّل الميزان، وفي ما يقال عند ذكر الأنبياء، وعلّة اتّخاذ الله إبراهيم خليلاً. هذه النصوص من مجموعة «جواهر البحار» المقتبسة من «بحار الأنوار» للعلامة المجلسي، مع إبقاء أرقامها ومصادرها كما وردت في النص المرسل.',
+                  'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.',
                   textAlign: TextAlign.justify,
                   style: TextStyle(height: 1.8),
                 ),
@@ -2050,7 +2037,7 @@ class _TasbeehPageState extends State<TasbeehPage> {
                           SelectableText(
                             tasbeehHadithTexts[index],
                             textAlign: TextAlign.justify,
-                            style: TextStyle(fontSize: widget.fontSize - 2, height: 1.9),
+                            style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
                           ),
                           const SizedBox(height: 9),
                           Text(
@@ -2566,17 +2553,13 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
-  static const String aboutText = '''تَطْبِيقُ «زِيَارَةِ عَاشُورَاءَ» هُوَ تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ المُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
-
-يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالاسْتِمَاعِ إِلَى أَصْوَاتِ القُرَّاءِ.
-
-● الإِهْدَاءُ
-إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الإِمَامِ الحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الفَضْلِ العَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ البَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا العَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
-
+  static const String aboutText = '''تَطْبِيقُ «زِيَارَةِ عَاشُورَاءَ» هُوَ تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَتِهِ الْمُبَارَكَةِ، وَتَيْسِيرِ قِرَاءَتِهَا وَالِاسْتِمَاعِ إِلَيْهَا فِي كُلِّ وَقْتٍ وَمَكَانٍ.
+يَسْعَى التَّطْبِيقُ إِلَى تَقْدِيمِ تَجْرِبَةٍ رُوحَانِيَّةٍ مُتَكَامِلَةٍ، تَجْمَعُ بَيْنَ قِرَاءَةِ الزِّيَارَاتِ وَالْأَذْكَارِ، وَالتَّعَرُّفِ عَلَى فَضَائِلِهَا، وَالِاسْتِمَاعِ إِلَى أَصْوَاتِ الْقُرَّاءِ.
+● الْإِهْدَاءُ
+إِلَى مَقَامِ سَيِّدِ الشُّهَدَاءِ الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَأَخِيهِ أَبِي الْفَضْلِ الْعَبَّاسِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى كُلِّ مُحِبٍّ وَمُوَالٍ لِأَهْلِ الْبَيْتِ (عَلَيْهِمُ السَّلَامُ)، وَإِلَى كُلِّ قَلْبٍ تَعَلَّقَ بِحُبِّهِمْ وَسَارَ عَلَى نَهْجِهِمْ، رَاجِينَ مِنَ اللَّهِ تَعَالَى أَنْ يَتَقَبَّلَ هَذَا الْعَمَلَ، وَيَجْعَلَهُ ذُخْرًا لَنَا يَوْمَ نَلْقَاهُ.
 أَسْأَلُكُمُ الدُّعَاءَ
-كامل الكميتي 11/11/2026
-
-جَمِيعُ الحُقُوقِ مَحْفُوظَةٌ''';
+تَصْمِيمُ كَامِلِ الْكُمَيْتِيِّ 11/11/2026
+جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ''';
 
   @override
   Widget build(BuildContext context) {
@@ -2584,20 +2567,21 @@ class AboutAppPage extends StatelessWidget {
       appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
       body: SafeArea(
         child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight - 42),
-              child: Center(
+          builder: (context, constraints) => Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
                 child: SizedBox(
-                  width: double.infinity,
+                  width: constraints.maxWidth - 24,
                   child: Text(
                     aboutText,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 20,
-                      height: 1.9,
+                      fontSize: 17,
+                      height: 1.42,
                       fontWeight: FontWeight.w600,
+                      fontFamily: 'AmiriQuran',
                     ),
                   ),
                 ),
