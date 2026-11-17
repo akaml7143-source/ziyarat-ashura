@@ -21,8 +21,8 @@ class MessagingEntryPage extends StatelessWidget {
   );
 }
 
-class DesignerContactCard extends StatelessWidget {
-  const DesignerContactCard({super.key});
+class MessagingInstructionsCard extends StatelessWidget {
+  const MessagingInstructionsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,16 +37,17 @@ class DesignerContactCard extends StatelessWidget {
       ),
       child: const Column(
         children: [
-          Text('مُصَمِّمُ التَّطْبِيقِ', style: TextStyle(fontSize: 14, color: Color(0xFFFFD700), fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
-          Text('كامل الكميتي', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
-          SizedBox(height: 7),
-          Text('لِلِاقْتِرَاحَاتِ وَالْمُلَاحَظَاتِ وَالاسْتِفْسَارَاتِ، يُمْكِنُكُمْ مُرَاسَلَتِي مُبَاشَرَةً مِنْ خِلَالِ هَذِهِ الصَّفْحَةِ.',
-            textAlign: TextAlign.center, style: TextStyle(height: 1.6)),
-          SizedBox(height: 8),
-          Text('(أَنْشِئُوا حِسَابَكُمْ مِنْ خِلَالِ الْإِيمِيلِ وَالرَّمْزِ السِّرِّيِّ)',
+          Text(
+            'لِلِاقْتِرَاحَاتِ وَالْمُلَاحَظَاتِ وَالاسْتِفْسَارَاتِ، يُمْكِنُكُمْ مُرَاسَلَتِي مُبَاشَرَةً مِنْ خِلَالِ هَذِهِ الصَّفْحَةِ.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.5)),
+            style: TextStyle(height: 1.6),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '(أَنْشِئُوا حِسَابَكُمْ مِنْ خِلَالِ الْإِيمِيلِ وَالرَّمْزِ السِّرِّيِّ)',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 1.5),
+          ),
         ],
       ),
     );
@@ -109,7 +110,7 @@ class _MessagingAuthPageState extends State<MessagingAuthPage> {
     body: Center(child: SingleChildScrollView(
       padding: const EdgeInsets.all(22),
       child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 460), child: Column(children: [
-        const DesignerContactCard(),
+        const MessagingInstructionsCard(),
         const SizedBox(height: 16),
         const Icon(Icons.lock_outline, size: 54, color: Color(0xFFFFD700)),
         const SizedBox(height: 12),
