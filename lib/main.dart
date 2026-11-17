@@ -2073,7 +2073,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                           ),
                           const Divider(),
                           SelectableText(
-                            tasbeehHadithTexts[index],
+                            vocalizeHadithText(tasbeehHadithTexts[index]),
                             textAlign: TextAlign.justify,
                             style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
                           ),
