@@ -488,10 +488,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                       Positioned.fill(
                         child: Align(
-                          alignment: const Alignment(0, 0.39),
-                          child: FractionalTranslation(
-                            translation: const Offset(0, -0.5),
-                            child: FractionallySizedBox(
+                          alignment: Alignment.center,
+                          child: FractionallySizedBox(
                               widthFactor: 0.60,
                               child: AnimatedBuilder(
                                 animation: _pulseController,
@@ -558,7 +556,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   );
                                 },
                               ),
-                            ),
                           ),
                         ),
                       ),
@@ -2728,6 +2725,9 @@ class AboutAppPage extends StatelessWidget {
 
 تَصْمِيمُ كَامِلِ الْكُمَيْتِيِّ 11/11/2026
 جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ''';
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
       body: SafeArea(
