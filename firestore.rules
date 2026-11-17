@@ -16,6 +16,11 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == conversationId;
     }
 
+    match /app_updates/{updateId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
     match /conversations/{conversationId} {
       allow read: if isOwner() || isConversationUser(conversationId);
 
