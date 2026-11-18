@@ -1073,7 +1073,7 @@ class NajahPoemCard extends StatelessWidget {
             const Divider(height: 22),
             Text.rich(
               highlightImamHussein(
-                poem,
+                tr(poem),
                 TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9, fontFamily: 'AmiriQuran'),
               ),
               textAlign: TextAlign.center,
@@ -1604,7 +1604,7 @@ class _ListeningPageState extends State<ListeningPage> {
       debugPrint('Audio error: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.')),
+          SnackBar(content: Text(trFormat(r'تعذر تشغيل $name؛ تحقق من وجود الملف في assets.', {r'$name': reader['name'].toString()}))),
         );
       }
     }
@@ -2173,7 +2173,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'عدد الصلوات اليومي'),
+          decoration: const InputDecoration(labelText: tr('عدد الصلوات اليومي')),
         ),
         actions: [
           TextButton(
