@@ -910,29 +910,29 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: Row(
-          children: [
-            Text(tr('زيارة عاشوراء'),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Center(
-                child: Text(
-                  [
-                    tr('النجاة بزيارة الإمام الحسين (عليه السلام)'),
-                    tr('أحاديث في فضل زيارة عاشوراء'),
-                    tr('استماع زيارة عاشوراء: بدون إنترنت'),
-                    tr('زيارة الإمام العباس بن علي (عليه السلام)'),
-                    tr('أفضل الأعمال: تسبيح السيدة فاطمة الزهراء (عليها السلام)'),
-                  ][selectedIndex],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
+        title: Text(
+          tr('زيارة عاشوراء'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        flexibleSpace: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 108),
+              child: Text(
+                [
+                  tr('النجاة بزيارة الإمام الحسين (عليه السلام)'),
+                  tr('أحاديث في فضل زيارة عاشوراء'),
+                  tr('استماع زيارة عاشوراء: بدون إنترنت'),
+                  tr('زيارة الإمام العباس بن علي (عليه السلام)'),
+                  tr('أفضل الأعمال: تسبيح السيدة فاطمة الزهراء (عليها السلام)'),
+                ][selectedIndex],
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ),
-          ],
+          ),
         ),
         actions: [
           IconButton(
