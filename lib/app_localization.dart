@@ -118,6 +118,14 @@ const Map<String, Map<String, String>> _translations = {
     'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)': 'Ziyarat of Imam al-Abbas',
     'زِيَارَةُ عَاشُورَاءَ': 'Ziyarat Ashura',
     'تَفَضَّلْ بِالدُّخُولِ': 'Please enter',
+
+    'عداد الزيارات المكتملة': 'Completed ziyarat count',
+    'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'After completing the ziyarat and its sections, tap the button to record it.',
+    '$completedVisits زيارة مكتملة': '$completedVisits completed ziyarat',
+    'الإصدار المثبّت: $currentVersion': 'Installed version: $currentVersion',
+    'أحدث إصدار: $latestVersion': 'Latest version: $latestVersion',
+    'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}': 'Daily wird: ${dailyCount} / ${dailyTarget}',
+    'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount': 'Total count: $totalFormattedCount',
   },
   'fa': {
     'العربية': 'عربی',
@@ -230,6 +238,14 @@ const Map<String, Map<String, String>> _translations = {
     'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)': 'زیارت امام عباس (ع)',
     'زِيَارَةُ عَاشُورَاءَ': 'زیارت عاشورا',
     'تَفَضَّلْ بِالدُّخُولِ': 'بفرمایید وارد شوید',
+
+    'عداد الزيارات المكتملة': 'شمار زیارت‌های کامل‌شده',
+    'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'پس از خواندن کامل زیارت و بخش‌های آن، برای ثبت آن دکمه را بزنید.',
+    '$completedVisits زيارة مكتملة': '$completedVisits زیارت کامل‌شده',
+    'الإصدار المثبّت: $currentVersion': 'نسخه نصب‌شده: $currentVersion',
+    'أحدث إصدار: $latestVersion': 'آخرین نسخه: $latestVersion',
+    'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}': 'ورد روزانه: ${dailyCount} / ${dailyTarget}',
+    'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount': 'تعداد کل: $totalFormattedCount',
   },
 };
 
