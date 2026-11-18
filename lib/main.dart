@@ -19,6 +19,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
+import 'app_localization.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
@@ -337,6 +338,7 @@ class _AshuraAppState extends State<AshuraApp> {
   bool loaded = false;
   String selectedFont = 'Amiri';
   String selectedColor = 'أخضر';
+  String selectedLanguage = 'ar';
 
   @override
   void initState() {
@@ -354,6 +356,8 @@ class _AshuraAppState extends State<AshuraApp> {
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
       selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
+      selectedLanguage = ['ar', 'fa', 'en'].contains(prefs.getString('ashura_language')) ? prefs.getString('ashura_language')! : 'ar';
+      appLanguage.value = selectedLanguage;
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
     });
@@ -364,6 +368,14 @@ class _AshuraAppState extends State<AshuraApp> {
     } catch (error) {
       debugPrint('تعذر إعادة جدولة المنبّهات: $error');
     }
+  }
+
+  Future<void> changeLanguage(String value) async {
+    if (!const ['ar', 'fa', 'en'].contains(value)) return;
+    appLanguage.value = value;
+    setState(() => selectedLanguage = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ashura_language', value);
   }
 
   Future<void> toggleTheme() async {
@@ -409,7 +421,7 @@ class _AshuraAppState extends State<AshuraApp> {
     final primaryColor = appColors[selectedColor] ?? green;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'زيارة عاشوراء',
+      title: tr('زيارة عاشوراء'),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
          iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
@@ -454,13 +466,15 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Colors.white),
       ),
       home: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: selectedLanguage == 'en' ? TextDirection.ltr : TextDirection.rtl,
         child: entered
             ? HomeScreen(
                 isDarkMode: isDarkMode,
                 fontSize: fontSize,
                 selectedFont: selectedFont,
                 selectedColor: selectedColor,
+                selectedLanguage: selectedLanguage,
+                onChangeLanguage: changeLanguage,
                 onToggleTheme: toggleTheme,
                 onChangeFontSize: changeFontSize,
                 onChangeFontFamily: changeFontFamily,
@@ -648,6 +662,8 @@ class HomeScreen extends StatefulWidget {
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -659,6 +675,8 @@ class HomeScreen extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -2192,6 +2210,8 @@ class SettingsPage extends StatefulWidget {
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -2202,6 +2222,8 @@ class SettingsPage extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -2215,6 +2237,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String localFont;
   late String localColor;
   late double localFontSize;
+  late String localLanguage;
 
   @override
   void initState() {
@@ -2239,6 +2262,38 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.language, color: gold),
+                    title: Text(tr('لغة التطبيق')),
+                    subtitle: Text(languageName(localLanguage)),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: localLanguage,
+                    isExpanded: true,
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: 'ar', child: Text('العربية')),
+                      DropdownMenuItem(value: 'fa', child: Text('فارسی')),
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) return;
+                      unawaited(tapFeedback());
+                      setState(() => localLanguage = value);
+                      widget.onChangeLanguage(value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
