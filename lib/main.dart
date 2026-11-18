@@ -2687,7 +2687,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                     Text(trFormat(r'الإصدار المثبّت: $currentVersion', {r'$currentVersion': currentVersion ?? ''}), textAlign: TextAlign.start),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text(trFormat(r'أحدث إصدار: $latestVersion', {r'$latestVersion': latestVersion}), textAlign: TextAlign.start),
+                      Text(trFormat(r'أحدث إصدار: $latestVersion', {r'$latestVersion': latestVersion ?? ''}), textAlign: TextAlign.start),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
