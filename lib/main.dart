@@ -2684,7 +2684,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text(trFormat(r'الإصدار المثبّت: $currentVersion', {r'$currentVersion': currentVersion}), textAlign: TextAlign.start),
+                    Text(trFormat(r'الإصدار المثبّت: $currentVersion', {r'$currentVersion': currentVersion ?? ''}), textAlign: TextAlign.start),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
                       Text(trFormat(r'أحدث إصدار: $latestVersion', {r'$latestVersion': latestVersion}), textAlign: TextAlign.start),
