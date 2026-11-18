@@ -1164,7 +1164,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
         child: Column(
           children: [
             const Text(
-              'عداد الزيارات المكتملة',
+              tr('عداد الزيارات المكتملة'),
               style: TextStyle(
                 color: gold,
                 fontSize: 19,
@@ -1173,14 +1173,14 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.',
+              tr('بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             isLoading
                 ? const CircularProgressIndicator()
                 : Text(
-                    '$completedVisits زيارة مكتملة',
+                    tr('$completedVisits زيارة مكتملة'),
                     style: const TextStyle(
                       fontSize: 25,
                       color: gold,
@@ -2208,14 +2208,14 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           if (isMillion)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount',
+              child: Text(tr('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           const SizedBox(height: 6),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(tr('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}'), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
               IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
                 padding: EdgeInsets.zero, tooltip: tr('تحديد الورد اليومي'), onPressed: _customDailyTarget,
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
@@ -2674,10 +2674,10 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text('الإصدار المثبّت: $currentVersion', textAlign: TextAlign.right),
+                    Text(tr('الإصدار المثبّت: $currentVersion'), textAlign: TextAlign.right),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text('أحدث إصدار: $latestVersion', textAlign: TextAlign.right),
+                      Text(tr('أحدث إصدار: $latestVersion'), textAlign: TextAlign.right),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
