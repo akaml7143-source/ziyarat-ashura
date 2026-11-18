@@ -10,10 +10,12 @@ permissions:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
     steps:
       - name: Authenticate with Firebase service account
         id: auth
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
@@ -52,6 +54,6 @@ jobs:
             --data-binary @payload.json
 
       - name: Explain missing Firebase credentials
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
         run: |
           echo "::warning::Set the repository Actions secret FIREBASE_SERVICE_ACCOUNT_JSON to a Firebase service-account JSON with Firebase Cloud Messaging send permission. No broadcast was sent."
