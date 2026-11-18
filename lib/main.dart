@@ -2641,7 +2641,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   String announcementType = 'message';
   bool publishing = false;
 
-  bool get isOwner => FirebaseAuth.instance.currentUser?.uid == ashuraOwnerUid;
+  bool get isOwner => Firebase.apps.isNotEmpty && FirebaseAuth.instance.currentUser?.uid == ashuraOwnerUid;
 
   @override
   void dispose() {
@@ -2696,6 +2696,12 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   }
 
   Widget buildAnnouncements() {
+    if (Firebase.apps.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(tr('تعذر الاتصال بخدمة الرسائل حالياً.')),
+      );
+    }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance.collection('app_updates')
         .orderBy('createdAt', descending: true).snapshots(),
