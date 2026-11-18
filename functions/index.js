@@ -44,7 +44,7 @@ exports.broadcastAppAnnouncement = onDocumentCreated(
           type,
           language,
         },
-        android: { priority: "high" },
+        android: { priority: "high", notification: { channelId: "app_updates_v1" } },
       });
     });
 
