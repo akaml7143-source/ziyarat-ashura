@@ -245,7 +245,7 @@ class _ConversationPageState extends State<ConversationPage> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: widget.ownerMode ? const [] : [
-          IconButton(onPressed: _signOut, icon: const Icon(Icons.logout), tooltip: 'تسجيل الخروج')]),
+          IconButton(onPressed: _signOut, icon: const Icon(Icons.logout), tooltip: tr('تسجيل الخروج'))]),
       body: Column(children: [
         Expanded(child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance.collection('conversations').doc(widget.conversationId)
