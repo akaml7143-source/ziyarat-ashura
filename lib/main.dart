@@ -798,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> {
       AbbasVisitPage(fontSize: widget.fontSize),
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
-    const labels = [
+    final labels = [
       appText('visit_ashura', widget.selectedLanguage),
       appText('visit_fadl', widget.selectedLanguage),
       appText('listen', widget.selectedLanguage),
