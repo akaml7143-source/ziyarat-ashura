@@ -2752,7 +2752,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   int salawatHour = 9;
   int salawatMinute = 0;
 
-  static const List<String> dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
+  static const List<String> dayNames = [tr('الاثنين'), tr('الثلاثاء'), tr('الأربعاء'), tr('الخميس'), tr('الجمعة'), tr('السبت'), tr('الأحد')];
 
   @override
   void initState() {
@@ -2890,8 +2890,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   String daySummary(List<int> days) {
-    if (days.length == 7) return 'كل أيام الأسبوع';
-    if (days.isEmpty) return 'لم تُحدد أيام';
+    if (days.length == 7) return tr('كل أيام الأسبوع');
+    if (days.isEmpty) return tr('لم تُحدد أيام');
     return days.map((d) => dayNames[d - 1]).join('، ');
   }
 
