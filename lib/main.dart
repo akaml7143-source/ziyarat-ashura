@@ -1436,8 +1436,7 @@ class AbbasVisitPage extends StatelessWidget {
               children: [
                 const Icon(Icons.headphones, color: gold, size: 22),
                 const SizedBox(height: 8),
-                const Text(
-                  'استماع زيارة أبي الفضل العباس',
+                Text(tr('استماع زيارة أبي الفضل العباس'),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold),
                 ),
@@ -2982,7 +2981,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                               if (value == 'edit') editReminder(reminder);
                               if (value == 'delete') deleteReminder(reminder);
                             },
-                            itemBuilder: (_) => const [
+                            itemBuilder: (_) => [
                               PopupMenuItem(value: 'edit', child: Text(tr('تعديل'))),
                               PopupMenuItem(value: 'delete', child: Text(tr('حذف'))),
                             ],
