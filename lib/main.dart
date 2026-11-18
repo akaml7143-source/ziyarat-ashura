@@ -24,6 +24,38 @@ const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
 const Color darkBackground = Color(0xFF121212);
 
+String appText(String key, String language) {
+  const values = <String, Map<String, String>>{
+    'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا', 'en': 'Ziyarat Ashura'},
+    'settings': {'ar': 'الإعدادات', 'fa': 'تنظیمات', 'en': 'Settings'},
+    'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه', 'en': 'App language'},
+    'arabic': {'ar': 'العربية', 'fa': 'فارسی', 'en': 'English'},
+    'persian': {'ar': 'الفارسية', 'fa': 'فارسی', 'en': 'Persian'},
+    'english': {'ar': 'الإنجليزية', 'fa': 'انگلیسی', 'en': 'English'},
+    'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت', 'en': 'Visit reminders'},
+    'reminders_desc': {'ar': 'تنبيه الزيارة والصلاة على محمد وآل محمد', 'fa': 'یادآوری زیارت و صلوات بر محمد و آل محمد', 'en': 'Reminders for the visit and blessings upon Muhammad and his family'},
+    'night': {'ar': 'الوضع الليلي', 'fa': 'حالت شب', 'en': 'Dark mode'},
+    'enabled': {'ar': 'مفعّل', 'fa': 'فعال', 'en': 'On'},
+    'disabled': {'ar': 'غير مفعّل', 'fa': 'غیرفعال', 'en': 'Off'},
+    'color': {'ar': 'تغيير لون التطبيق', 'fa': 'تغییر رنگ برنامه', 'en': 'App color'},
+    'font': {'ar': 'نوع الخط', 'fa': 'نوع قلم', 'en': 'Font family'},
+    'font_size': {'ar': 'حجم الخط', 'fa': 'اندازه قلم', 'en': 'Font size'},
+    'current_size': {'ar': 'الحجم الحالي', 'fa': 'اندازه فعلی', 'en': 'Current size'},
+    'about': {'ar': 'حول التطبيق', 'fa': 'درباره برنامه', 'en': 'About'},
+    'about_desc': {'ar': 'معلومات التطبيق والإهداء وحقوق التصميم', 'fa': 'اطلاعات برنامه، تقدیم‌نامه و حقوق طراحی', 'en': 'App information, dedication and design credits'},
+    'updates': {'ar': 'التحديثات', 'fa': 'به‌روزرسانی‌ها', 'en': 'Updates'},
+    'updates_desc': {'ar': 'آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق', 'fa': 'آخرین اخبار و اعلان‌ها و قابلیت‌های جدید برنامه', 'en': 'Latest news, alerts and new app features'},
+    'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی', 'en': 'Private messages'},
+    'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا', 'en': 'Ziyarat Ashura'},
+    'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا', 'en': 'Virtues of Ziyarat Ashura'},
+    'listen': {'ar': 'اِسْتِمَاعُ الزِّيَارَةِ', 'fa': 'شنیدن زیارت', 'en': 'Listen to the visit'},
+    'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)', 'en': 'Visit of Imam Abbas (AS)'},
+    'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'کارهای نیک، بدی‌ها را می‌زدایند', 'en': 'Good deeds erase misdeeds'},
+  };
+  return values[key]?[language] ?? values[key]?['ar'] ?? key;
+}
+
+
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
   'نيلي': Color(0xFF303F9F),
@@ -358,6 +390,7 @@ class _AshuraAppState extends State<AshuraApp> {
   bool loaded = false;
   String selectedFont = 'Amiri';
   String selectedColor = 'أخضر';
+  String selectedLanguage = 'ar';
 
   @override
   void initState() {
@@ -377,6 +410,8 @@ class _AshuraAppState extends State<AshuraApp> {
         selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
         final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
         selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
+        final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
+        selectedLanguage = const ['ar', 'fa', 'en'].contains(savedLanguage) ? savedLanguage : 'ar';
         loaded = true;
       });
     } catch (error, stackTrace) {
@@ -418,6 +453,13 @@ class _AshuraAppState extends State<AshuraApp> {
     await prefs.setString('ashura_theme_color', value);
   }
 
+  Future<void> changeLanguage(String value) async {
+    if (!const ['ar', 'fa', 'en'].contains(value)) return;
+    setState(() => selectedLanguage = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ashura_language', value);
+  }
+
   Future<void> enterApp() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ashura_entered', true);
@@ -435,7 +477,7 @@ class _AshuraAppState extends State<AshuraApp> {
     final primaryColor = appColors[selectedColor] ?? green;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'زيارة عاشوراء',
+      title: appText('app', selectedLanguage),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
          iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
@@ -480,13 +522,15 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Colors.white),
       ),
       home: Directionality(
-        textDirection: TextDirection.rtl,
+        textDirection: selectedLanguage == 'en' ? TextDirection.ltr : TextDirection.rtl,
         child: entered
             ? HomeScreen(
                 isDarkMode: isDarkMode,
                 fontSize: fontSize,
                 selectedFont: selectedFont,
                 selectedColor: selectedColor,
+                selectedLanguage: selectedLanguage,
+                onChangeLanguage: changeLanguage,
                 onToggleTheme: toggleTheme,
                 onChangeFontSize: changeFontSize,
                 onChangeFontFamily: changeFontFamily,
@@ -674,6 +718,8 @@ class HomeScreen extends StatefulWidget {
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -685,6 +731,8 @@ class HomeScreen extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -709,16 +757,16 @@ class _HomeScreenState extends State<HomeScreen> {
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
     const labels = [
-      'زِيَارَةُ عَاشُورَاءَ',
-      'فَضْلُ زِيَارَةِ عَاشُورَاءَ',
-      'اِسْتِمَاعُ الزِّيَارَةِ',
-      'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)',
-      'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ',
+      appText('visit_ashura', widget.selectedLanguage),
+      appText('visit_fadl', widget.selectedLanguage),
+      appText('listen', widget.selectedLanguage),
+      appText('abbas', widget.selectedLanguage),
+      appText('tasbeeh', widget.selectedLanguage),
     ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
-        title: const Text('زيارة عاشوراء',
+        title: Text(appText('app', widget.selectedLanguage),
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
@@ -730,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             icon: const Icon(Icons.forum_outlined),
-            tooltip: 'المراسلة الخاصة',
+            tooltip: appText('private_message', widget.selectedLanguage),
           ),
           IconButton(
             onPressed: () {
@@ -743,6 +791,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: widget.fontSize,
                   selectedFont: widget.selectedFont,
                   selectedColor: widget.selectedColor,
+                  selectedLanguage: widget.selectedLanguage,
+                  onChangeLanguage: widget.onChangeLanguage,
                   onToggleTheme: widget.onToggleTheme,
                   onChangeFontSize: widget.onChangeFontSize,
                   onChangeFontFamily: widget.onChangeFontFamily,
@@ -752,7 +802,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             },
             icon: const Icon(Icons.settings),
-            tooltip: 'الإعدادات',
+            tooltip: appText('settings', widget.selectedLanguage),
           ),
         ],
       ),
@@ -2218,6 +2268,8 @@ class SettingsPage extends StatefulWidget {
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -2228,6 +2280,8 @@ class SettingsPage extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -2261,7 +2315,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
+      appBar: AppBar(title: Text(appText('settings', widget.selectedLanguage))),
       body: LayoutBuilder(
         builder: (context, constraints) => GridView.count(
           crossAxisCount: constraints.maxWidth < 600 ? 2 : 3,
@@ -2271,10 +2325,41 @@ class _SettingsPageState extends State<SettingsPage> {
           padding: const EdgeInsets.all(16),
           children: [
           Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.translate, color: gold),
+                    title: Text(appText('language', widget.selectedLanguage)),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: widget.selectedLanguage,
+                    isExpanded: true,
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                    items: [
+                      DropdownMenuItem(value: 'ar', child: Text(appText('arabic', widget.selectedLanguage))),
+                      DropdownMenuItem(value: 'fa', child: Text(appText('persian', widget.selectedLanguage))),
+                      DropdownMenuItem(value: 'en', child: Text(appText('english', widget.selectedLanguage))),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        unawaited(tapFeedback());
+                        widget.onChangeLanguage(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('المنبهات'),
-              subtitle: const Text('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟'),
+              title: Text(appText('reminders', widget.selectedLanguage)),
+              subtitle: Text(appText('reminders_desc', widget.selectedLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
@@ -2282,8 +2367,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
-              title: const Text('الوضع الليلي'),
-              subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
+              title: Text(appText('night', widget.selectedLanguage)),
+              subtitle: Text(appText(widget.isDarkMode ? 'enabled' : 'disabled', widget.selectedLanguage)),
               value: widget.isDarkMode,
               onChanged: (_) { unawaited(tapFeedback()); widget.onToggleTheme(); },
             ),
@@ -2297,7 +2382,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.palette, color: gold),
-                    title: Text('تغيير لون التطبيق'),
+                    title: Text(appText('color', widget.selectedLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localColor,
@@ -2327,7 +2412,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.font_download, color: gold),
-                    title: Text('نوع الخط'),
+                    title: Text(appText('font', widget.selectedLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localFont,
@@ -2357,8 +2442,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
-              title: const Text('حجم الخط'),
-              subtitle: Text('الحجم الحالي: ${localFontSize.toInt()}'),
+              title: Text(appText('font_size', widget.selectedLanguage)),
+              subtitle: Text('${appText('current_size', widget.selectedLanguage)}: ${localFontSize.toInt()}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -2379,8 +2464,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: const Text('حول التطبيق'),
-              subtitle: const Text('معلومات التطبيق والإهداء وحقوق التصميم'),
+              title: Text(appText('about', widget.selectedLanguage)),
+              subtitle: Text(appText('about_desc', widget.selectedLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
@@ -2388,8 +2473,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.campaign_outlined, color: gold),
-              title: const Text('التحديثات'),
-              subtitle: const Text('آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق'),
+              title: Text(appText('updates', widget.selectedLanguage)),
+              subtitle: Text(appText('updates_desc', widget.selectedLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () {
                 unawaited(tapFeedback());
