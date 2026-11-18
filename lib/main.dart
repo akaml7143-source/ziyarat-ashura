@@ -301,26 +301,47 @@ Future<void> restoreSalawatReminder() async {
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  audioHandler = await AudioService.init(
-    builder: () => AshuraAudioHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.ziyaratashura.audio',
-      androidNotificationChannelName: 'استماع زيارة عاشوراء',
-      androidNotificationOngoing: true,
-    ),
-  );
+
+  // لا نسمح لفشل خدمة خارجية بمنع ظهور شاشة الدخول.
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة Firebase؛ سيعمل التطبيق بالوظائف المحلية: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    audioHandler = await AudioService.init(
+      builder: () => AshuraAudioHandler(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.ziyaratashura.audio',
+        androidNotificationChannelName: 'استماع زيارة عاشوراء',
+        androidNotificationOngoing: true,
+      ),
+    );
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة خدمة الصوت بالخلفية: $error');
+    debugPrintStack(stackTrace: stackTrace);
+    // يبقى مشغل الصوت داخل التطبيق متاحاً حتى إذا تعذر تسجيل خدمة الخلفية.
+    audioHandler = AshuraAudioHandler();
+  }
+
   try {
     await initNotifications();
-    await initUpdateMessaging();
-    // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
+    if (firebaseReady) {
+      await initUpdateMessaging();
+    }
     await rescheduleSavedReminders();
     await restoreSalawatReminder();
-  } catch (error) {
+  } catch (error, stackTrace) {
     debugPrint('تعذر تهيئة الإشعارات: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
+
   runApp(const AshuraApp());
 }
 
@@ -345,20 +366,25 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      isDarkMode = prefs.getBool('ashura_dark') ?? false;
-      fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
-      entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
-      final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
-      final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
-      selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
-      loaded = true;
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      setState(() {
+        isDarkMode = prefs.getBool('ashura_dark') ?? false;
+        fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
+        entered = false;
+        final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
+        selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
+        final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
+        selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
+        loaded = true;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('تعذر تحميل الإعدادات المحفوظة؛ سيتم فتح التطبيق بالإعدادات الافتراضية: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) setState(() => loaded = true);
+    }
 
-    // إعادة جدولة جميع المنبّهات المحفوظة عند فتح التطبيق.
     try {
       await rescheduleSavedReminders();
     } catch (error) {
