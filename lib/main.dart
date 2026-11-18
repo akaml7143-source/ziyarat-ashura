@@ -189,7 +189,7 @@ Future<void> subscribeToUpdateLanguage(String language) async {
   if (!Firebase.apps.isNotEmpty) return;
   try {
     final messaging = FirebaseMessaging.instance;
-    for (final code in const ['ar', 'fa', 'en']) {
+    for (final code in const ['ar', 'fa']) {
       if (code == language) {
         await messaging.subscribeToTopic('app_updates_$code');
       } else {
@@ -268,21 +268,45 @@ Future<bool> ensureNotificationPermissions() async {
   return true;
 }
 Future<void> showReminderTestNotification() async {
-  await notifications.show(90999, 'زيارة عاشوراء',
-    'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails);
+  await notifications.show(90999, tr('زيارة عاشوراء'),
+    tr('هل زرت الإمام الحسين (ع) هذا اليوم؟'), reminderNotificationDetails);
 }
 class AshuraReminder {
-  final int id; final int hour; final int minute; final List<int> weekdays; final bool enabled;
-  const AshuraReminder({required this.id, required this.hour, required this.minute, required this.weekdays, required this.enabled});
-  Map<String, dynamic> toJson() => {'id': id, 'hour': hour, 'minute': minute, 'weekdays': weekdays, 'enabled': enabled};
+  final int id;
+  final int hour;
+  final int minute;
+  final List<int> weekdays;
+  final bool enabled;
+  final String kind; // visit | salawat
+
+  const AshuraReminder({
+    required this.id,
+    required this.hour,
+    required this.minute,
+    required this.weekdays,
+    required this.enabled,
+    this.kind = 'visit',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id, 'hour': hour, 'minute': minute,
+    'weekdays': weekdays, 'enabled': enabled, 'kind': kind,
+  };
+
   factory AshuraReminder.fromJson(Map<String, dynamic> json) => AshuraReminder(
-    id: (json['id'] as num).toInt(), hour: (json['hour'] as num).toInt(), minute: (json['minute'] as num).toInt(),
+    id: (json['id'] as num).toInt(),
+    hour: (json['hour'] as num).toInt(),
+    minute: (json['minute'] as num).toInt(),
     weekdays: (json['weekdays'] as List).map((v) => (v as num).toInt()).where((d) => d >= 1 && d <= 7).toList(),
-    enabled: json['enabled'] == true);
+    enabled: json['enabled'] == true,
+    kind: json['kind'] == 'salawat' ? 'salawat' : 'visit',
+  );
+
   AshuraReminder copyWith({int? hour, int? minute, List<int>? weekdays, bool? enabled}) => AshuraReminder(
-    id: id, hour: hour ?? this.hour, minute: minute ?? this.minute, weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled);
+    id: id, hour: hour ?? this.hour, minute: minute ?? this.minute,
+    weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled, kind: kind,
+  );
 }
-const String reminderMessage = 'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
 AndroidScheduleMode get _scheduleMode => exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
 tz.TZDateTime _nextWeekdayTime(int weekday, int hour, int minute) {
@@ -297,12 +321,22 @@ Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
 Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
+  final isSalawat = reminder.kind == 'salawat';
+  final title = tr(isSalawat ? 'الصلاة على محمد وآل محمد' : 'زيارة عاشوراء');
+  final body = tr(isSalawat
+      ? 'هل صليت على محمد وآل محمد هذا اليوم؟'
+      : 'هل زرت الإمام الحسين (ع) هذا اليوم؟');
   for (final weekday in reminder.weekdays) {
-    await notifications.zonedSchedule(_notificationId(reminder.id, weekday), 'زيارة عاشوراء',
-      reminderMessage, _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
-      reminderNotificationDetails, androidScheduleMode: _scheduleMode,
+    await notifications.zonedSchedule(
+      _notificationId(reminder.id, weekday),
+      title,
+      body,
+      _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
+      reminderNotificationDetails,
+      androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime);
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
   }
 }
 Future<List<AshuraReminder>> loadSavedReminders() async {
@@ -2764,11 +2798,11 @@ class ReminderManagerPage extends StatefulWidget {
 class _ReminderManagerPageState extends State<ReminderManagerPage> {
   List<AshuraReminder> reminders = [];
   bool loading = true;
-  bool salawatEnabled = false;
-  int salawatHour = 9;
-  int salawatMinute = 0;
 
-  List<String> get dayNames => [tr('الاثنين'), tr('الثلاثاء'), tr('الأربعاء'), tr('الخميس'), tr('الجمعة'), tr('السبت'), tr('الأحد')];
+  List<String> get dayNames => [
+    tr('الاثنين'), tr('الثلاثاء'), tr('الأربعاء'), tr('الخميس'),
+    tr('الجمعة'), tr('السبت'), tr('الأحد'),
+  ];
 
   @override
   void initState() {
@@ -2776,13 +2810,52 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     load();
   }
 
+  Future<bool> ensurePermissions() async {
+    final granted = await ensureNotificationPermissions();
+    if (!granted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))),
+        );
+      }
+      return false;
+    }
+    if (!exactAlarmsAllowed && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.'))),
+      );
+    }
+    return true;
+  }
+
   Future<void> load() async {
     var saved = await loadSavedReminders();
-    // اطلب صلاحية عرض الإشعارات عند فتح صفحة المنبّه، حتى للأوقات المحفوظة سابقاً.
+    final prefs = await SharedPreferences.getInstance();
+
+    // ترحيل منبّه الصلاة القديم إلى النظام الجديد دون فقدان وقته.
+    final legacySalawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
+    if (legacySalawatEnabled && !saved.any((r) => r.kind == 'salawat')) {
+      final nextId = saved.isEmpty ? 2001 : saved.map((r) => r.id).reduce((a, b) => a > b ? a : b) + 1;
+      saved = [
+        ...saved,
+        AshuraReminder(
+          id: nextId,
+          hour: prefs.getInt('salawat_reminder_hour') ?? 9,
+          minute: prefs.getInt('salawat_reminder_minute') ?? 0,
+          weekdays: const [1, 2, 3, 4, 5, 6, 7],
+          enabled: true,
+          kind: 'salawat',
+        ),
+      ];
+      await saveReminders(saved);
+    }
+    await notifications.cancel(salawatReminderNotificationId);
+
     final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.')),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'))),
+      );
     }
     if (saved.isEmpty) {
       saved = [
@@ -2792,72 +2865,16 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
       ];
       await saveReminders(saved);
     }
-    final prefs = await SharedPreferences.getInstance();
-    final savedSalawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
-    final savedSalawatHour = prefs.getInt('salawat_reminder_hour') ?? 9;
-    final savedSalawatMinute = prefs.getInt('salawat_reminder_minute') ?? 0;
     if (canSchedule) {
       for (final reminder in saved.where((item) => item.enabled)) {
         await scheduleReminder(reminder);
       }
-      await scheduleSalawatReminder(enabled: savedSalawatEnabled,
-        hour: savedSalawatHour, minute: savedSalawatMinute);
     }
     if (!mounted) return;
     setState(() {
       reminders = saved;
-      salawatEnabled = savedSalawatEnabled;
-      salawatHour = savedSalawatHour;
-      salawatMinute = savedSalawatMinute;
       loading = false;
     });
-  }
-
-  Future<void> updateSalawatReminder({bool? enabled, int? hour, int? minute}) async {
-    final nextEnabled = enabled ?? salawatEnabled;
-    if (nextEnabled && !await ensurePermissions()) return;
-    final nextHour = hour ?? salawatHour;
-    final nextMinute = minute ?? salawatMinute;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('salawat_reminder_enabled', nextEnabled);
-    await prefs.setInt('salawat_reminder_hour', nextHour);
-    await prefs.setInt('salawat_reminder_minute', nextMinute);
-    try {
-      await scheduleSalawatReminder(enabled: nextEnabled, hour: nextHour, minute: nextMinute);
-    } catch (error) {
-      await prefs.setBool('salawat_reminder_enabled', salawatEnabled);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(trFormat(r'تعذرت جدولة منبّه الصلاة: $error', {r'$error': '$error'}))));
-      return;
-    }
-    if (!mounted) return;
-    setState(() {
-      salawatEnabled = nextEnabled;
-      salawatHour = nextHour;
-      salawatMinute = nextMinute;
-    });
-  }
-
-  Future<void> chooseSalawatTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: salawatHour, minute: salawatMinute),
-    );
-    if (picked != null) {
-      await updateSalawatReminder(hour: picked.hour, minute: picked.minute);
-    }
-  }
-
-  Future<bool> ensurePermissions() async {
-    final granted = await ensureNotificationPermissions();
-    if (!granted) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))));
-      return false;
-    }
-    if (!exactAlarmsAllowed && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.'))));
-    }
-    return true;
   }
 
   Future<void> persist() async {
@@ -2868,25 +2885,54 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> addReminder() async {
-    if (reminders.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.'))),
-      );
-      return;
-    }
-    final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
-    const defaultHours = [8, 14, 20, 11, 17];
-    final defaultHour = defaultHours[reminders.length.clamp(0, 4).toInt()];
-    final draft = AshuraReminder(id: nextId, hour: defaultHour, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
-    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
+    final kind = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(tr('اختر نوع المنبّه')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.mosque, color: gold),
+              title: Text(tr('إضافة منبّه زيارة عاشوراء')),
+              onTap: () => Navigator.pop(dialogContext, 'visit'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.volunteer_activism, color: gold),
+              title: Text(tr('إضافة منبّه الصلاة على محمد وآل محمد')),
+              onTap: () => Navigator.pop(dialogContext, 'salawat'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (kind == null) return;
+    if (!await ensurePermissions()) return;
+    final nextId = reminders.isEmpty
+        ? 2001
+        : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b) + 1;
+    final draft = AshuraReminder(
+      id: nextId,
+      hour: kind == 'visit' ? 8 : 9,
+      minute: 0,
+      weekdays: const [1,2,3,4,5,6,7],
+      enabled: true,
+      kind: kind,
+    );
+    final result = await showDialog<AshuraReminder>(
+      context: context,
+      builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames),
+    );
     if (result == null) return;
-    if (result.enabled && !await ensurePermissions()) return;
     setState(() => reminders = [...reminders, result]);
     await persist();
   }
 
   Future<void> editReminder(AshuraReminder old) async {
-    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: old, dayNames: dayNames));
+    final result = await showDialog<AshuraReminder>(
+      context: context,
+      builder: (_) => ReminderEditorDialog(reminder: old, dayNames: dayNames),
+    );
     if (result == null) return;
     if (result.enabled && !await ensurePermissions()) return;
     setState(() => reminders = reminders.map((r) => r.id == old.id ? result : r).toList());
@@ -2895,7 +2941,9 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
 
   Future<void> toggleReminder(AshuraReminder reminder, bool enabled) async {
     if (enabled && !await ensurePermissions()) return;
-    setState(() => reminders = reminders.map((r) => r.id == reminder.id ? r.copyWith(enabled: enabled) : r).toList());
+    setState(() {
+      reminders = reminders.map((r) => r.id == reminder.id ? r.copyWith(enabled: enabled) : r).toList();
+    });
     await persist();
   }
 
@@ -2911,12 +2959,48 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     return days.map((d) => dayNames[d - 1]).join('، ');
   }
 
+  Widget buildReminderCard(AshuraReminder reminder) {
+    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
+    final isSalawat = reminder.kind == 'salawat';
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      child: ListTile(
+        leading: Icon(isSalawat ? Icons.volunteer_activism : Icons.alarm, color: gold, size: 22),
+        title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+        subtitle: Text(daySummary(reminder.weekdays)),
+        onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Switch(
+              value: reminder.enabled,
+              onChanged: (value) { unawaited(tapFeedback()); toggleReminder(reminder, value); },
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                unawaited(tapFeedback());
+                if (value == 'edit') editReminder(reminder);
+                if (value == 'delete') deleteReminder(reminder);
+              },
+              itemBuilder: (_) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(value: 'edit', child: Text(tr('تعديل'))),
+                PopupMenuItem<String>(value: 'delete', child: Text(tr('حذف'))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visitReminders = reminders.where((r) => r.kind == 'visit').toList();
+    final salawatReminders = reminders.where((r) => r.kind == 'salawat').toList();
     return Scaffold(
       appBar: AppBar(title: Text(tr('المنبهات'))),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: reminders.length >= 5 ? null : () { unawaited(tapFeedback()); addReminder(); },
+        onPressed: loading ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_alarm),
@@ -2936,70 +3020,41 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))),
+                        );
+                      }
                     },
-                  ),
-                ),
-                Card(
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        secondary: const Icon(Icons.volunteer_activism, color: gold),
-                        title: Text(tr('منبه الصلاة على محمد وآل محمد')),
-                        subtitle: Text(tr('هل صليت على محمد وآل محمد هذا اليوم؟')),
-                        value: salawatEnabled,
-                        onChanged: (value) { unawaited(tapFeedback()); updateSalawatReminder(enabled: value); },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.access_time, color: gold),
-                        title: Text(tr('وقت منبّه الصلاة على محمد وآل محمد')),
-                        subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
-                        trailing: const Icon(Icons.edit, color: gold),
-                        onTap: () { unawaited(tapFeedback()); chooseSalawatTime(); },
-                      ),
-                    ],
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(tr('منبّهات زيارة عاشوراء (حتى خمسة أوقات)'),
+                  child: Text(tr('منبهات زيارة عاشوراء'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
+                    style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 18)),
                 ),
-                if (reminders.isEmpty)
+                if (visitReminders.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(18),
                     child: Text(tr('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
                       textAlign: TextAlign.center),
                   ),
-                ...reminders.map((reminder) {
-                  final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.alarm, color: gold, size: 22),
-                      title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
-                      subtitle: Text(daySummary(reminder.weekdays)),
-                      onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Switch(value: reminder.enabled, onChanged: (value) { unawaited(tapFeedback()); toggleReminder(reminder, value); }),
-                          PopupMenuButton<String>(
-                            onSelected: (value) {
-                              unawaited(tapFeedback());
-                              if (value == 'edit') editReminder(reminder);
-                              if (value == 'delete') deleteReminder(reminder);
-                            },
-                            itemBuilder: (_) => <PopupMenuEntry<String>>[
-                              PopupMenuItem<String>(value: 'edit', child: Text(tr('تعديل'))),
-                              PopupMenuItem<String>(value: 'delete', child: Text(tr('حذف'))),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
+                ...visitReminders.map(buildReminderCard),
+                const Divider(height: 28),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(tr('منبهات الصلاة على محمد وآل محمد'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 18)),
+                ),
+                if (salawatReminders.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Text(tr('لا توجد منبّهات للصلاة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
+                      textAlign: TextAlign.center),
+                  ),
+                ...salawatReminders.map(buildReminderCard),
               ],
             ),
     );
