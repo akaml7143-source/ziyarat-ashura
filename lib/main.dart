@@ -2303,7 +2303,7 @@ class _SettingsPageState extends State<SettingsPage> {
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
     localFontSize = widget.fontSize;
-    localLanguage = localLanguage;
+    localLanguage = widget.selectedLanguage;
   }
 
   @override
@@ -2312,7 +2312,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
     if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
-    if (oldWidget.selectedLanguage != localLanguage) localLanguage = localLanguage;
+    if (oldWidget.selectedLanguage != widget.selectedLanguage) localLanguage = widget.selectedLanguage;
   }
 
   @override
