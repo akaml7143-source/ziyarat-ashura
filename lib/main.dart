@@ -700,12 +700,12 @@ class _HomeScreenState extends State<HomeScreen> {
       AbbasVisitPage(fontSize: widget.fontSize),
       TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
     ];
-    const labels = [
-      'زِيَارَةُ عَاشُورَاءَ',
-      'فَضْلُ زِيَارَةِ عَاشُورَاءَ',
-      'اِسْتِمَاعُ الزِّيَارَةِ',
-      'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)',
-      'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ',
+    final labels = [
+      tr('زِيَارَةُ عَاشُورَاءَ'),
+      tr('فَضْلُ زِيَارَةِ عَاشُورَاءَ'),
+      tr('اِسْتِمَاعُ الزِّيَارَةِ'),
+      tr('زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)'),
+      tr('إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ'),
     ];
     return Scaffold(
       appBar: AppBar(
