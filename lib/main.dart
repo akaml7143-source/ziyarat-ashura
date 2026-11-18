@@ -2447,9 +2447,9 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.palette, color: gold),
+                    leading: const Icon(Icons.palette, color: gold),
                     title: Text(appText('color', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
@@ -2477,17 +2477,17 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.font_download, color: gold),
+                    leading: const Icon(Icons.font_download, color: gold),
                     title: Text(appText('font', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localFont,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ'))),
+                    items: [
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ')),
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text(tr('Amiri Quran - الخط القرآني'))),
                       DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text(tr('Noto Naskh Arabic - النسخ العربي'))),
                       DropdownMenuItem<String>(value: 'Cairo', child: Text(tr('Cairo - خط كايرو'))),
