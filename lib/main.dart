@@ -14,6 +14,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,7 +33,6 @@ String appText(String key, String language) {
     'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه'},
     'arabic': {'ar': 'العربية', 'fa': 'عربی'},
     'persian': {'ar': 'الفارسية', 'fa': 'فارسی'},
-    'english': {'ar': 'الإنجليزية', 'fa': 'انگلیسی'},
     'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت'},
     'reminders_desc': {'ar': 'تنبيه الزيارة والصلاة على محمد وآل محمد', 'fa': 'یادآوری زیارت و صلوات بر محمد و آل محمد'},
     'night': {'ar': 'الوضع الليلي', 'fa': 'حالت شب'},
@@ -2633,83 +2633,164 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   String? apkUrl;
   String? releaseUrl;
   DateTime? publishedAt;
+  final titleArController = TextEditingController();
+  final bodyArController = TextEditingController();
+  final titleFaController = TextEditingController();
+  final bodyFaController = TextEditingController();
+  String announcementType = 'message';
+  bool publishing = false;
+
+  bool get isOwner => FirebaseAuth.instance.currentUser?.uid == ashuraOwnerUid;
 
   @override
-  void initState() {
-    super.initState();
-    checkForUpdates();
+  void dispose() {
+    titleArController.dispose();
+    bodyArController.dispose();
+    titleFaController.dispose();
+    bodyFaController.dispose();
+    super.dispose();
   }
 
-  Future<void> checkForUpdates() async {
-    if (mounted) setState(() { loading = true; error = null; });
-    HttpClient? client;
-    try {
-      final info = await PackageInfo.fromPlatform();
-      currentVersion = '${info.version}+${info.buildNumber}';
-      client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
-      final request = await client.getUrl(Uri.parse(
-        'https://api.github.com/repos/akaml7143-source/ziyarat-ashura/releases/latest',
-      ));
-      request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
-      request.headers.set(HttpHeaders.userAgentHeader, 'Ziyarat-Ashura-App');
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
-      if (response.statusCode == 404) {
-        throw Exception('لم يُنشر إصدار رسمي على GitHub Releases حتى الآن.');
-      }
-      if (response.statusCode != 200) {
-        throw Exception('تعذر فحص التحديثات (HTTP ${response.statusCode}).');
-      }
-      final data = jsonDecode(body) as Map<String, dynamic>;
-      final tag = (data['tag_name'] as String? ?? '').trim();
-      final assets = (data['assets'] as List<dynamic>? ?? const []);
-      final apk = assets.cast<Map<String, dynamic>>().where((item) {
-        final name = (item['name'] as String? ?? '').toLowerCase();
-        return name.endsWith('.apk');
-      }).firstOrNull;
-      latestVersion = tag.isEmpty ? null : tag.replaceFirst(RegExp(r'^v'), '');
-      releaseTitle = (data['name'] as String?)?.trim();
-      releaseNotes = (data['body'] as String?)?.trim();
-      final dateValue = data['published_at'] as String?;
-      publishedAt = dateValue == null ? null : DateTime.tryParse(dateValue)?.toLocal();
-      apkUrl = apk?['browser_download_url'] as String?;
-      releaseUrl = data['html_url'] as String?;
-    } catch (e) {
-      error = e.toString().replaceFirst('Exception: ', '');
-    } finally {
-      client?.close(force: true);
-      if (mounted) setState(() => loading = false);
-    }
-  }
-
-  List<int> _versionParts(String value) => value
-      .split('+').first.split('.')
-      .map((part) => int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
-      .toList();
-
-  bool get hasUpdate {
-    if (latestVersion == null) return false;
-    final current = _versionParts(currentVersion);
-    final latest = _versionParts(latestVersion!);
-    for (var i = 0; i < (current.length > latest.length ? current.length : latest.length); i++) {
-      final a = i < current.length ? current[i] : 0;
-      final b = i < latest.length ? latest[i] : 0;
-      if (b != a) return b > a;
-    }
-    return false;
-  }
-
-  Future<void> openDownload() async {
-    final url = apkUrl ?? releaseUrl;
-    if (url == null) return;
-    final uri = Uri.tryParse(url);
-    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
+  Future<void> publishAnnouncement() async {
+    if (!isOwner || publishing) return;
+    final titleAr = titleArController.text.trim();
+    final bodyAr = bodyArController.text.trim();
+    final titleFa = titleFaController.text.trim();
+    final bodyFa = bodyFaController.text.trim();
+    if (titleAr.isEmpty || bodyAr.isEmpty || titleFa.isEmpty || bodyFa.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('أكمل عنوان ونص الرسالة باللغتين العربية والفارسية.'))),
       );
+      return;
+    }
+    setState(() => publishing = true);
+    try {
+      await FirebaseFirestore.instance.collection('app_updates').add({
+        'type': announcementType,
+        'titleAr': titleAr,
+        'bodyAr': bodyAr,
+        'titleFa': titleFa,
+        'bodyFa': bodyFa,
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': FirebaseAuth.instance.currentUser!.uid,
+      });
+      titleArController.clear();
+      bodyArController.clear();
+      titleFaController.clear();
+      bodyFaController.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr('تم نشر الرسالة للمستخدمين.'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(trFormat(r'تعذر نشر الرسالة: $error', {r'$error': '$e'}))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => publishing = false);
     }
   }
 
+  Widget buildAnnouncements() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('app_updates')
+        .orderBy('createdAt', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('تعذر تحميل رسائل التطبيق. تحقق من الاتصال وقواعد Firebase.')),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('لا توجد رسائل أو تنبيهات منشورة حالياً.'), textAlign: TextAlign.center),
+          );
+        }
+        final isFa = appLanguage.value == 'fa';
+        return Column(
+          children: snapshot.data!.docs.map((doc) {
+            final data = doc.data();
+            final title = (data[isFa ? 'titleFa' : 'titleAr'] as String?) ??
+                (data['titleAr'] as String? ?? '');
+            final body = (data[isFa ? 'bodyFa' : 'bodyAr'] as String?) ??
+                (data['bodyAr'] as String? ?? '');
+            final kind = data['type'] as String? ?? 'message';
+            final label = switch (kind) {
+              'condolence' => tr('تعزية'),
+              'thanks' => tr('شكر وتقدير'),
+              _ => tr('رسالة من إدارة التطبيق'),
+            };
+            final timestamp = data['createdAt'];
+            final date = timestamp is Timestamp
+                ? timestamp.toDate().toLocal().toString().substring(0, 16)
+                : '';
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(label, style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+                    if (date.isNotEmpty) Text(date, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    const SizedBox(height: 6),
+                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Text(body, style: const TextStyle(height: 1.7)),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget buildAnnouncementComposer() {
+    if (!isOwner) return const SizedBox.shrink();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(tr('نشر رسالة لجميع المستخدمين'), style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: announcementType,
+              decoration: InputDecoration(labelText: tr('نوع الرسالة')),
+              items: [
+                DropdownMenuItem(value: 'message', child: Text(tr('رسالة من إدارة التطبيق'))),
+                DropdownMenuItem(value: 'condolence', child: Text(tr('تعزية'))),
+                DropdownMenuItem(value: 'thanks', child: Text(tr('شكر وتقدير'))),
+              ],
+              onChanged: publishing ? null : (v) { if (v != null) setState(() => announcementType = v); },
+            ),
+            const SizedBox(height: 10),
+            TextField(controller: titleArController, decoration: InputDecoration(labelText: tr('العنوان بالعربية')), textDirection: TextDirection.rtl),
+            const SizedBox(height: 8),
+            TextField(controller: bodyArController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('نص الرسالة بالعربية')), textDirection: TextDirection.rtl),
+            const Divider(height: 24),
+            TextField(controller: titleFaController, decoration: InputDecoration(labelText: tr('عنوان الرسالة بالفارسية')), textDirection: TextDirection.rtl),
+            const SizedBox(height: 8),
+            TextField(controller: bodyFaController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('متن پیام به فارسی')), textDirection: TextDirection.rtl),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: publishing ? null : publishAnnouncement,
+              icon: publishing ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
+              label: Text(tr('نشر للجميع')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final dateText = publishedAt == null ? '' :
@@ -2728,6 +2809,8 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              buildAnnouncementComposer(),
+              buildAnnouncements(),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
