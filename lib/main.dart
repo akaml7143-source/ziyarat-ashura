@@ -220,8 +220,8 @@ Future<bool> ensureNotificationPermissions() async {
   return true;
 }
 Future<void> showReminderTestNotification() async {
-  await notifications.show(90999, 'زيارة عاشوراء',
-    'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails);
+  await notifications.show(90999, tr('زيارة عاشوراء'),
+    tr('هل زرت الإمام الحسين عليه السلام هذا اليوم؟'), reminderNotificationDetails);
 }
 class AshuraReminder {
   final int id; final int hour; final int minute; final List<int> weekdays; final bool enabled;
@@ -234,7 +234,7 @@ class AshuraReminder {
   AshuraReminder copyWith({int? hour, int? minute, List<int>? weekdays, bool? enabled}) => AshuraReminder(
     id: id, hour: hour ?? this.hour, minute: minute ?? this.minute, weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled);
 }
-const String reminderMessage = 'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
+String get reminderMessage => tr('عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه');
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
 AndroidScheduleMode get _scheduleMode => exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
 tz.TZDateTime _nextWeekdayTime(int weekday, int hour, int minute) {
@@ -250,7 +250,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
   for (final weekday in reminder.weekdays) {
-    await notifications.zonedSchedule(_notificationId(reminder.id, weekday), 'زيارة عاشوراء',
+    await notifications.zonedSchedule(_notificationId(reminder.id, weekday), tr('زيارة عاشوراء'),
       reminderMessage, _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
       reminderNotificationDetails, androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
