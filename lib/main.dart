@@ -1845,7 +1845,7 @@ class _AudioPlayerControls extends StatelessWidget {
                             icon: const Icon(Icons.replay_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
-                            tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
+                            tooltip: playing ? tr('إيقاف مؤقت') : tr('تشغيل'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); playing ? handler.pause() : handler.play(); },
                             icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 22),
                           ),
@@ -3095,13 +3095,13 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : 'تفاصيل آخر تحديث',
+                      Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : tr('تفاصيل آخر تحديث'),
                         textAlign: TextAlign.start,
                         style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
                       if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.start,
                         style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       const Divider(),
-                      Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : 'لا توجد تفاصيل مضافة لهذا الإصدار.',
+                      Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : tr('لا توجد تفاصيل مضافة لهذا الإصدار.'),
                         textAlign: TextAlign.start, style: const TextStyle(height: 1.7)),
                     ]),
                   ),
