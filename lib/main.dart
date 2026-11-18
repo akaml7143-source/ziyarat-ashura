@@ -1009,8 +1009,7 @@ class NajahPoemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)',
+            Text(tr('النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)'),
               textAlign: TextAlign.center,
               style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold, height: 1.7),
             ),
@@ -1024,8 +1023,7 @@ class NajahPoemCard extends StatelessWidget {
               textDirection: TextDirection.rtl,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)',
+            Text(tr('للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
             ),
@@ -1616,8 +1614,7 @@ class _ListeningPageState extends State<ListeningPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Text(
-                  'استماع زيارة عاشوراء',
+                child: Text(tr('استماع زيارة عاشوراء'),
                   style: TextStyle(
                     color: isDark ? Colors.white : const Color(0xFF18251C),
                     fontSize: widget.fontSize + 3,
@@ -2284,8 +2281,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
               children: [
                 const SizedBox(height: 5),
-                const Text(
-                  'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
+                Text(tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
@@ -2310,8 +2306,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                            'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}',
+                          Text(tr('الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}'),
                             textAlign: TextAlign.start,
                             style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
@@ -2322,12 +2317,10 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                             style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
                           ),
                           const SizedBox(height: 9),
-                          Text(
-                            'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}',
+                          Text(tr('المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}'),
                             style: const TextStyle(color: Colors.grey, height: 1.6),
                           ),
-                          Text(
-                            'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}',
+                          Text(tr('المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}'),
                             style: const TextStyle(color: Colors.grey, height: 1.6),
                           ),
                         ],
