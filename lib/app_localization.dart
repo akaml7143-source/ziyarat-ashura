@@ -119,6 +119,14 @@ const Map<String, Map<String, String>> _translations = {
     'زِيَارَةُ عَاشُورَاءَ': 'Ziyarat Ashura',
     'تَفَضَّلْ بِالدُّخُولِ': 'Please enter',
 
+    'النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)': 'Salvation through visiting Imam al-Husayn (peace be upon him)',
+    'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)': 'By the poet Jamal al-Din Ali ibn Abd al-Aziz al-Khulai al-Mawsili (d. 580 AH)',
+    'استماع زيارة عاشوراء': 'Listen to Ziyarat Ashura',
+    'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ': 'Hadiths on the merits of sending blessings upon Muhammad and his family',
+    'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}': 'Hadith: ${index + 1} | Jawahir al-Bihar order: ${9455 + index}',
+    'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}': 'Original source: ${tasbeehHadithOriginalSources[index]}',
+    'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}': 'Source in Bihar al-Anwar: vol. 91, p. ${tasbeehHadithPages[index]}',
+
     'عداد الزيارات المكتملة': 'Completed ziyarat count',
     'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'After completing the ziyarat and its sections, tap the button to record it.',
     '$completedVisits زيارة مكتملة': '$completedVisits completed ziyarat',
@@ -238,6 +246,14 @@ const Map<String, Map<String, String>> _translations = {
     'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)': 'زیارت امام عباس (ع)',
     'زِيَارَةُ عَاشُورَاءَ': 'زیارت عاشورا',
     'تَفَضَّلْ بِالدُّخُولِ': 'بفرمایید وارد شوید',
+
+    'النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)': 'رستگاری با زیارت امام حسین (علیه‌السلام)',
+    'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)': 'از شاعر جمال‌الدین علی بن عبدالعزیز خلعی موصلی (درگذشته ۵۸۰ هجری قمری)',
+    'استماع زيارة عاشوراء': 'شنیدن زیارت عاشورا',
+    'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ': 'احادیثی درباره فضیلت صلوات بر محمد و خاندان ایشان',
+    'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}': 'حدیث: ${index + 1} | شماره در جواهر البحار: ${9455 + index}',
+    'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}': 'منبع اصلی: ${tasbeehHadithOriginalSources[index]}',
+    'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}': 'منبع در بحارالأنوار: جلد ۹۱، صفحه ${tasbeehHadithPages[index]}',
 
     'عداد الزيارات المكتملة': 'شمار زیارت‌های کامل‌شده',
     'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'پس از خواندن کامل زیارت و بخش‌های آن، برای ثبت آن دکمه را بزنید.',
