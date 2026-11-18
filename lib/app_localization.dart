@@ -7,7 +7,7 @@ const Map<String, Map<String, String>> _translations = {
   'en': {
     'العربية': 'Arabic',
     'فارسی': 'Persian',
-    'العدد: $count': 'Count: $count',
+    'العدد: \$count': 'Count: \$count',
     'جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله': 'Playing the Ziyarat of Abu al-Fadl al-Abbas, recited by Sheikh Shibr Maalla.',
     'تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3': 'Could not play the recording. Check that assets/shibr_maalla_abbas.mp3 exists.',
     'أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.': 'You have completed the Tasbih of al-Zahra. May Allah accept your deeds.',
@@ -20,9 +20,9 @@ const Map<String, Map<String, String>> _translations = {
     'Aref Ruqaa - خط الرقعة': 'Aref Ruqaa – Ruqah',
     'Tajawal - خط تجوال الواضح': 'Tajawal',
     'Noto Kufi Arabic - الخط الكوفي الواضح': 'Noto Kufi Arabic',
-    'الحجم الحالي: ${localFontSize.toInt()}': 'Current size: ${localFontSize.toInt()}',
+    'الحجم الحالي: \${localFontSize.toInt()}': 'Current size: \${localFontSize.toInt()}',
     'تعذر فتح رابط تنزيل التحديث.': 'Could not open the update download link.',
-    'تعذرت جدولة منبّه الصلاة: $error': 'Could not schedule the salawat reminder: $error',
+    'تعذرت جدولة منبّه الصلاة: \$error': 'Could not schedule the salawat reminder: \$error',
     'لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.': 'Exact alarms are not enabled. Notifications will use the available timing and may be slightly delayed.',
     'يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.': 'You can add up to five Ziyarat Ashura reminder times.',
     'حَوْلَ التَّطْبِيقِ': 'About the app',
@@ -143,22 +143,22 @@ const Map<String, Map<String, String>> _translations = {
     'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)': 'By the poet Jamal al-Din Ali ibn Abd al-Aziz al-Khulai al-Mawsili (d. 580 AH)',
     'استماع زيارة عاشوراء': 'Listen to Ziyarat Ashura',
     'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ': 'Hadiths on the merits of sending blessings upon Muhammad and his family',
-    'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}': 'Hadith: ${index + 1} | Jawahir al-Bihar order: ${9455 + index}',
-    'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}': 'Original source: ${tasbeehHadithOriginalSources[index]}',
-    'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}': 'Source in Bihar al-Anwar: vol. 91, p. ${tasbeehHadithPages[index]}',
+    'الحديث: \${index + 1}  |  ترتيب جواهر البحار: \${9455 + index}': 'Hadith: \${index + 1} | Jawahir al-Bihar order: \${9455 + index}',
+    'المصدر الأصلي: \${tasbeehHadithOriginalSources[index]}': 'Original source: \${tasbeehHadithOriginalSources[index]}',
+    'المصدر من بحار الأنوار: ج ٩١، ص \${tasbeehHadithPages[index]}': 'Source in Bihar al-Anwar: vol. 91, p. \${tasbeehHadithPages[index]}',
 
     'عداد الزيارات المكتملة': 'Completed ziyarat count',
     'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'After completing the ziyarat and its sections, tap the button to record it.',
-    '$completedVisits زيارة مكتملة': '$completedVisits completed ziyarat',
-    'الإصدار المثبّت: $currentVersion': 'Installed version: $currentVersion',
-    'أحدث إصدار: $latestVersion': 'Latest version: $latestVersion',
-    'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}': 'Daily wird: ${dailyCount} / ${dailyTarget}',
-    'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount': 'Total count: $totalFormattedCount',
+    '\$completedVisits زيارة مكتملة': '\$completedVisits completed ziyarat',
+    'الإصدار المثبّت: \$currentVersion': 'Installed version: \$currentVersion',
+    'أحدث إصدار: \$latestVersion': 'Latest version: \$latestVersion',
+    'الوِرْدُ اليَوْمِيُّ: \${dailyCount} / \${dailyTarget}': 'Daily wird: \${dailyCount} / \${dailyTarget}',
+    'الْعَدَدُ الْكُلِّيُّ: \$totalFormattedCount': 'Total count: \$totalFormattedCount',
   },
   'fa': {
     'العربية': 'عربی',
     'فارسی': 'فارسی',
-    'العدد: $count': 'تعداد: $count',
+    'العدد: \$count': 'تعداد: \$count',
     'جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله': 'زیارت ابوالفضل عباس با قرائت شیخ شبر معله در حال پخش است.',
     'تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3': 'پخش فایل ممکن نشد. وجود فایل assets/shibr_maalla_abbas.mp3 را بررسی کنید.',
     'أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.': 'تسبیح حضرت زهرا (س) را به پایان رساندید؛ خداوند اعمالتان را بپذیرد.',
@@ -171,9 +171,9 @@ const Map<String, Map<String, String>> _translations = {
     'Aref Ruqaa - خط الرقعة': 'Aref Ruqaa - رقعه',
     'Tajawal - خط تجوال الواضح': 'Tajawal',
     'Noto Kufi Arabic - الخط الكوفي الواضح': 'Noto Kufi Arabic',
-    'الحجم الحالي: ${localFontSize.toInt()}': 'اندازه فعلی: ${localFontSize.toInt()}',
+    'الحجم الحالي: \${localFontSize.toInt()}': 'اندازه فعلی: \${localFontSize.toInt()}',
     'تعذر فتح رابط تنزيل التحديث.': 'باز کردن پیوند دریافت به‌روزرسانی ممکن نشد.',
-    'تعذرت جدولة منبّه الصلاة: $error': 'تنظیم یادآور صلوات ممکن نشد: $error',
+    'تعذرت جدولة منبّه الصلاة: \$error': 'تنظیم یادآور صلوات ممکن نشد: \$error',
     'لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.': 'زمان‌بندی دقیق فعال نیست؛ اعلان‌ها با زمان‌بندی موجود اجرا می‌شوند و ممکن است کمی تأخیر داشته باشند.',
     'يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.': 'می‌توانید حداکثر پنج زمان برای یادآور زیارت عاشورا اضافه کنید.',
     'حَوْلَ التَّطْبِيقِ': 'درباره برنامه',
@@ -291,24 +291,58 @@ const Map<String, Map<String, String>> _translations = {
     'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)': 'از شاعر جمال‌الدین علی بن عبدالعزیز خلعی موصلی (درگذشته ۵۸۰ هجری قمری)',
     'استماع زيارة عاشوراء': 'شنیدن زیارت عاشورا',
     'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ': 'احادیثی درباره فضیلت صلوات بر محمد و خاندان ایشان',
-    'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}': 'حدیث: ${index + 1} | شماره در جواهر البحار: ${9455 + index}',
-    'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}': 'منبع اصلی: ${tasbeehHadithOriginalSources[index]}',
-    'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}': 'منبع در بحارالأنوار: جلد ۹۱، صفحه ${tasbeehHadithPages[index]}',
+    'الحديث: \${index + 1}  |  ترتيب جواهر البحار: \${9455 + index}': 'حدیث: \${index + 1} | شماره در جواهر البحار: \${9455 + index}',
+    'المصدر الأصلي: \${tasbeehHadithOriginalSources[index]}': 'منبع اصلی: \${tasbeehHadithOriginalSources[index]}',
+    'المصدر من بحار الأنوار: ج ٩١، ص \${tasbeehHadithPages[index]}': 'منبع در بحارالأنوار: جلد ۹۱، صفحه \${tasbeehHadithPages[index]}',
 
     'عداد الزيارات المكتملة': 'شمار زیارت‌های کامل‌شده',
     'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.': 'پس از خواندن کامل زیارت و بخش‌های آن، برای ثبت آن دکمه را بزنید.',
-    '$completedVisits زيارة مكتملة': '$completedVisits زیارت کامل‌شده',
-    'الإصدار المثبّت: $currentVersion': 'نسخه نصب‌شده: $currentVersion',
-    'أحدث إصدار: $latestVersion': 'آخرین نسخه: $latestVersion',
-    'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}': 'ورد روزانه: ${dailyCount} / ${dailyTarget}',
-    'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount': 'تعداد کل: $totalFormattedCount',
+    '\$completedVisits زيارة مكتملة': '\$completedVisits زیارت کامل‌شده',
+    'الإصدار المثبّت: \$currentVersion': 'نسخه نصب‌شده: \$currentVersion',
+    'أحدث إصدار: \$latestVersion': 'آخرین نسخه: \$latestVersion',
+    'الوِرْدُ اليَوْمِيُّ: \${dailyCount} / \${dailyTarget}': 'ورد روزانه: \${dailyCount} / \${dailyTarget}',
+    'الْعَدَدُ الْكُلِّيُّ: \$totalFormattedCount': 'تعداد کل: \$totalFormattedCount',
   },
 };
 
 String tr(String arabic) {
   final language = appLanguage.value;
   if (language == 'ar') return arabic;
-  return _translations[language]?[arabic] ?? arabic;
+  final translations = _translations[language];
+  if (translations == null) return arabic;
+  final exact = translations[arabic];
+  if (exact != null) return exact;
+
+  final tokenPattern = RegExp(r'\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*');
+  for (final entry in translations.entries) {
+    if (!tokenPattern.hasMatch(entry.key)) continue;
+    final tokens = tokenPattern.allMatches(entry.key).toList();
+    final parts = entry.key.split(tokenPattern);
+    final pattern = StringBuffer('^');
+    for (var i = 0; i < parts.length; i++) {
+      pattern.write(RegExp.escape(parts[i]));
+      if (i < tokens.length) pattern.write('(.+?)');
+    }
+    pattern.write(r'
+
+String languageName(String code) => switch (code) {
+  'fa' => 'فارسی',
+  'en' => 'English',
+  _ => 'العربية',
+};
+);
+    final match = RegExp(pattern.toString()).firstMatch(arabic);
+    if (match == null) continue;
+
+    var result = entry.value;
+    final translatedTokens = tokenPattern.allMatches(result).toList();
+    for (var i = translatedTokens.length - 1; i >= 0; i--) {
+      final token = translatedTokens[i];
+      result = result.replaceRange(token.start, token.end, match.group(i + 1) ?? '');
+    }
+    return result;
+  }
+  return arabic;
 }
 
 String languageName(String code) => switch (code) {
