@@ -311,6 +311,14 @@ String tr(String arabic) {
   return _translations[language]?[arabic] ?? arabic;
 }
 
+String trFormat(String template, Map<String, String> replacements) {
+  var result = tr(template);
+  for (final entry in replacements.entries) {
+    result = result.replaceAll(entry.key, entry.value);
+  }
+  return result;
+}
+
 String languageName(String code) => switch (code) {
   'fa' => 'فارسی',
   'en' => 'English',
