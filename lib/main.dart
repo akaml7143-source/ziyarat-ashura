@@ -710,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
-        title: const Text('زيارة عاشوراء',
+        title: Text(tr('زيارة عاشوراء'),
             style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
@@ -722,7 +722,7 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             icon: const Icon(Icons.forum_outlined),
-            tooltip: 'المراسلة الخاصة',
+            tooltip: tr('المراسلة الخاصة'),
           ),
           IconButton(
             onPressed: () {
@@ -744,7 +744,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             },
             icon: const Icon(Icons.settings),
-            tooltip: 'الإعدادات',
+            tooltip: tr('الإعدادات'),
           ),
         ],
       ),
@@ -930,27 +930,27 @@ class ZiyaratPage extends StatelessWidget {
       children: [
         NajahPoemCard(fontSize: fontSize),
         const SizedBox(height: 12),
-        SectionCard(title: 'نية الزيارة', content: intentionText,
+        SectionCard(title: tr('نية الزيارة'), content: intentionText,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
-        SectionCard(title: 'نص زيارة عاشوراء كاملاً', content: visitText,
+        SectionCard(title: tr('نص زيارة عاشوراء كاملاً'), content: visitText,
             fontSize: fontSize),
         const SizedBox(height: 12),
         CounterWidget(
           storageKey: 'ashura_lعن_counter',
-          title: 'ثم تقول (100 مرّة) - اللعن',
+          title: tr('ثم تقول (100 مرّة) - اللعن'),
           phrase: cursePhrase,
           fontSize: fontSize,
         ),
         const SizedBox(height: 12),
         CounterWidget(
           storageKey: 'ashura_salam_counter',
-          title: 'ثم تقول (100 مرّة) - السلام',
+          title: tr('ثم تقول (100 مرّة) - السلام'),
           phrase: salamPhrase,
           fontSize: fontSize,
         ),
         const SizedBox(height: 12),
-        SectionCard(title: 'بعد المئة', content: afterHundred,
+        SectionCard(title: tr('بعد المئة'), content: afterHundred,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
         SectionCard(title: 'سجدة الزيارة', content: 'ثم تسجد وتقول:\n\n$sajda',
@@ -958,7 +958,7 @@ class ZiyaratPage extends StatelessWidget {
         const SizedBox(height: 12),
         CompletedVisitCounter(),
         const SizedBox(height: 20),
-        const Text('المصدر: مفاتيح الجنان، زيارة عاشوراء.',
+        Text(tr('المصدر: مفاتيح الجنان، زيارة عاشوراء.'),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey)),
       ],
@@ -1001,7 +1001,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
     if (!mounted) return;
     setState(() => completedVisits = nextCount);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تقبّل الله زيارتكم، تم تسجيل القراءة')),
+      const SnackBar(content: Text(tr('تقبّل الله زيارتكم، تم تسجيل القراءة'))),
     );
   }
 
@@ -1009,16 +1009,16 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('إعادة العداد'),
-        content: const Text('هل تريد تصفير عدد الزيارات المكتملة؟'),
+        title: Text(tr('إعادة العداد')),
+        content: Text(tr('هل تريد تصفير عدد الزيارات المكتملة؟')),
         actions: [
           TextButton(
             onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, false); },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           TextButton(
             onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, true); },
-            child: const Text('تصفير'),
+            child: Text(tr('تصفير')),
           ),
         ],
       ),
@@ -1071,7 +1071,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               child: ElevatedButton.icon(
                 onPressed: isLoading ? null : () { unawaited(tapFeedback()); markVisitCompleted(); },
                 icon: const Icon(Icons.check_circle_outline),
-                label: const Text('أتممت قراءة الزيارة كاملة'),
+                label: Text(tr('أتممت قراءة الزيارة كاملة')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
@@ -1084,7 +1084,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               child: TextButton.icon(
                 onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 22),
-                label: const Text('تصفير العداد'),
+                label: Text(tr('تصفير العداد')),
               ),
             ),
           ],
@@ -1178,7 +1178,7 @@ class _CounterWidgetState extends State<CounterWidget> {
                 ElevatedButton.icon(
                   onPressed: count < 100 ? () { unawaited(tapFeedback()); increment(); } : null,
                   icon: const Icon(Icons.touch_app),
-                  label: Text('العدد: $count'),
+                  label: Text(tr('العدد: $count')),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
@@ -1187,7 +1187,7 @@ class _CounterWidgetState extends State<CounterWidget> {
               ],
             ),
             if (count == 100)
-              const Text('أحسنت، اكتمل العدد',
+              Text(tr('أحسنت، اكتمل العدد'),
                   style: TextStyle(color: Colors.green,
                       fontWeight: FontWeight.bold)),
           ],
@@ -1278,7 +1278,7 @@ class AbbasVisitPage extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: 'زيارة الإمام العباس (عليه السلام)',
+          title: tr('زيارة الإمام العباس (عليه السلام)'),
           content: ziyaraText,
           fontSize: fontSize,
           highlight: true,
@@ -1302,7 +1302,7 @@ class AbbasVisitPage extends StatelessWidget {
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold),
                 ),
                 const SizedBox(height: 6),
-                const Text('القارئ: الشيخ شبر معله', textAlign: TextAlign.center),
+                Text(tr('القارئ: الشيخ شبر معله'), textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -1318,20 +1318,20 @@ class AbbasVisitPage extends StatelessWidget {
                             );
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله')),
+                                const SnackBar(content: Text(tr('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله'))),
                               );
                             }
                           } catch (error) {
                             debugPrint('Abbas audio error: $error');
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3')),
+                                const SnackBar(content: Text(tr('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3'))),
                               );
                             }
                           }
                         },
                         icon: const Icon(Icons.play_arrow, size: 22),
-                        label: const Text('تشغيل الزيارة'),
+                        label: Text(tr('تشغيل الزيارة')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
@@ -1347,12 +1347,12 @@ class AbbasVisitPage extends StatelessWidget {
                           await (audioHandler as AshuraAudioHandler).stop();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم إيقاف التشغيل')),
+                              const SnackBar(content: Text(tr('تم إيقاف التشغيل'))),
                             );
                           }
                         },
                         icon: const Icon(Icons.stop_circle_outlined, size: 22),
-                        label: const Text('إيقاف التشغيل'),
+                        label: Text(tr('إيقاف التشغيل')),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Theme.of(context).colorScheme.primary,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1410,7 +1410,7 @@ class _ListeningPageState extends State<ListeningPage> {
       debugPrint('Audio error: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.')),
+          SnackBar(content: Text(tr('تعذر تشغيل ${reader[')name']}؛ تحقق من وجود الملف في assets.')),
         );
       }
     }
@@ -1893,7 +1893,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     await prefs.setBool('zahra_tasbeeh_stage_done', false);
     if (finishedAll && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.')),
+        const SnackBar(content: Text(tr('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.'))),
       );
     }
   }
@@ -1941,22 +1941,22 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إعادة عدّاد الصلاة'),
-        content: const Text('هل تريد تصفير العدد الكلي والورد اليومي للصلاة؟'),
+        title: Text(tr('إعادة عدّاد الصلاة')),
+        content: Text(tr('هل تريد تصفير العدد الكلي والورد اليومي للصلاة؟')),
         actions: [
           TextButton(
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.pop(context, false);
             },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.pop(context, true);
             },
-            child: const Text('تصفير'),
+            child: Text(tr('تصفير')),
           ),
         ],
       ),
@@ -1976,7 +1976,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     final value = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحديد الورد اليومي'),
+        title: Text(tr('تحديد الورد اليومي')),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
@@ -1988,7 +1988,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               unawaited(tapFeedback());
               Navigator.pop(context);
             },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1996,7 +1996,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               final parsed = int.tryParse(controller.text.trim());
               if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
             },
-            child: const Text('حفظ'),
+            child: Text(tr('حفظ')),
           ),
         ],
       ),
@@ -2046,7 +2046,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
+          Text(tr('أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
             textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
           const SizedBox(height: 5),
@@ -2086,14 +2086,14 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           if (isMillion)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount',
+              child: Text(tr('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           const SizedBox(height: 6),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(tr('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}'), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
               IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
                 padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
@@ -2258,7 +2258,7 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
+      appBar: AppBar(title: Text(tr('الإعدادات'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -2279,8 +2279,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: const [
-                      DropdownMenuItem(value: 'ar', child: Text('العربية')),
-                      DropdownMenuItem(value: 'fa', child: Text('فارسی')),
+                      DropdownMenuItem(value: 'ar', child: Text(tr('العربية'))),
+                      DropdownMenuItem(value: 'fa', child: Text(tr('فارسی'))),
                       DropdownMenuItem(value: 'en', child: Text('English')),
                     ],
                     onChanged: (value) {
@@ -2297,8 +2297,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('المنبهات'),
-              subtitle: const Text('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟'),
+              title: Text(tr('المنبهات')),
+              subtitle: Text(tr('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟')),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
@@ -2306,7 +2306,7 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
-              title: const Text('الوضع الليلي'),
+              title: Text(tr('الوضع الليلي')),
               subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
               value: widget.isDarkMode,
               onChanged: (_) { unawaited(tapFeedback()); widget.onToggleTheme(); },
@@ -2321,7 +2321,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.palette, color: gold),
-                    title: Text('تغيير لون التطبيق'),
+                    title: Text(tr('تغيير لون التطبيق')),
                   ),
                   DropdownButtonFormField<String>(
                     value: localColor,
@@ -2351,20 +2351,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.font_download, color: gold),
-                    title: Text('نوع الخط'),
+                    title: Text(tr('نوع الخط')),
                   ),
                   DropdownButtonFormField<String>(
                     value: localFont,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: const [
-                      DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
-                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
-                      DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text('Noto Naskh Arabic - النسخ العربي')),
-                      DropdownMenuItem<String>(value: 'Cairo', child: Text('Cairo - خط كايرو')),
-                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('Aref Ruqaa - خط الرقعة')),
-                      DropdownMenuItem<String>(value: 'Tajawal', child: Text('Tajawal - خط تجوال الواضح')),
-                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text('Noto Kufi Arabic - الخط الكوفي الواضح')),
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ'))),
+                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text(tr('Amiri Quran - الخط القرآني'))),
+                      DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text(tr('Noto Naskh Arabic - النسخ العربي'))),
+                      DropdownMenuItem<String>(value: 'Cairo', child: Text(tr('Cairo - خط كايرو'))),
+                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text(tr('Aref Ruqaa - خط الرقعة'))),
+                      DropdownMenuItem<String>(value: 'Tajawal', child: Text(tr('Tajawal - خط تجوال الواضح'))),
+                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text(tr('Noto Kufi Arabic - الخط الكوفي الواضح'))),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());
@@ -2381,8 +2381,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
-              title: const Text('حجم الخط'),
-              subtitle: Text('الحجم الحالي: ${localFontSize.toInt()}'),
+              title: Text(tr('حجم الخط')),
+              subtitle: Text(tr('الحجم الحالي: ${localFontSize.toInt()}')),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -2403,8 +2403,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: const Text('حول التطبيق'),
-              subtitle: const Text('معلومات التطبيق والإهداء وحقوق التصميم'),
+              title: Text(tr('حول التطبيق')),
+              subtitle: Text(tr('معلومات التطبيق والإهداء وحقوق التصميم')),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
@@ -2412,8 +2412,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.campaign_outlined, color: gold),
-              title: const Text('التحديثات'),
-              subtitle: const Text('آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق'),
+              title: Text(tr('التحديثات')),
+              subtitle: Text(tr('آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق')),
               trailing: const Icon(Icons.chevron_left),
               onTap: () {
                 unawaited(tapFeedback());
@@ -2515,7 +2515,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
     final uri = Uri.tryParse(url);
     if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر فتح رابط تنزيل التحديث.')),
+        const SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
       );
     }
   }
@@ -2526,9 +2526,9 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
       '${publishedAt!.year}/${publishedAt!.month.toString().padLeft(2, '0')}/${publishedAt!.day.toString().padLeft(2, '0')}';
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التحديثات'),
+        title: Text(tr('التحديثات')),
         actions: [IconButton(
-          tooltip: 'فحص التحديثات',
+          tooltip: tr('فحص التحديثات'),
           onPressed: loading ? null : checkForUpdates,
           icon: const Icon(Icons.refresh),
         )],
@@ -2542,30 +2542,30 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const Text('حالة التطبيق', style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
+                    Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text('الإصدار المثبّت: $currentVersion', textAlign: TextAlign.right),
+                    Text(tr('الإصدار المثبّت: $currentVersion'), textAlign: TextAlign.right),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text('أحدث إصدار: $latestVersion', textAlign: TextAlign.right),
+                      Text(tr('أحدث إصدار: $latestVersion'), textAlign: TextAlign.right),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
                       Text(error!, textAlign: TextAlign.right, style: const TextStyle(color: Colors.orangeAccent))
                     else if (hasUpdate)
-                      const Text('يتوفر تحديث جديد للتطبيق.', textAlign: TextAlign.right,
+                      Text(tr('يتوفر تحديث جديد للتطبيق.'), textAlign: TextAlign.right,
                         style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
                     else
-                      const Text('أنت تستخدم أحدث إصدار منشور.', textAlign: TextAlign.right),
+                      Text(tr('أنت تستخدم أحدث إصدار منشور.'), textAlign: TextAlign.right),
                     const SizedBox(height: 12),
                     if (hasUpdate && (apkUrl != null || releaseUrl != null))
                       ElevatedButton.icon(
                         onPressed: openDownload,
                         icon: const Icon(Icons.download),
-                        label: const Text('تنزيل التحديث'),
+                        label: Text(tr('تنزيل التحديث')),
                       ),
                     if (releaseUrl != null && !hasUpdate)
-                      TextButton(onPressed: openDownload, child: const Text('فتح صفحة الإصدار على GitHub')),
+                      TextButton(onPressed: openDownload, child: Text(tr('فتح صفحة الإصدار على GitHub'))),
                   ]),
                 ),
               ),
@@ -2626,7 +2626,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'),
+        content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.')),
       ));
     }
     if (saved.isEmpty) {
@@ -2672,7 +2672,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     } catch (error) {
       await prefs.setBool('salawat_reminder_enabled', salawatEnabled);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذرت جدولة منبّه الصلاة: $error')));
+        SnackBar(content: Text(tr('تعذرت جدولة منبّه الصلاة: $error'))));
       return;
     }
     if (!mounted) return;
@@ -2696,11 +2696,11 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   Future<bool> ensurePermissions() async {
     final granted = await ensureNotificationPermissions();
     if (!granted) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))));
       return false;
     }
     if (!exactAlarmsAllowed && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.'))));
     }
     return true;
   }
@@ -2715,7 +2715,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   Future<void> addReminder() async {
     if (reminders.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.')),
+        const SnackBar(content: Text(tr('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.'))),
       );
       return;
     }
@@ -2759,13 +2759,13 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المنبهات')),
+      appBar: AppBar(title: Text(tr('المنبهات'))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: reminders.length >= 5 ? null : () { unawaited(tapFeedback()); addReminder(); },
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_alarm),
-        label: const Text('إضافة منبّه'),
+        label: Text(tr('إضافة منبّه')),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -2775,13 +2775,13 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.notifications_active, color: gold),
-                    title: const Text('اختبار الإشعار المنبثق'),
-                    subtitle: const Text('أرسل إشعاراً تجريبياً الآن للتحقق من الصلاحيات'),
+                    title: Text(tr('اختبار الإشعار المنبثق')),
+                    subtitle: Text(tr('أرسل إشعاراً تجريبياً الآن للتحقق من الصلاحيات')),
                     onTap: () async {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.')));
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))));
                     },
                   ),
                 ),
@@ -2790,14 +2790,14 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                     children: [
                       SwitchListTile(
                         secondary: const Icon(Icons.volunteer_activism, color: gold),
-                        title: const Text('منبه الصلاة على محمد وآل محمد'),
-                        subtitle: const Text('هل صليت على محمد وآل محمد هذا اليوم؟'),
+                        title: Text(tr('منبه الصلاة على محمد وآل محمد')),
+                        subtitle: Text(tr('هل صليت على محمد وآل محمد هذا اليوم؟')),
                         value: salawatEnabled,
                         onChanged: (value) { unawaited(tapFeedback()); updateSalawatReminder(enabled: value); },
                       ),
                       ListTile(
                         leading: const Icon(Icons.access_time, color: gold),
-                        title: const Text('وقت منبّه الصلاة على محمد وآل محمد'),
+                        title: Text(tr('وقت منبّه الصلاة على محمد وآل محمد')),
                         subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
                         trailing: const Icon(Icons.edit, color: gold),
                         onTap: () { unawaited(tapFeedback()); chooseSalawatTime(); },
@@ -2807,14 +2807,14 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('منبّهات زيارة عاشوراء (حتى خمسة أوقات)',
+                  child: Text(tr('منبّهات زيارة عاشوراء (حتى خمسة أوقات)'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
                 ),
                 if (reminders.isEmpty)
                   const Padding(
                     padding: EdgeInsets.all(24),
-                    child: Text('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.',
+                    child: Text(tr('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
                       textAlign: TextAlign.center),
                   ),
                 ...reminders.map((reminder) {
@@ -2836,8 +2836,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                               if (value == 'delete') deleteReminder(reminder);
                             },
                             itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                              PopupMenuItem(value: 'delete', child: Text('حذف')),
+                              PopupMenuItem(value: 'edit', child: Text(tr('تعديل'))),
+                              PopupMenuItem(value: 'delete', child: Text(tr('حذف'))),
                             ],
                           ),
                         ],
@@ -2876,7 +2876,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
   Widget build(BuildContext context) {
     final time = TimeOfDay(hour: hour, minute: minute);
     return AlertDialog(
-      title: const Text('إعداد المنبّه'),
+      title: Text(tr('إعداد المنبّه')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2884,7 +2884,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.access_time, color: gold),
-              title: const Text('وقت التنبيه'),
+              title: Text(tr('وقت التنبيه')),
               subtitle: Text(time.format(context)),
               onTap: () async {
                 unawaited(tapFeedback());
@@ -2893,7 +2893,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               },
             ),
             const Divider(),
-            const Align(alignment: Alignment.centerRight, child: Text('أيام التكرار', style: TextStyle(fontWeight: FontWeight.bold))),
+            const Align(alignment: Alignment.centerRight, child: Text(tr('أيام التكرار'), style: TextStyle(fontWeight: FontWeight.bold))),
             ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -2912,10 +2912,10 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: Text(tr('إلغاء'))),
         ElevatedButton(
           onPressed: days.isEmpty ? null : () { unawaited(tapFeedback()); Navigator.pop(context, widget.reminder.copyWith(hour: hour, minute: minute, weekdays: days)); },
-          child: const Text('حفظ'),
+          child: Text(tr('حفظ')),
         ),
       ],
     );
@@ -2943,7 +2943,7 @@ class AboutAppPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
+      appBar: AppBar(title: Text(tr('حَوْلَ التَّطْبِيقِ'))),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) => Center(
