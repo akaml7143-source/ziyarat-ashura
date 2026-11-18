@@ -308,22 +308,8 @@ const Map<String, Map<String, String>> _translations = {
 String tr(String arabic) {
   final language = appLanguage.value;
   if (language == 'ar') return arabic;
-  final translations = _translations[language];
-  if (translations == null) return arabic;
-  final exact = translations[arabic];
-  if (exact != null) return exact;
-
-  final tokenPattern = RegExp(r'\$\{[^}]+\}|\$[A-Za-z_][A-Za-z0-9_]*');
-  for (final entry in translations.entries) {
-    if (!tokenPattern.hasMatch(entry.key)) continue;
-    final tokens = tokenPattern.allMatches(entry.key).toList();
-    final parts = entry.key.split(tokenPattern);
-    final pattern = StringBuffer('^');
-    for (var i = 0; i < parts.length; i++) {
-      pattern.write(RegExp.escape(parts[i]));
-      if (i < tokens.length) pattern.write('(.+?)');
-    }
-    pattern.write(r'
+  return _translations[language]?[arabic] ?? arabic;
+}
 
 String languageName(String code) => switch (code) {
   'fa' => 'فارسی',
