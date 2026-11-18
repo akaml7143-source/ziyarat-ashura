@@ -1123,7 +1123,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
     if (!mounted) return;
     setState(() => completedVisits = nextCount);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text(tr('تقبّل الله زيارتكم، تم تسجيل القراءة'))),
+      SnackBar(content: Text(tr('تقبّل الله زيارتكم، تم تسجيل القراءة'))),
     );
   }
 
@@ -1440,14 +1440,14 @@ class AbbasVisitPage extends StatelessWidget {
                             );
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text(tr('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله'))),
+                                SnackBar(content: Text(tr('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله'))),
                               );
                             }
                           } catch (error) {
                             debugPrint('Abbas audio error: $error');
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text(tr('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3'))),
+                                SnackBar(content: Text(tr('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3'))),
                               );
                             }
                           }
@@ -1469,7 +1469,7 @@ class AbbasVisitPage extends StatelessWidget {
                           await (audioHandler as AshuraAudioHandler).stop();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text(tr('تم إيقاف التشغيل'))),
+                              SnackBar(content: Text(tr('تم إيقاف التشغيل'))),
                             );
                           }
                         },
@@ -2015,7 +2015,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     await prefs.setBool('zahra_tasbeeh_stage_done', false);
     if (finishedAll && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(tr('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.'))),
+        SnackBar(content: Text(tr('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.'))),
       );
     }
   }
@@ -2645,7 +2645,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
     final uri = Uri.tryParse(url);
     if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
+        SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
       );
     }
   }
@@ -2755,8 +2755,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     // اطلب صلاحية عرض الإشعارات عند فتح صفحة المنبّه، حتى للأوقات المحفوظة سابقاً.
     final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.')),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.')),
       ));
     }
     if (saved.isEmpty) {
@@ -2826,11 +2825,11 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   Future<bool> ensurePermissions() async {
     final granted = await ensureNotificationPermissions();
     if (!granted) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))));
       return false;
     }
     if (!exactAlarmsAllowed && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.'))));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.'))));
     }
     return true;
   }
@@ -2845,7 +2844,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   Future<void> addReminder() async {
     if (reminders.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(tr('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.'))),
+        SnackBar(content: Text(tr('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.'))),
       );
       return;
     }
@@ -2911,7 +2910,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))));
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))));
                     },
                   ),
                 ),
