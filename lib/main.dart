@@ -2811,7 +2811,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     } catch (error) {
       await prefs.setBool('salawat_reminder_enabled', salawatEnabled);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('تعذرت جدولة منبّه الصلاة: $error'))));
+        SnackBar(content: Text(trFormat(r'تعذرت جدولة منبّه الصلاة: $error', {r'$error': '$error'}))));
       return;
     }
     if (!mounted) return;
