@@ -21,6 +21,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
 import 'app_localization.dart';
+import 'persian_content.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
@@ -1038,7 +1039,7 @@ class SectionCard extends StatelessWidget {
           children: [
             Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
             const Divider(),
-            SelectableText.rich(highlightImamHussein(tr(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
+            SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
           ],
         ),
       ),
@@ -1074,7 +1075,7 @@ class NajahPoemCard extends StatelessWidget {
             const Divider(height: 22),
             Text.rich(
               highlightImamHussein(
-                tr(poem),
+                persianContent(poem),
                 TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9, fontFamily: 'AmiriQuran'),
               ),
               textAlign: TextAlign.center,
@@ -1373,7 +1374,7 @@ class _CounterWidgetState extends State<CounterWidget> {
             Text(widget.title, style: const TextStyle(fontSize: 19,
                 fontWeight: FontWeight.bold, color: gold)),
             const SizedBox(height: 12),
-            SelectableText.rich(highlightImamHussein(tr(widget.phrase),
+            SelectableText.rich(highlightImamHussein(persianContent(widget.phrase),
                 TextStyle(fontSize: widget.fontSize, height: 1.9)), textAlign: TextAlign.center),
             const SizedBox(height: 18),
             Text('$count / 100', style: const TextStyle(fontSize: 25,
