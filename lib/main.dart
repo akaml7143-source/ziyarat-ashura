@@ -2231,6 +2231,13 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
 
   String _millionChallengeTitle() {
     final milestone = (count ~/ 1000000) + 1;
+    if (appLanguage.value == 'fa') {
+      if (milestone == 1) return 'چالش یک میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone == 2) return 'چالش دو میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone == 3) return 'چالش سه میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone >= 1000) return 'چالش یک میلیارد صلوات بر محمد و خاندان محمد';
+      return 'چالش $milestone میلیون صلوات بر محمد و خاندان محمد';
+    }
     if (milestone == 1) return 'تَحَدِّي الْمِلْيُونِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
     if (milestone == 2) return 'تَحَدِّي الْمِلْيُونَيْنِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
     if (milestone == 3) return 'تَحَدِّي ثَلَاثَةِ مَلَايِينَ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
@@ -2380,7 +2387,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       FittedBox(fit: BoxFit.scaleDown,
                         child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
-                      Text(isMillion ? 'مِنْ مِلْيُونٍ' : 'مِنْ $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
+                      Text(isMillion ? (appLanguage.value == 'fa' ? 'از یک میلیون' : 'مِنْ مِلْيُونٍ') : (appLanguage.value == 'fa' ? 'از $stageTarget' : 'مِنْ $stageTarget'), style: TextStyle(color: mutedText, fontSize: 10)),
                       if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ]),
                   ),
@@ -2405,16 +2412,18 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
             ]),
           Row(children: [
-            modeButton('تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
+            modeButton(appLanguage.value == 'fa' ? 'تسبیح حضرت فاطمه زهرا (سلام‌الله‌علیها)' : 'تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
             const SizedBox(width: 7),
             modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
           ]),
           const SizedBox(height: 2),
           if (!isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(zahraStageDone
-                  ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
-                  : 'الْمَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3',
+              Text(appLanguage.value == 'fa'
+                  ? (zahraStageDone ? 'برای رفتن به ذکر بعدی، فشار دهید' : 'مرحله ${zahraStageIndex + 1} از ۳')
+                  : (zahraStageDone
+                      ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
+                      : 'الْمَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: mutedText, fontSize: 10)),
             ]),
