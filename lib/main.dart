@@ -1218,7 +1218,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               ),
             ),
             Align(
-              alignment: Alignment.centerStart,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 22),
@@ -1633,7 +1633,7 @@ class _ListeningPageState extends State<ListeningPage> {
                     return InkWell(
                       onTap: () { unawaited(tapFeedback()); playReader(reader); },
                       child: Align(
-                        alignment: Alignment.centerEnd,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
@@ -2974,9 +2974,9 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                               if (value == 'edit') editReminder(reminder);
                               if (value == 'delete') deleteReminder(reminder);
                             },
-                            itemBuilder: (_) => [
-                              PopupMenuItem(value: 'edit', child: Text(tr('تعديل'))),
-                              PopupMenuItem(value: 'delete', child: Text(tr('حذف'))),
+                            itemBuilder: (_) => <PopupMenuEntry<String>>[
+                              PopupMenuItem<String>(value: 'edit', child: Text(tr('تعديل'))),
+                              PopupMenuItem<String>(value: 'delete', child: Text(tr('حذف'))),
                             ],
                           ),
                         ],
@@ -3032,7 +3032,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               },
             ),
             const Divider(),
-            Align(alignment: Alignment.centerEnd, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
+            Align(alignment: AlignmentDirectional.centerEnd, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
             ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
