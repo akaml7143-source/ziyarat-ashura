@@ -27,31 +27,31 @@ const Color darkBackground = Color(0xFF121212);
 
 String appText(String key, String language) {
   const values = <String, Map<String, String>>{
-    'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا', 'en': 'Ziyarat Ashura'},
-    'settings': {'ar': 'الإعدادات', 'fa': 'تنظیمات', 'en': 'Settings'},
-    'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه', 'en': 'App language'},
-    'arabic': {'ar': 'العربية', 'fa': 'عربی', 'en': 'Arabic'},
-    'persian': {'ar': 'الفارسية', 'fa': 'فارسی', 'en': 'Persian'},
-    'english': {'ar': 'الإنجليزية', 'fa': 'انگلیسی', 'en': 'English'},
-    'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت', 'en': 'Visit reminders'},
-    'reminders_desc': {'ar': 'تنبيه الزيارة والصلاة على محمد وآل محمد', 'fa': 'یادآوری زیارت و صلوات بر محمد و آل محمد', 'en': 'Reminders for the visit and blessings upon Muhammad and his family'},
-    'night': {'ar': 'الوضع الليلي', 'fa': 'حالت شب', 'en': 'Dark mode'},
-    'enabled': {'ar': 'مفعّل', 'fa': 'فعال', 'en': 'On'},
-    'disabled': {'ar': 'غير مفعّل', 'fa': 'غیرفعال', 'en': 'Off'},
-    'color': {'ar': 'تغيير لون التطبيق', 'fa': 'تغییر رنگ برنامه', 'en': 'App color'},
-    'font': {'ar': 'نوع الخط', 'fa': 'نوع قلم', 'en': 'Font family'},
-    'font_size': {'ar': 'حجم الخط', 'fa': 'اندازه قلم', 'en': 'Font size'},
-    'current_size': {'ar': 'الحجم الحالي', 'fa': 'اندازه فعلی', 'en': 'Current size'},
-    'about': {'ar': 'حول التطبيق', 'fa': 'درباره برنامه', 'en': 'About'},
-    'about_desc': {'ar': 'معلومات التطبيق والإهداء وحقوق التصميم', 'fa': 'اطلاعات برنامه، تقدیم‌نامه و حقوق طراحی', 'en': 'App information, dedication and design credits'},
-    'updates': {'ar': 'التحديثات', 'fa': 'به‌روزرسانی‌ها', 'en': 'Updates'},
-    'updates_desc': {'ar': 'آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق', 'fa': 'آخرین اخبار و اعلان‌ها و قابلیت‌های جدید برنامه', 'en': 'Latest news, alerts and new app features'},
-    'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی', 'en': 'Private messages'},
-    'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا', 'en': 'Ziyarat Ashura'},
-    'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا', 'en': 'Virtues of Ziyarat Ashura'},
-    'listen': {'ar': 'اِسْتِمَاعُ الزِّيَارَةِ', 'fa': 'شنیدن زیارت', 'en': 'Listen to the visit'},
-    'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)', 'en': 'Visit of Imam Abbas (AS)'},
-    'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'کارهای نیک، بدی‌ها را می‌زدایند', 'en': 'Good deeds erase misdeeds'},
+    'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا'},
+    'settings': {'ar': 'الإعدادات', 'fa': 'تنظیمات'},
+    'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه'},
+    'arabic': {'ar': 'العربية', 'fa': 'عربی'},
+    'persian': {'ar': 'الفارسية', 'fa': 'فارسی'},
+    'english': {'ar': 'الإنجليزية', 'fa': 'انگلیسی'},
+    'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت'},
+    'reminders_desc': {'ar': 'تنبيه الزيارة والصلاة على محمد وآل محمد', 'fa': 'یادآوری زیارت و صلوات بر محمد و آل محمد'},
+    'night': {'ar': 'الوضع الليلي', 'fa': 'حالت شب'},
+    'enabled': {'ar': 'مفعّل', 'fa': 'فعال'},
+    'disabled': {'ar': 'غير مفعّل', 'fa': 'غیرفعال'},
+    'color': {'ar': 'تغيير لون التطبيق', 'fa': 'تغییر رنگ برنامه'},
+    'font': {'ar': 'نوع الخط', 'fa': 'نوع قلم'},
+    'font_size': {'ar': 'حجم الخط', 'fa': 'اندازه قلم'},
+    'current_size': {'ar': 'الحجم الحالي', 'fa': 'اندازه فعلی'},
+    'about': {'ar': 'حول التطبيق', 'fa': 'درباره برنامه'},
+    'about_desc': {'ar': 'معلومات التطبيق والإهداء وحقوق التصميم', 'fa': 'اطلاعات برنامه، تقدیم‌نامه و حقوق طراحی'},
+    'updates': {'ar': 'التحديثات', 'fa': 'به‌روزرسانی‌ها'},
+    'updates_desc': {'ar': 'آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق', 'fa': 'آخرین اخبار و اعلان‌ها و قابلیت‌های جدید برنامه'},
+    'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی'},
+    'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
+    'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
+    'listen': {'ar': 'اِسْتِمَاعُ الزِّيَارَةِ', 'fa': 'شنیدن زیارت'},
+    'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
+    'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'کارهای نیک، بدی‌ها را می‌زدایند'},
   };
   return values[key]?[language] ?? values[key]?['ar'] ?? tr(key);
 }
@@ -385,7 +385,6 @@ Future<void> main() async {
       await initUpdateMessaging();
     }
     await rescheduleSavedReminders();
-    await restoreSalawatReminder();
   } catch (error, stackTrace) {
     debugPrint('تعذر تهيئة الإشعارات: $error');
     debugPrintStack(stackTrace: stackTrace);
@@ -428,7 +427,7 @@ class _AshuraAppState extends State<AshuraApp> {
         final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
         selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
         final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
-        selectedLanguage = const ['ar', 'fa', 'en'].contains(savedLanguage) ? savedLanguage : 'ar';
+        selectedLanguage = const ['ar', 'fa'].contains(savedLanguage) ? savedLanguage : 'ar';
         appLanguage.value = selectedLanguage;
         unawaited(subscribeToUpdateLanguage(selectedLanguage));
         loaded = true;
@@ -473,10 +472,11 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeLanguage(String value) async {
-    if (!const ['ar', 'fa', 'en'].contains(value)) return;
+    if (!const ['ar', 'fa'].contains(value)) return;
     appLanguage.value = value;
     unawaited(subscribeToUpdateLanguage(value));
     setState(() => selectedLanguage = value);
+    unawaited(rescheduleSavedReminders());
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_language', value);
   }
@@ -543,7 +543,7 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Colors.white),
       ),
       home: Directionality(
-        textDirection: selectedLanguage == 'en' ? TextDirection.ltr : TextDirection.rtl,
+        textDirection: TextDirection.rtl,
         child: entered
             ? HomeScreen(
                 isDarkMode: isDarkMode,
@@ -702,8 +702,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -829,8 +828,31 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: appPrimary,
-        title: Text(appText('app', widget.selectedLanguage),
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: false,
+        title: Row(
+          children: [
+            const Text('زيارة عاشوراء',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Center(
+                child: Text(
+                  [
+                    tr('النجاة بزيارة الإمام الحسين (عليه السلام)'),
+                    tr('أحاديث في فضل زيارة عاشوراء'),
+                    tr('استماع زيارة عاشوراء: بدون إنترنت'),
+                    tr('زيارة الإمام العباس بن علي (عليه السلام)'),
+                    tr('أفضل الأعمال: تسبيح السيدة فاطمة الزهراء (عليها السلام)'),
+                  ][selectedIndex],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -980,7 +1002,7 @@ class SectionCard extends StatelessWidget {
           children: [
             Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
             const Divider(),
-            SelectableText.rich(highlightImamHussein(content, TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
+            SelectableText.rich(highlightImamHussein(tr(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
           ],
         ),
       ),
@@ -1296,7 +1318,7 @@ class _CounterWidgetState extends State<CounterWidget> {
             Text(widget.title, style: const TextStyle(fontSize: 19,
                 fontWeight: FontWeight.bold, color: gold)),
             const SizedBox(height: 12),
-            SelectableText.rich(highlightImamHussein(widget.phrase,
+            SelectableText.rich(highlightImamHussein(tr(widget.phrase),
                 TextStyle(fontSize: widget.fontSize, height: 1.9)), textAlign: TextAlign.center),
             const SizedBox(height: 18),
             Text('$count / 100', style: const TextStyle(fontSize: 25,
@@ -1342,7 +1364,7 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
+      Text.rich(highlightImamHussein(tr('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ'), const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
       SectionCard(title: tr('الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨'), fontSize: fontSize, highlight: true,
         content: r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
@@ -1417,7 +1439,7 @@ class AbbasVisitPage extends StatelessWidget {
       children: [
         SectionCard(
           title: tr('زيارة الإمام العباس (عليه السلام)'),
-          content: ziyaraText,
+          content: tr(ziyaraText),
           fontSize: fontSize,
           highlight: true,
         ),
@@ -2393,14 +2415,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(appText('settings', localLanguage))),
-      body: LayoutBuilder(
-        builder: (context, constraints) => GridView.count(
-          crossAxisCount: constraints.maxWidth < 600 ? 2 : 3,
-          childAspectRatio: constraints.maxWidth < 600 ? 1.05 : 1.25,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          padding: const EdgeInsets.all(16),
-          children: [
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
           Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
@@ -2419,7 +2436,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     items: [
                       DropdownMenuItem(value: 'ar', child: Text(appText('arabic', localLanguage))),
                       DropdownMenuItem(value: 'fa', child: Text(appText('persian', localLanguage))),
-                      DropdownMenuItem(value: 'en', child: Text(appText('english', localLanguage))),
                     ],
                     onChanged: (value) {
                       if (value != null) {
