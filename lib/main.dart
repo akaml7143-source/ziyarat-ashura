@@ -2841,6 +2841,85 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   }
 
 
+
+  Future<void> signInAdmin() async {
+    if (Firebase.apps.isEmpty) return;
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final credentials = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(tr('دخول إدارة التطبيق')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.username],
+              decoration: InputDecoration(labelText: tr('البريد الإلكتروني')),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(labelText: tr('كلمة المرور')),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(tr('إلغاء'))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, {
+              'email': emailController.text.trim(),
+              'password': passwordController.text,
+            }),
+            child: Text(tr('دخول')),
+          ),
+        ],
+      ),
+    );
+    emailController.dispose();
+    passwordController.dispose();
+    if (credentials == null) return;
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: credentials['email']!,
+        password: credentials['password']!,
+      );
+      if (!isOwner) {
+        await FirebaseAuth.instance.signOut();
+        throw StateError(tr('هذا الحساب لا يملك صلاحية إدارة التطبيق.'));
+      }
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr('تم تسجيل دخول الإدارة بنجاح.'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(trFormat(r'تعذر دخول الإدارة: $error', {r'$error': '$e'}))),
+        );
+      }
+    }
+  }
+
+  Widget buildAdminSignIn() {
+    if (isOwner || Firebase.apps.isEmpty) return const SizedBox.shrink();
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.admin_panel_settings_outlined, color: gold),
+        title: Text(tr('دخول إدارة التطبيق')),
+        subtitle: Text(tr('سجّل الدخول بحساب الإدارة لنشر الرسائل والتنبيهات للجميع.')),
+        trailing: const Icon(Icons.login),
+        onTap: signInAdmin,
+      ),
+    );
+  }
+
   Future<void> publishAnnouncement() async {
     if (!isOwner || publishing) return;
     final titleAr = titleArController.text.trim();
@@ -3005,6 +3084,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              buildAdminSignIn(),
               buildAnnouncementComposer(),
               buildAnnouncements(),
               Card(
