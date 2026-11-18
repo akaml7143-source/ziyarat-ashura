@@ -350,6 +350,7 @@ Future<void> saveReminders(List<AshuraReminder> reminders) async {
   await prefs.setString('ashura_reminders_v2', jsonEncode(reminders.map((v) => v.toJson()).toList()));
 }
 Future<void> rescheduleSavedReminders() async {
+  await notifications.cancel(salawatReminderNotificationId);
   for (final reminder in await loadSavedReminders()) {
     try { await scheduleReminder(reminder); } catch (error) { debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error'); }
   }
