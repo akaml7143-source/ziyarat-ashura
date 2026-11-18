@@ -84,8 +84,10 @@ class AshuraAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler
     );
     mediaItem.add(item);
     await _player.stop();
-    await _player.setAudioSource(AudioSource.asset(assetPath));
-    unawaited(_player.play());
+    await _player.setAudioSource(AudioSource.asset(assetPath), preload: true);
+    unawaited(_player.play().catchError((Object error, StackTrace stackTrace) {
+      debugPrint('Audio playback failed for $assetPath: $error');
+    }));
   }
 
   void _broadcastState(PlaybackEvent event) {
@@ -443,15 +445,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1900),
     )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -460,117 +464,118 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     setState(() => pressed = true);
     unawaited(tapFeedback());
     await Future.delayed(const Duration(milliseconds: 180));
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     if (mounted) widget.onEnter();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0B),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final imageWidth = math.min(constraints.maxWidth, 480.0);
-            return Center(
-              child: SingleChildScrollView(
-                child: SizedBox(
-                  width: imageWidth,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Image.asset(
-                        'assets/intro_background.png',
-                        width: imageWidth,
-                        fit: BoxFit.fitWidth,
-                        filterQuality: FilterQuality.high,
-                        errorBuilder: (_, __, ___) =>
-                            const SizedBox(height: 600, width: 480),
+      backgroundColor: const Color(0xFF080808),
+      body: SizedBox.expand(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              'assets/intro_background.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) =>
+                  const ColoredBox(color: Color(0xFF080808)),
+            ),
+            Center(
+              child: AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  final progress = _pulseController.value;
+                  return Transform.translate(
+                    offset: Offset(0, -12 * math.sin(progress * math.pi)),
+                    child: Transform.scale(
+                      scale: 1 + (0.035 * progress),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    onTap: pressed ? null : enter,
+                    customBorder: const CircleBorder(),
+                    child: Ink(
+                      width: 158,
+                      height: 158,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const RadialGradient(
+                          center: Alignment(-0.35, -0.45),
+                          radius: 1.15,
+                          colors: [
+                            Color(0xFFFFE6A6),
+                            Color(0xFFD9A441),
+                            Color(0xFF8D1515),
+                            Color(0xFF4A0808),
+                          ],
+                          stops: [0.0, 0.36, 0.72, 1.0],
+                        ),
+                        border: Border.all(
+                          color: const Color(0xFFFFE7AD),
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFC65C).withValues(
+                              alpha: 0.38 + (0.25 * progress),
+                            ),
+                            blurRadius: 22 + (10 * progress),
+                            spreadRadius: 2,
+                            offset: const Offset(0, 7),
+                          ),
+                          const BoxShadow(
+                            color: Colors.black54,
+                            blurRadius: 12,
+                            offset: Offset(0, 5),
+                          ),
+                        ],
                       ),
-                      Positioned.fill(
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: FractionallySizedBox(
-                              widthFactor: 0.60,
-                              child: AnimatedBuilder(
-                                animation: _pulseController,
-                                builder: (context, child) {
-                                  final progress = _pulseController.value;
-                                  return Transform.translate(
-                                    offset: Offset(0, -9 * math.sin(progress * math.pi)),
-                                    child: Transform.scale(
-                                      scale: 1 + (0.025 * progress),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: pressed ? null : enter,
-                                          customBorder: const CircleBorder(),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Container(
-                                                width: double.infinity,
-                                                constraints: const BoxConstraints(minHeight: 76),
-                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 19),
-                                                decoration: BoxDecoration(
-                                                  gradient: const LinearGradient(
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                    colors: [Color(0xFFF2C66D), Color(0xFF9C1717), Color(0xFF5D0808)],
-                                                  ),
-                                                  borderRadius: BorderRadius.circular(48),
-                                                  border: Border.all(color: const Color(0xFFFFE2A0), width: 2),
-                                                  boxShadow: [
-                                                    BoxShadow(color: const Color(0x99FFB52E),
-                                                      blurRadius: 13 + (9 * progress), spreadRadius: 1,
-                                                      offset: const Offset(0, 5)),
-                                                  ],
-                                                ),
-                                                child: const Center(
-                                                  child: FittedBox(
-                                                    fit: BoxFit.scaleDown,
-                                                    child: Text('تَفَضَّلْ بِالدُّخُولِ',
-                                                      textAlign: TextAlign.center, maxLines: 1,
-                                                      style: TextStyle(color: Colors.white, fontFamily: 'Amiri',
-                                                        fontSize: 21, fontWeight: FontWeight.bold,
-                                                        shadows: [Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 2))])),
-                                                  ),
-                                                ),
-                                              ),
-                                              Transform.translate(
-                                                offset: const Offset(0, -3),
-                                                child: Transform.rotate(
-                                                  angle: math.pi / 4,
-                                                  child: Container(width: 17, height: 17,
-                                                    decoration: const BoxDecoration(
-                                                      gradient: LinearGradient(colors: [Color(0xFF9C1717), Color(0xFF5D0808)]),
-                                                      border: Border(right: BorderSide(color: Color(0xFFFFE2A0), width: 1.5),
-                                                        bottom: BorderSide(color: Color(0xFFFFE2A0), width: 1.5)),
-                                                    )),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                      child: const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(14),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'تَفَضَّلْ بِالدُّخُولِ',
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Amiri',
+                                fontSize: 23,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black87,
+                                    blurRadius: 6,
+                                    offset: Offset(1, 2),
+                                  ),
+                                ],
                               ),
+                            ),
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
 class _WelcomeOrnament extends StatelessWidget {
   final String text;
   final double size;
@@ -2027,21 +2032,20 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                 style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           const SizedBox(height: 6),
+          if (isMillion)
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
+              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
+                padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
+                icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
+            ]),
           Row(children: [
             modeButton('تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
             const SizedBox(width: 7),
             modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
           ]),
           const SizedBox(height: 2),
-          if (isMillion)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 10)),
-              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
-                icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
-              // لا يوجد زر تصفير؛ الرصيد الكلي محفوظ ولا يتوقف عند مليون.
-            ])
-          else
+          if (!isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(zahraStageDone
                   ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
@@ -2715,15 +2719,15 @@ class AboutAppPage extends StatelessWidget {
 
 تَطْبِيقٌ إِسْلَامِيٌّ يَهْدِفُ إِلَى إِحْيَاءِ ذِكْرَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَنَشْرِ فَضَائِلِ زِيَارَةِ عَاشُورَاءَ، وَتَعْزِيزِ الِارْتِبَاطِ بِسَيِّدِ الشُّهَدَاءِ وَأَهْلِ بَيْتِهِ (عَلَيْهِمُ السَّلَامُ).
 
-● يَضُمُّ التَّطْبِيقُ نَصَّ زِيَارَةِ عَاشُورَاءَ وَفَضْلَهَا، وَزِيَارَةَ الْإِمَامِ الْعَبَّاسِ (عَلَيْهِ السَّلَامُ)، بِالْإِضَافَةِ إِلَى الِاسْتِمَاعِ إِلَى الزِّيَارَةِ بِأَصْوَاتِ عَدَدٍ مِنَ الْقُرَّاءِ، مَعَ مَجْمُوعَةٍ مِنَ الْخَصَائِصِ الَّتِي تُسَهِّلُ الْقِرَاءَةَ وَالِاسْتِمَاعَ وَالتَّذْكِيرَ الْيَوْمِيَّ بِالزِّيَارَةِ.
+يَضُمُّ التَّطْبِيقُ نَصَّ زِيَارَةِ عَاشُورَاءَ وَفَضْلَهَا، وَزِيَارَةَ الْإِمَامِ الْعَبَّاسِ (عَلَيْهِ السَّلَامُ)، بِالْإِضَافَةِ إِلَى الِاسْتِمَاعِ لِلزِّيَارَةِ بِأَصْوَاتِ عَدَدٍ مِنَ الْقُرَّاءِ، مَعَ مَجْمُوعَةٍ مِنَ الْخَصَائِصِ الَّتِي تُسَهِّلُ الْقِرَاءَةَ وَالِاسْتِمَاعَ وَالتَّذْكِيرَ الْيَوْمِيَّ بِالزِّيَارَةِ.
 
-● رِسَالَتُنَا: أَنْ تَكُونَ زِيَارَةُ عَاشُورَاءَ حَاضِرَةً فِي قُلُوبِنَا وَأَيَّامِنَا، وَأَنْ نُسَاهِمَ فِي نَشْرِ مَعَارِفِ أَهْلِ الْبَيْتِ (عَلَيْهِمُ السَّلَامُ) بِأُسْلُوبٍ سَهْلٍ وَمُيَسَّرٍ.
+● الإِهْدَاءُ ●
 
-الإِهْدَاءُ
+إِلَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى أَهْلِ بَيْتِهِ الْأَطْهَارِ (عَلَيْهِمُ السَّلَامُ)، وَمُحِبِّيهِ وَمُوَالِيهِ، نُهْدِي هَذَا الْعَمَلَ الْمُتَوَاضِعَ، رَاجِينَ مِنَ اللهِ تَعَالَى الْقَبُولَ وَالتَّوْفِيقَ لِخِدْمَةِ مُحَمَّدٍ وَآلِ مُحَمَّدٍ.
 
-إِلَى الْإِمَامِ الْحُسَيْنِ بْنِ عَلِيٍّ (عَلَيْهِ السَّلَامُ)، وَإِلَى أَهْلِ بَيْتِهِ الْأَطْهَارِ (عَلَيْهِمُ السَّلَامُ)، وَمُحِبِّيهِ وَمُوَالِيهِ، نُهْدِي هَذَا الْعَمَلَ الْمُتَوَاضِعَ، رَاجِينَ مِنَ اللَّهِ تَعَالَى الْقَبُولَ وَالتَّوْفِيقَ لِخِدْمَةِ مُحَمَّدٍ وَآلِ مُحَمَّدٍ.
-
-تَصْمِيمُ كَامِلِ الْكُمَيْتِيِّ 11/11/2026
+نَسْأَلُكُمْ
+كَامِلُ الْكُمَيْتِيُّ
+11/11/2026
 جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ''';
 
   @override
@@ -2734,16 +2738,28 @@ class AboutAppPage extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) => Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               child: SizedBox(
-                width: constraints.maxWidth - 24,
-                height: constraints.maxHeight - 16,
-                child: SingleChildScrollView(
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(aboutText, textAlign: TextAlign.right,
-                      style: const TextStyle(fontSize: 17, height: 1.7,
-                        fontWeight: FontWeight.w600, fontFamily: 'AmiriQuran')),
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: constraints.maxWidth - 36,
+                    child: Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Text(
+                        aboutText,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          height: 1.48,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'AmiriQuran',
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
