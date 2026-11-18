@@ -30,28 +30,33 @@ jobs:
           RELEASE_URL: ${{ github.event.release.html_url }}
         run: |
           set -euo pipefail
-          python3 - <<'PY' > payload.json
+          for language in ar fa en; do
+            export LANGUAGE_CODE="$language"
+            python3 - <<'PY' > payload.json
           import json, os
-          tag = os.environ.get("RELEASE_TAG", "إصدار جديد")
+          lang = os.environ.get("LANGUAGE_CODE", "ar")
+          tag = os.environ.get("RELEASE_TAG", "1.0")
           url = os.environ.get("RELEASE_URL", "")
-          print(json.dumps({
-            "message": {
-              "topic": "app_updates",
-              "notification": {
-                "title": "تحديث جديد لتطبيق زيارة عاشوراء",
-                "body": f"يتوفر الآن {tag}. اضغط لمعرفة التفاصيل وتنزيل التحديث."
-              },
-              "data": {"release_url": url, "version": tag},
-              "android": {"priority": "HIGH"}
-            }
-          }, ensure_ascii=False))
+          messages = {
+            "ar": ("تحديث جديد لتطبيق زيارة عاشوراء", f"يتوفر الآن الإصدار {tag}. اضغط لمعرفة التفاصيل وتنزيل التحديث."),
+            "fa": ("به‌روزرسانی جدید زیارت عاشورا", f"نسخه {tag} منتشر شد. برای مشاهده جزئیات و دریافت آن بزنید."),
+            "en": ("New Ziyarat Ashura update", f"Version {tag} is available. Tap to view details and download it."),
+          }
+          title, body = messages.get(lang, messages["ar"])
+          print(json.dumps({"message": {
+            "topic": f"app_updates_{lang}",
+            "notification": {"title": title, "body": body},
+            "data": {"release_url": url, "version": tag, "language": lang},
+            "android": {"priority": "HIGH"}
+          }}, ensure_ascii=False))
           PY
-          curl --fail-with-body --silent --show-error \
-            -X POST \
-            "https://fcm.googleapis.com/v1/projects/ziyarat-ashura-796c7/messages:send" \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -H "Content-Type: application/json; charset=utf-8" \
-            --data-binary @payload.json
+            curl --fail-with-body --silent --show-error \
+              -X POST \
+              "https://fcm.googleapis.com/v1/projects/ziyarat-ashura-796c7/messages:send" \
+              -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+              -H "Content-Type: application/json; charset=utf-8" \
+              --data-binary @payload.json
+          done
 
       - name: Explain missing Firebase credentials
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
