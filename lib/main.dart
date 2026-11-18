@@ -2487,7 +2487,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: [
-                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ')),
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ'))),
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text(tr('Amiri Quran - الخط القرآني'))),
                       DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text(tr('Noto Naskh Arabic - النسخ العربي'))),
                       DropdownMenuItem<String>(value: 'Cairo', child: Text(tr('Cairo - خط كايرو'))),
