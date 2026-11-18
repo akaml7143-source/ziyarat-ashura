@@ -1163,7 +1163,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
+            Text(
               tr('عداد الزيارات المكتملة'),
               style: TextStyle(
                 color: gold,
@@ -1172,7 +1172,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               tr('بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.'),
               textAlign: TextAlign.center,
             ),
@@ -2934,15 +2934,15 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
                     ],
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Text(tr('منبّهات زيارة عاشوراء (حتى خمسة أوقات)'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
                 ),
                 if (reminders.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
                     child: Text(tr('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
                       textAlign: TextAlign.center),
                   ),
