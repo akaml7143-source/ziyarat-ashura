@@ -713,6 +713,39 @@ class _WelcomeOrnament extends StatelessWidget {
   }
 }
 
+
+Future<bool> checkPublishedUpdateAvailable() async {
+  HttpClient? client;
+  try {
+    final info = await PackageInfo.fromPlatform();
+    client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    final request = await client.getUrl(Uri.parse(
+      'https://api.github.com/repos/akaml7143-source/ziyarat-ashura/releases/latest',
+    ));
+    request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
+    request.headers.set(HttpHeaders.userAgentHeader, 'Ziyarat-Ashura-App');
+    final response = await request.close();
+    if (response.statusCode != 200) return false;
+    final data = jsonDecode(await response.transform(utf8.decoder).join()) as Map<String, dynamic>;
+    final latest = (data['tag_name'] as String? ?? '').replaceFirst(RegExp(r'^v'), '').split('+').first;
+    final current = info.version.split('+').first;
+    List<int> parts(String value) => value.split('.').map((part) =>
+      int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0).toList();
+    final a = parts(current), b = parts(latest);
+    for (var i = 0; i < (a.length > b.length ? a.length : b.length); i++) {
+      final x = i < a.length ? a[i] : 0;
+      final y = i < b.length ? b[i] : 0;
+      if (y != x) return y > x;
+    }
+    return false;
+  } catch (error) {
+    debugPrint('تعذر التحقق من وجود تحديث: $error');
+    return false;
+  } finally {
+    client?.close(force: true);
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
@@ -745,6 +778,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
+  bool updateAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkPublishedUpdateAvailable().then((available) {
+      if (mounted) setState(() => updateAvailable = available);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -801,7 +843,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
             },
-            icon: const Icon(Icons.settings),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.settings),
+                if (updateAvailable)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             tooltip: appText('settings', widget.selectedLanguage),
           ),
         ],
