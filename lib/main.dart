@@ -1220,7 +1220,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               ),
             ),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerStart,
               child: TextButton.icon(
                 onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 22),
@@ -1637,12 +1637,12 @@ class _ListeningPageState extends State<ListeningPage> {
                     return InkWell(
                       onTap: () { unawaited(tapFeedback()); playReader(reader); },
                       child: Align(
-                        alignment: Alignment.centerRight,
+                        alignment: Alignment.centerEnd,
                         child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
                           reader['name']!,
-                          textAlign: TextAlign.right,
+                          textAlign: TextAlign.start,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
@@ -2313,7 +2313,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                         children: [
                           Text(
                             'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}',
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.start,
                             style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const Divider(),
@@ -2692,19 +2692,19 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text(tr('الإصدار المثبّت: $currentVersion'), textAlign: TextAlign.right),
+                    Text(tr('الإصدار المثبّت: $currentVersion'), textAlign: TextAlign.start),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text(tr('أحدث إصدار: $latestVersion'), textAlign: TextAlign.right),
+                      Text(tr('أحدث إصدار: $latestVersion'), textAlign: TextAlign.start),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
-                      Text(error!, textAlign: TextAlign.right, style: const TextStyle(color: Colors.orangeAccent))
+                      Text(error!, textAlign: TextAlign.start, style: const TextStyle(color: Colors.orangeAccent))
                     else if (hasUpdate)
-                      Text(tr('يتوفر تحديث جديد للتطبيق.'), textAlign: TextAlign.right,
+                      Text(tr('يتوفر تحديث جديد للتطبيق.'), textAlign: TextAlign.start,
                         style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
                     else
-                      Text(tr('أنت تستخدم أحدث إصدار منشور.'), textAlign: TextAlign.right),
+                      Text(tr('أنت تستخدم أحدث إصدار منشور.'), textAlign: TextAlign.start),
                     const SizedBox(height: 12),
                     if (hasUpdate && (apkUrl != null || releaseUrl != null))
                       ElevatedButton.icon(
@@ -2723,13 +2723,13 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                     padding: const EdgeInsets.all(16),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : 'تفاصيل آخر تحديث',
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.start,
                         style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
-                      if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.right,
+                      if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.start,
                         style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       const Divider(),
                       Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : 'لا توجد تفاصيل مضافة لهذا الإصدار.',
-                        textAlign: TextAlign.right, style: const TextStyle(height: 1.7)),
+                        textAlign: TextAlign.start, style: const TextStyle(height: 1.7)),
                     ]),
                   ),
                 ),
@@ -3040,7 +3040,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               },
             ),
             const Divider(),
-            Align(alignment: Alignment.centerRight, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
+            Align(alignment: Alignment.centerEnd, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
             ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
