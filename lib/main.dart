@@ -2173,7 +2173,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: tr('عدد الصلوات اليومي')),
+          decoration: InputDecoration(labelText: tr('عدد الصلوات اليومي')),
         ),
         actions: [
           TextButton(
@@ -2611,8 +2611,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -2651,6 +2650,83 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
     bodyFaController.dispose();
     super.dispose();
   }
+
+  @override
+  void initState() {
+    super.initState();
+    checkForUpdates();
+  }
+
+  Future<void> checkForUpdates() async {
+    if (mounted) setState(() { loading = true; error = null; });
+    HttpClient? client;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      currentVersion = '${info.version}+${info.buildNumber}';
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+      final request = await client.getUrl(Uri.parse(
+        'https://api.github.com/repos/akaml7143-source/ziyarat-ashura/releases/latest',
+      ));
+      request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
+      request.headers.set(HttpHeaders.userAgentHeader, 'Ziyarat-Ashura-App');
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode == 404) {
+        throw Exception(tr('لم يُنشر إصدار رسمي على GitHub Releases حتى الآن.'));
+      }
+      if (response.statusCode != 200) {
+        throw Exception(trFormat(r'تعذر فحص التحديثات (HTTP $statusCode).', {r'$statusCode': '${response.statusCode}'}));
+      }
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final tag = (data['tag_name'] as String? ?? '').trim();
+      final assets = (data['assets'] as List<dynamic>? ?? const []);
+      final apk = assets.cast<Map<String, dynamic>>().where((item) {
+        final name = (item['name'] as String? ?? '').toLowerCase();
+        return name.endsWith('.apk');
+      }).firstOrNull;
+      latestVersion = tag.isEmpty ? null : tag.replaceFirst(RegExp(r'^v'), '');
+      releaseTitle = (data['name'] as String?)?.trim();
+      releaseNotes = (data['body'] as String?)?.trim();
+      final dateValue = data['published_at'] as String?;
+      publishedAt = dateValue == null ? null : DateTime.tryParse(dateValue)?.toLocal();
+      apkUrl = apk?['browser_download_url'] as String?;
+      releaseUrl = data['html_url'] as String?;
+    } catch (e) {
+      error = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      client?.close(force: true);
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  List<int> _versionParts(String value) => value
+      .split('+').first.split('.')
+      .map((part) => int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+      .toList();
+
+  bool get hasUpdate {
+    if (latestVersion == null) return false;
+    final current = _versionParts(currentVersion);
+    final latest = _versionParts(latestVersion!);
+    for (var i = 0; i < (current.length > latest.length ? current.length : latest.length); i++) {
+      final a = i < current.length ? current[i] : 0;
+      final b = i < latest.length ? latest[i] : 0;
+      if (b != a) return b > a;
+    }
+    return false;
+  }
+
+  Future<void> openDownload() async {
+    final url = apkUrl ?? releaseUrl;
+    if (url == null) return;
+    final uri = Uri.tryParse(url);
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
+      );
+    }
+  }
+
 
   Future<void> publishAnnouncement() async {
     if (!isOwner || publishing) return;
