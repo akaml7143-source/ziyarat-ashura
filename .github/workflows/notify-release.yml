@@ -30,7 +30,7 @@ jobs:
           RELEASE_URL: ${{ github.event.release.html_url }}
         run: |
           set -euo pipefail
-          for language in ar fa en; do
+          for language in ar fa; do
             export LANGUAGE_CODE="$language"
             python3 - <<'PY' > payload.json
           import json, os
@@ -40,7 +40,6 @@ jobs:
           messages = {
             "ar": ("تحديث جديد لتطبيق زيارة عاشوراء", f"يتوفر الآن الإصدار {tag}. اضغط لمعرفة التفاصيل وتنزيل التحديث."),
             "fa": ("به‌روزرسانی جدید زیارت عاشورا", f"نسخه {tag} منتشر شد. برای مشاهده جزئیات و دریافت آن بزنید."),
-            "en": ("New Ziyarat Ashura update", f"Version {tag} is available. Tap to view details and download it."),
           }
           title, body = messages.get(lang, messages["ar"])
           print(json.dumps({"message": {
