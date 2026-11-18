@@ -30,7 +30,7 @@ String appText(String key, String language) {
     'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا', 'en': 'Ziyarat Ashura'},
     'settings': {'ar': 'الإعدادات', 'fa': 'تنظیمات', 'en': 'Settings'},
     'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه', 'en': 'App language'},
-    'arabic': {'ar': 'العربية', 'fa': 'فارسی', 'en': 'English'},
+    'arabic': {'ar': 'العربية', 'fa': 'عربی', 'en': 'Arabic'},
     'persian': {'ar': 'الفارسية', 'fa': 'فارسی', 'en': 'Persian'},
     'english': {'ar': 'الإنجليزية', 'fa': 'انگلیسی', 'en': 'English'},
     'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت', 'en': 'Visit reminders'},
