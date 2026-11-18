@@ -3112,11 +3112,15 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
         SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'))),
       );
     }
-    if (saved.isEmpty) {
+    if (!saved.any((item) => item.kind == 'visit')) {
+      final firstId = saved.isEmpty
+          ? 2000
+          : saved.map((item) => item.id).reduce((a, b) => a > b ? a : b);
       saved = [
-        AshuraReminder(id: 2001, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: 2002, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: 2003, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        ...saved,
+        AshuraReminder(id: firstId + 1, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: firstId + 2, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: firstId + 3, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
       ];
       await saveReminders(saved);
     }
