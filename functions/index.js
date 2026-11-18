@@ -8,7 +8,7 @@ initializeApp();
 const OWNER_UID = "WvoTCtdUdYhbMluOwfwmBg6CJSL2";
 
 exports.broadcastAppAnnouncement = onDocumentCreated(
-  "app_updates/{announcementId}",
+  { document: "app_updates/{announcementId}", retry: true },
   async (event) => {
     const data = event.data?.data();
     if (!data || data.createdBy !== OWNER_UID) {
