@@ -525,10 +525,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFFC65C).withValues(
-                              alpha: 0.38 + (0.25 * progress),
-                            ),
-                            blurRadius: 22 + (10 * progress),
+                            color: const Color(0xFFFFC65C).withValues(alpha: 0.58),
+                            blurRadius: 28,
                             spreadRadius: 2,
                             offset: const Offset(0, 7),
                           ),
