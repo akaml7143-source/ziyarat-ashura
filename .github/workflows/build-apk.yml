@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - localization-ar-fa-en
 
 jobs:
   build:
