@@ -2752,7 +2752,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   int salawatHour = 9;
   int salawatMinute = 0;
 
-  static const List<String> dayNames = [tr('الاثنين'), tr('الثلاثاء'), tr('الأربعاء'), tr('الخميس'), tr('الجمعة'), tr('السبت'), tr('الأحد')];
+  List<String> get dayNames => [tr('الاثنين'), tr('الثلاثاء'), tr('الأربعاء'), tr('الخميس'), tr('الجمعة'), tr('السبت'), tr('الأحد')];
 
   @override
   void initState() {
