@@ -19,6 +19,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
+import 'app_localization.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
@@ -52,7 +53,7 @@ String appText(String key, String language) {
     'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)', 'en': 'Visit of Imam Abbas (AS)'},
     'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'کارهای نیک، بدی‌ها را می‌زدایند', 'en': 'Good deeds erase misdeeds'},
   };
-  return values[key]?[language] ?? values[key]?['ar'] ?? key;
+  return values[key]?[language] ?? values[key]?['ar'] ?? tr(key);
 }
 
 
@@ -412,6 +413,7 @@ class _AshuraAppState extends State<AshuraApp> {
         selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
         final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
         selectedLanguage = const ['ar', 'fa', 'en'].contains(savedLanguage) ? savedLanguage : 'ar';
+        appLanguage.value = selectedLanguage;
         loaded = true;
       });
     } catch (error, stackTrace) {
@@ -455,6 +457,7 @@ class _AshuraAppState extends State<AshuraApp> {
 
   Future<void> changeLanguage(String value) async {
     if (!const ['ar', 'fa', 'en'].contains(value)) return;
+    appLanguage.value = value;
     setState(() => selectedLanguage = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_language', value);
