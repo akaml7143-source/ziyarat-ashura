@@ -6,6 +6,7 @@ final ValueNotifier<String> appLanguage = ValueNotifier<String>('ar');
 const Map<String, Map<String, String>> _translations = {
   'en': {
     'زيارة عاشوراء': 'Ashura Ziyarat',
+    'لغة التطبيق': 'App language',
     'المراسلة الخاصة': 'Private messages',
     'الإعدادات': 'Settings',
     'نية الزيارة': 'Intention of the Ziyarat',
@@ -88,6 +89,7 @@ const Map<String, Map<String, String>> _translations = {
   },
   'fa': {
     'زيارة عاشوراء': 'زیارت عاشورا',
+    'لغة التطبيق': 'زبان برنامه',
     'المراسلة الخاصة': 'پیام‌رسانی خصوصی',
     'الإعدادات': 'تنظیمات',
     'نية الزيارة': 'نیت زیارت',
