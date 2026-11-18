@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:io';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
@@ -13,6 +14,9 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
 
@@ -136,7 +140,45 @@ Future<void> initNotifications() async {
   tz.setLocalLocation(tz.getLocation('Asia/Baghdad'));
   const settings = InitializationSettings(android: AndroidInitializationSettings('@mipmap/ic_launcher'), iOS: DarwinInitializationSettings());
   await notifications.initialize(settings);
+  final android = notifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  await android?.createNotificationChannel(const AndroidNotificationChannel(
+    'app_updates_v1',
+    'تحديثات تطبيق زيارة عاشوراء',
+    description: 'إشعارات الإصدارات الجديدة للتطبيق',
+    importance: Importance.high,
+    playSound: true,
+  ));
   exactAlarmsAllowed = await canScheduleExactAlarms();
+}
+
+Future<void> initUpdateMessaging() async {
+  try {
+    final messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    await messaging.subscribeToTopic('app_updates');
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      final notice = message.notification;
+      if (notice == null) return;
+      await notifications.show(
+        message.hashCode,
+        notice.title ?? 'تحديثات زيارة عاشوراء',
+        notice.body ?? 'يتوفر تحديث جديد للتطبيق.',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'app_updates_v1',
+            'تحديثات تطبيق زيارة عاشوراء',
+            channelDescription: 'إشعارات الإصدارات الجديدة للتطبيق',
+            importance: Importance.high,
+            priority: Priority.high,
+            playSound: true,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+      );
+    });
+  } catch (error) {
+    debugPrint('تعذر تفعيل إشعارات التحديثات: $error');
+  }
 }
 const NotificationDetails reminderNotificationDetails = NotificationDetails(
   android: AndroidNotificationDetails(reminderChannelKey, 'منبّهات زيارة عاشوراء',
@@ -272,6 +314,7 @@ Future<void> main() async {
   );
   try {
     await initNotifications();
+    await initUpdateMessaging();
     // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
     await rescheduleSavedReminders();
     await restoreSalawatReminder();
@@ -2329,60 +2372,174 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-class AppUpdatesPage extends StatelessWidget {
+class AppUpdatesPage extends StatefulWidget {
   const AppUpdatesPage({super.key});
   @override
+  State<AppUpdatesPage> createState() => _AppUpdatesPageState();
+}
+
+class _AppUpdatesPageState extends State<AppUpdatesPage> {
+  bool loading = true;
+  String? error;
+  String currentVersion = '...';
+  String? latestVersion;
+  String? releaseTitle;
+  String? releaseNotes;
+  String? apkUrl;
+  String? releaseUrl;
+  DateTime? publishedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    checkForUpdates();
+  }
+
+  Future<void> checkForUpdates() async {
+    if (mounted) setState(() { loading = true; error = null; });
+    HttpClient? client;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      currentVersion = '${info.version}+${info.buildNumber}';
+      client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+      final request = await client.getUrl(Uri.parse(
+        'https://api.github.com/repos/akaml7143-source/ziyarat-ashura/releases/latest',
+      ));
+      request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
+      request.headers.set(HttpHeaders.userAgentHeader, 'Ziyarat-Ashura-App');
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode == 404) {
+        throw Exception('لم يُنشر إصدار رسمي على GitHub Releases حتى الآن.');
+      }
+      if (response.statusCode != 200) {
+        throw Exception('تعذر فحص التحديثات (HTTP ${response.statusCode}).');
+      }
+      final data = jsonDecode(body) as Map<String, dynamic>;
+      final tag = (data['tag_name'] as String? ?? '').trim();
+      final assets = (data['assets'] as List<dynamic>? ?? const []);
+      final apk = assets.cast<Map<String, dynamic>>().where((item) {
+        final name = (item['name'] as String? ?? '').toLowerCase();
+        return name.endsWith('.apk');
+      }).firstOrNull;
+      latestVersion = tag.isEmpty ? null : tag.replaceFirst(RegExp(r'^v'), '');
+      releaseTitle = (data['name'] as String?)?.trim();
+      releaseNotes = (data['body'] as String?)?.trim();
+      final dateValue = data['published_at'] as String?;
+      publishedAt = dateValue == null ? null : DateTime.tryParse(dateValue)?.toLocal();
+      apkUrl = apk?['browser_download_url'] as String?;
+      releaseUrl = data['html_url'] as String?;
+    } catch (e) {
+      error = e.toString().replaceFirst('Exception: ', '');
+    } finally {
+      client?.close(force: true);
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  List<int> _versionParts(String value) => value
+      .split('+').first.split('.')
+      .map((part) => int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0)
+      .toList();
+
+  bool get hasUpdate {
+    if (latestVersion == null) return false;
+    final current = _versionParts(currentVersion);
+    final latest = _versionParts(latestVersion!);
+    for (var i = 0; i < (current.length > latest.length ? current.length : latest.length); i++) {
+      final a = i < current.length ? current[i] : 0;
+      final b = i < latest.length ? latest[i] : 0;
+      if (b != a) return b > a;
+    }
+    return false;
+  }
+
+  Future<void> openDownload() async {
+    final url = apkUrl ?? releaseUrl;
+    if (url == null) return;
+    final uri = Uri.tryParse(url);
+    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح رابط تنزيل التحديث.')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final stream = FirebaseFirestore.instance.collection('app_updates')
-      .orderBy('createdAt', descending: true).limit(50).snapshots();
+    final dateText = publishedAt == null ? '' :
+      '${publishedAt!.year}/${publishedAt!.month.toString().padLeft(2, '0')}/${publishedAt!.day.toString().padLeft(2, '0')}';
     return Scaffold(
-      appBar: AppBar(title: const Text('التحديثات')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: stream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('تعذّر تحميل التحديثات حالياً. تحقّق من اتصال الإنترنت ثم حاول مجدداً.',
-              textAlign: TextAlign.center)));
-          if (snapshot.connectionState == ConnectionState.waiting)
-            return const Center(child: CircularProgressIndicator());
-          final docs = snapshot.data?.docs ?? [];
-          if (docs.isEmpty) return const Center(child: Text('لا توجد تحديثات جديدة حالياً.',
-            textAlign: TextAlign.center, style: TextStyle(fontSize: 17)));
-          return ListView.builder(
-            padding: const EdgeInsets.all(14), itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data();
-              final title = (data['title'] as String?)?.trim() ?? 'تحديث جديد';
-              final body = (data['body'] as String?)?.trim() ?? '';
-              final stamp = data['createdAt'];
-              final date = stamp is Timestamp ? stamp.toDate().toLocal() : null;
-              final dateText = date == null ? '' :
-                '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14),
-                  side: const BorderSide(color: gold, width: 0.8)),
+      appBar: AppBar(
+        title: const Text('التحديثات'),
+        actions: [IconButton(
+          tooltip: 'فحص التحديثات',
+          onPressed: loading ? null : checkForUpdates,
+          icon: const Icon(Icons.refresh),
+        )],
+      ),
+      body: loading
+        ? const Center(child: CircularProgressIndicator())
+        : ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(title, textAlign: TextAlign.right,
-                      style: const TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
-                    if (dateText.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(dateText, textAlign: TextAlign.right,
-                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    const Text('حالة التطبيق', style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Text('الإصدار المثبّت: $currentVersion', textAlign: TextAlign.right),
+                    if (latestVersion != null) ...[
+                      const SizedBox(height: 6),
+                      Text('أحدث إصدار: $latestVersion', textAlign: TextAlign.right),
                     ],
-                    const Divider(),
-                    Text(body, textAlign: TextAlign.right,
-                      style: const TextStyle(fontSize: 16, height: 1.7)),
+                    const SizedBox(height: 12),
+                    if (error != null)
+                      Text(error!, textAlign: TextAlign.right, style: const TextStyle(color: Colors.orangeAccent))
+                    else if (hasUpdate)
+                      const Text('يتوفر تحديث جديد للتطبيق.', textAlign: TextAlign.right,
+                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
+                    else
+                      const Text('أنت تستخدم أحدث إصدار منشور.', textAlign: TextAlign.right),
+                    const SizedBox(height: 12),
+                    if (hasUpdate && (apkUrl != null || releaseUrl != null))
+                      ElevatedButton.icon(
+                        onPressed: openDownload,
+                        icon: const Icon(Icons.download),
+                        label: const Text('تنزيل التحديث'),
+                      ),
+                    if (releaseUrl != null && !hasUpdate)
+                      TextButton(onPressed: openDownload, child: const Text('فتح صفحة الإصدار على GitHub')),
                   ]),
                 ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+              if (releaseTitle != null || releaseNotes != null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : 'تفاصيل آخر تحديث',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
+                      if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.right,
+                        style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      const Divider(),
+                      Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : 'لا توجد تفاصيل مضافة لهذا الإصدار.',
+                        textAlign: TextAlign.right, style: const TextStyle(height: 1.7)),
+                    ]),
+                  ),
+                ),
+              const Padding(
+                padding: EdgeInsets.all(8),
+                child: Text(
+                  'يتم تنزيل ملف APK من صفحة الإصدار الرسمية. بعد اكتمال التنزيل، افتح الملف ووافق على التثبيت من Android. لن تُحذف بيانات التطبيق عند تثبيت تحديث موقّع بالمفتاح نفسه.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }
