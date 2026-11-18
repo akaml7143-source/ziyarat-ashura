@@ -1151,7 +1151,7 @@ class ZiyaratPage extends StatelessWidget {
         SectionCard(title: tr('بعد المئة'), content: afterHundred,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
-        SectionCard(title: tr('سجدة الزيارة'), content: 'ثم تسجد وتقول:\n\n$sajda',
+        SectionCard(title: tr('سجدة الزيارة'), content: appLanguage.value == 'fa' ? 'سپس سجده کن و بگو:\n\n${persianContent(sajda)}' : 'ثم تسجد وتقول:\n\n$sajda',
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
         CompletedVisitCounter(),
