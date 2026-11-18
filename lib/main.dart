@@ -1196,7 +1196,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
             isLoading
                 ? const CircularProgressIndicator()
                 : Text(
-                    tr('$completedVisits زيارة مكتملة'),
+                    trFormat(r'$completedVisits زيارة مكتملة', {r'$completedVisits': '$completedVisits'}),
                     style: const TextStyle(
                       fontSize: 25,
                       color: gold,
@@ -1316,7 +1316,7 @@ class _CounterWidgetState extends State<CounterWidget> {
                 ElevatedButton.icon(
                   onPressed: count < 100 ? () { unawaited(tapFeedback()); increment(); } : null,
                   icon: const Icon(Icons.touch_app),
-                  label: Text(tr('العدد: $count')),
+                  label: Text(trFormat(r'العدد: $count', {r'$count': '$count'})),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
@@ -2222,14 +2222,14 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           if (isMillion)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(tr('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount'),
+              child: Text(trFormat(r'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount', {r'$totalFormattedCount': '$totalFormattedCount'}),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
             ),
           const SizedBox(height: 6),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(tr('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}'), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(trFormat(r'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', {r'${dailyCount}': '$dailyCount', r'${dailyTarget}': '$dailyTarget'}), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
               IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
                 padding: EdgeInsets.zero, tooltip: tr('تحديد الورد اليومي'), onPressed: _customDailyTarget,
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
@@ -2306,7 +2306,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(tr('الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}'),
+                          Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
                             textAlign: TextAlign.start,
                             style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
                           ),
@@ -2317,10 +2317,10 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                             style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
                           ),
                           const SizedBox(height: 9),
-                          Text(tr('المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}'),
+                          Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': tasbeehHadithOriginalSources[index]}),
                             style: const TextStyle(color: Colors.grey, height: 1.6),
                           ),
-                          Text(tr('المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}'),
+                          Text(trFormat(r'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}', {r'${tasbeehHadithPages[index]}': '${tasbeehHadithPages[index]}'}),
                             style: const TextStyle(color: Colors.grey, height: 1.6),
                           ),
                         ],
@@ -2684,10 +2684,10 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text(tr('الإصدار المثبّت: $currentVersion'), textAlign: TextAlign.start),
+                    Text(trFormat(r'الإصدار المثبّت: $currentVersion', {r'$currentVersion': currentVersion}), textAlign: TextAlign.start),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text(tr('أحدث إصدار: $latestVersion'), textAlign: TextAlign.start),
+                      Text(trFormat(r'أحدث إصدار: $latestVersion', {r'$latestVersion': latestVersion}), textAlign: TextAlign.start),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
