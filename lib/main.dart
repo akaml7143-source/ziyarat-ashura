@@ -2262,9 +2262,14 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('الإعدادات')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: LayoutBuilder(
+        builder: (context, constraints) => GridView.count(
+          crossAxisCount: constraints.maxWidth < 600 ? 2 : 3,
+          childAspectRatio: constraints.maxWidth < 600 ? 1.05 : 1.25,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          padding: const EdgeInsets.all(16),
+          children: [
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
@@ -2392,7 +2397,8 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
