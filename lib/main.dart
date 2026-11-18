@@ -184,11 +184,27 @@ Future<void> initNotifications() async {
   exactAlarmsAllowed = await canScheduleExactAlarms();
 }
 
+
+Future<void> subscribeToUpdateLanguage(String language) async {
+  if (!Firebase.apps.isNotEmpty) return;
+  try {
+    final messaging = FirebaseMessaging.instance;
+    for (final code in const ['ar', 'fa', 'en']) {
+      if (code == language) {
+        await messaging.subscribeToTopic('app_updates_$code');
+      } else {
+        await messaging.unsubscribeFromTopic('app_updates_$code');
+      }
+    }
+  } catch (error) {
+    debugPrint('تعذر تحديث اشتراك إشعارات اللغة: $error');
+  }
+}
+
 Future<void> initUpdateMessaging() async {
   try {
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(alert: true, badge: true, sound: true);
-    await messaging.subscribeToTopic('app_updates');
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final notice = message.notification;
       if (notice == null) return;
@@ -414,6 +430,7 @@ class _AshuraAppState extends State<AshuraApp> {
         final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
         selectedLanguage = const ['ar', 'fa', 'en'].contains(savedLanguage) ? savedLanguage : 'ar';
         appLanguage.value = selectedLanguage;
+        unawaited(subscribeToUpdateLanguage(selectedLanguage));
         loaded = true;
       });
     } catch (error, stackTrace) {
@@ -458,6 +475,7 @@ class _AshuraAppState extends State<AshuraApp> {
   Future<void> changeLanguage(String value) async {
     if (!const ['ar', 'fa', 'en'].contains(value)) return;
     appLanguage.value = value;
+    unawaited(subscribeToUpdateLanguage(value));
     setState(() => selectedLanguage = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_language', value);
