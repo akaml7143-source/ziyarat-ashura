@@ -316,23 +316,3 @@ String languageName(String code) => switch (code) {
   'en' => 'English',
   _ => 'العربية',
 };
-);
-    final match = RegExp(pattern.toString()).firstMatch(arabic);
-    if (match == null) continue;
-
-    var result = entry.value;
-    final translatedTokens = tokenPattern.allMatches(result).toList();
-    for (var i = translatedTokens.length - 1; i >= 0; i--) {
-      final token = translatedTokens[i];
-      result = result.replaceRange(token.start, token.end, match.group(i + 1) ?? '');
-    }
-    return result;
-  }
-  return arabic;
-}
-
-String languageName(String code) => switch (code) {
-  'fa' => 'فارسی',
-  'en' => 'English',
-  _ => 'العربية',
-};
