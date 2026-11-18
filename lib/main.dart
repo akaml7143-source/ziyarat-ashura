@@ -739,7 +739,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 class _WelcomeOrnament extends StatelessWidget {
