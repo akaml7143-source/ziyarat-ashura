@@ -3022,7 +3022,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               },
             ),
             const Divider(),
-            const Align(alignment: Alignment.centerRight, child: Text(tr('أيام التكرار'), style: TextStyle(fontWeight: FontWeight.bold))),
+            Align(alignment: Alignment.centerRight, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
             ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
