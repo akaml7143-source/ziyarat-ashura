@@ -350,9 +350,53 @@ Future<void> saveReminders(List<AshuraReminder> reminders) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('ashura_reminders_v2', jsonEncode(reminders.map((v) => v.toJson()).toList()));
 }
+Future<List<AshuraReminder>> migrateLegacyReminders() async {
+  final prefs = await SharedPreferences.getInstance();
+  var saved = await loadSavedReminders();
+  var nextId = saved.isEmpty
+      ? 2000
+      : saved.map((item) => item.id).reduce((a, b) => a > b ? a : b);
+  var changed = false;
+
+  if ((prefs.getBool('ashura_reminder_enabled') ?? false) &&
+      !saved.any((item) => item.kind == 'visit')) {
+    saved = [
+      ...saved,
+      AshuraReminder(
+        id: ++nextId,
+        hour: prefs.getInt('ashura_reminder_hour') ?? 20,
+        minute: prefs.getInt('ashura_reminder_minute') ?? 0,
+        weekdays: const [1, 2, 3, 4, 5, 6, 7],
+        enabled: true,
+        kind: 'visit',
+      ),
+    ];
+    changed = true;
+  }
+
+  if ((prefs.getBool('salawat_reminder_enabled') ?? false) &&
+      !saved.any((item) => item.kind == 'salawat')) {
+    saved = [
+      ...saved,
+      AshuraReminder(
+        id: ++nextId,
+        hour: prefs.getInt('salawat_reminder_hour') ?? 9,
+        minute: prefs.getInt('salawat_reminder_minute') ?? 0,
+        weekdays: const [1, 2, 3, 4, 5, 6, 7],
+        enabled: true,
+        kind: 'salawat',
+      ),
+    ];
+    changed = true;
+  }
+
+  if (changed) await saveReminders(saved);
+  return saved;
+}
 Future<void> rescheduleSavedReminders() async {
   await notifications.cancel(salawatReminderNotificationId);
-  for (final reminder in await loadSavedReminders()) {
+  await notifications.cancel(1001); // معرّف منبّه الزيارة القديم
+  for (final reminder in await migrateLegacyReminders()) {
     try { await scheduleReminder(reminder); } catch (error) { debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error'); }
   }
 }
@@ -3139,25 +3183,7 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> load() async {
-    var saved = await loadSavedReminders();
-    final prefs = await SharedPreferences.getInstance();
-    // ترحيل منبّه الصلاة القديم إلى النظام متعدد المنبّهات دون فقد إعداد المستخدم.
-    final legacyEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
-    final hasSalawat = saved.any((item) => item.kind == 'salawat');
-    if (legacyEnabled && !hasSalawat) {
-      saved = [
-        ...saved,
-        AshuraReminder(
-          id: (saved.isEmpty ? 30000 : saved.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1,
-          hour: prefs.getInt('salawat_reminder_hour') ?? 9,
-          minute: prefs.getInt('salawat_reminder_minute') ?? 0,
-          weekdays: const [1, 2, 3, 4, 5, 6, 7],
-          enabled: true,
-          kind: 'salawat',
-        ),
-      ];
-      await saveReminders(saved);
-    }
+    var saved = await migrateLegacyReminders();
     final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
