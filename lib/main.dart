@@ -333,7 +333,7 @@ Future<void> scheduleReminder(AshuraReminder reminder) async {
       title,
       body,
       _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
-      reminderNotificationDetails,
+      isSalawat ? salawatNotificationDetails : reminderNotificationDetails,
       androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
@@ -3510,7 +3510,7 @@ class AboutAppPage extends StatelessWidget {
                     child: Directionality(
                       textDirection: TextDirection.rtl,
                       child: Text(
-                        aboutText,
+                        appLanguage.value == 'fa' ? aboutTextFa : aboutText,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 17,
