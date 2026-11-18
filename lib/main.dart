@@ -2539,6 +2539,15 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(16),
         children: [
           Card(
+            child: ListTile(
+              leading: const Icon(Icons.alarm, color: gold),
+              title: Text(appText('reminders', localLanguage)),
+              subtitle: Text(appText('reminders_desc', localLanguage)),
+              trailing: const Icon(Icons.chevron_left),
+              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
+            ),
+          ),
+          Card(
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -2567,15 +2576,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-            ),
-          ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.alarm, color: gold),
-              title: Text(appText('reminders', localLanguage)),
-              subtitle: Text(appText('reminders_desc', localLanguage)),
-              trailing: const Icon(Icons.chevron_left),
-              onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
           ),
           Card(
