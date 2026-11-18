@@ -735,6 +735,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: widget.fontSize,
                   selectedFont: widget.selectedFont,
                   selectedColor: widget.selectedColor,
+                  selectedLanguage: widget.selectedLanguage,
+                  onChangeLanguage: widget.onChangeLanguage,
                   onToggleTheme: widget.onToggleTheme,
                   onChangeFontSize: widget.onChangeFontSize,
                   onChangeFontFamily: widget.onChangeFontFamily,
@@ -2245,6 +2247,7 @@ class _SettingsPageState extends State<SettingsPage> {
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
     localFontSize = widget.fontSize;
+    localLanguage = widget.selectedLanguage;
   }
 
   @override
@@ -2253,6 +2256,7 @@ class _SettingsPageState extends State<SettingsPage> {
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
     if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
+    if (oldWidget.selectedLanguage != widget.selectedLanguage) localLanguage = widget.selectedLanguage;
   }
 
   @override
