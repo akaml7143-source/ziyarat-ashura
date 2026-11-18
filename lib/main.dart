@@ -2295,6 +2295,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String localFont;
   late String localColor;
   late double localFontSize;
+  late String localLanguage;
 
   @override
   void initState() {
@@ -2302,6 +2303,7 @@ class _SettingsPageState extends State<SettingsPage> {
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
     localFontSize = widget.fontSize;
+    localLanguage = localLanguage;
   }
 
   @override
@@ -2310,12 +2312,13 @@ class _SettingsPageState extends State<SettingsPage> {
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
     if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
+    if (oldWidget.selectedLanguage != localLanguage) localLanguage = localLanguage;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(appText('settings', widget.selectedLanguage))),
+      appBar: AppBar(title: Text(appText('settings', localLanguage))),
       body: LayoutBuilder(
         builder: (context, constraints) => GridView.count(
           crossAxisCount: constraints.maxWidth < 600 ? 2 : 3,
@@ -2333,20 +2336,21 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.translate, color: gold),
-                    title: Text(appText('language', widget.selectedLanguage)),
+                    title: Text(appText('language', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
-                    value: widget.selectedLanguage,
+                    value: localLanguage,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: [
-                      DropdownMenuItem(value: 'ar', child: Text(appText('arabic', widget.selectedLanguage))),
-                      DropdownMenuItem(value: 'fa', child: Text(appText('persian', widget.selectedLanguage))),
-                      DropdownMenuItem(value: 'en', child: Text(appText('english', widget.selectedLanguage))),
+                      DropdownMenuItem(value: 'ar', child: Text(appText('arabic', localLanguage))),
+                      DropdownMenuItem(value: 'fa', child: Text(appText('persian', localLanguage))),
+                      DropdownMenuItem(value: 'en', child: Text(appText('english', localLanguage))),
                     ],
                     onChanged: (value) {
                       if (value != null) {
                         unawaited(tapFeedback());
+                        setState(() => localLanguage = value);
                         widget.onChangeLanguage(value);
                       }
                     },
@@ -2358,8 +2362,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: Text(appText('reminders', widget.selectedLanguage)),
-              subtitle: Text(appText('reminders_desc', widget.selectedLanguage)),
+              title: Text(appText('reminders', localLanguage)),
+              subtitle: Text(appText('reminders_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
@@ -2367,8 +2371,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
-              title: Text(appText('night', widget.selectedLanguage)),
-              subtitle: Text(appText(widget.isDarkMode ? 'enabled' : 'disabled', widget.selectedLanguage)),
+              title: Text(appText('night', localLanguage)),
+              subtitle: Text(appText(widget.isDarkMode ? 'enabled' : 'disabled', localLanguage)),
               value: widget.isDarkMode,
               onChanged: (_) { unawaited(tapFeedback()); widget.onToggleTheme(); },
             ),
@@ -2382,7 +2386,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.palette, color: gold),
-                    title: Text(appText('color', widget.selectedLanguage)),
+                    title: Text(appText('color', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localColor,
@@ -2412,7 +2416,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.font_download, color: gold),
-                    title: Text(appText('font', widget.selectedLanguage)),
+                    title: Text(appText('font', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localFont,
@@ -2442,8 +2446,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
-              title: Text(appText('font_size', widget.selectedLanguage)),
-              subtitle: Text('${appText('current_size', widget.selectedLanguage)}: ${localFontSize.toInt()}'),
+              title: Text(appText('font_size', localLanguage)),
+              subtitle: Text('${appText('current_size', localLanguage)}: ${localFontSize.toInt()}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -2464,8 +2468,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: Text(appText('about', widget.selectedLanguage)),
-              subtitle: Text(appText('about_desc', widget.selectedLanguage)),
+              title: Text(appText('about', localLanguage)),
+              subtitle: Text(appText('about_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
@@ -2473,8 +2477,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.campaign_outlined, color: gold),
-              title: Text(appText('updates', widget.selectedLanguage)),
-              subtitle: Text(appText('updates_desc', widget.selectedLanguage)),
+              title: Text(appText('updates', localLanguage)),
+              subtitle: Text(appText('updates_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () {
                 unawaited(tapFeedback());
