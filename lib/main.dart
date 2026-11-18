@@ -653,13 +653,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Padding(
-                          padding: EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(14),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              'تَفَضَّلْ بِالدُّخُولِ',
+                              tr('تَفَضَّلْ بِالدُّخُولِ'),
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               style: TextStyle(
