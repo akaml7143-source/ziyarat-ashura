@@ -31,22 +31,22 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
 
       - name: Set up Node.js
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install Firebase CLI
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         run: npm install --global firebase-tools
 
       - name: Install function dependencies
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         working-directory: functions
         run: npm install --omit=dev
 
       - name: Deploy function and Firestore rules
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
         run: firebase deploy --only functions,firestore:rules --project ziyarat-ashura-796c7 --non-interactive
