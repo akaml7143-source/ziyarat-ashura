@@ -955,7 +955,7 @@ class ZiyaratPage extends StatelessWidget {
         SectionCard(title: tr('بعد المئة'), content: afterHundred,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
-        SectionCard(title: 'سجدة الزيارة', content: 'ثم تسجد وتقول:\n\n$sajda',
+        SectionCard(title: tr('سجدة الزيارة'), content: 'ثم تسجد وتقول:\n\n$sajda',
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
         CompletedVisitCounter(),
@@ -1185,7 +1185,7 @@ class _CounterWidgetState extends State<CounterWidget> {
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
                 IconButton(onPressed: () { unawaited(tapFeedback()); reset(); }, icon: const Icon(Icons.refresh),
-                    tooltip: 'إعادة العداد'),
+                    tooltip: tr('إعادة العداد')),
               ],
             ),
             if (count == 100)
@@ -1208,7 +1208,7 @@ class FavorsPage extends StatelessWidget {
     children: [
       Text.rich(highlightImamHussein('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
-      SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
+      SectionCard(title: tr('الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨'), fontSize: fontSize, highlight: true,
         content: r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
 
 ثُمَّ قَالَ (عَلَيْهِ السَّلَامُ): يَا ابْنَ شَبِيبٍ، إِنَّ الْمُحَرَّمَ هُوَ الشَّهْرُ الَّذِي كَانَ أَهْلُ الْجَاهِلِيَّةِ فِيمَا مَضَى يُحَرِّمُونَ فِيهِ الظُّلْمَ وَالْقِتَالَ لِحُرْمَتِهِ، فَمَا عَرَفَتْ هَذِهِ الْأُمَّةُ حُرْمَةَ شَهْرِهَا وَلَا حُرْمَةَ نَبِيِّهَا (صَلَّى اللَّهُ عَلَيْهِ وَآلِهِ وَسَلَّمَ)، لَقَدْ قَتَلُوا فِي هَذَا الشَّهْرِ ذُرِّيَّتَهُ، وَسَبَوْا نِسَاءَهُ، وَانْتَهَبُوا ثَقَلَهُ، فَلَا غَفَرَ اللَّهُ لَهُمْ ذَلِكَ أَبَدًا.
@@ -1230,13 +1230,13 @@ class FavorsPage extends StatelessWidget {
 الْمَصْدَرُ الْأَصْلِيُّ: عُيُونُ أَخْبَارِ الرِّضَا (عَلَيْهِ السَّلَامُ)، وَالْأَمَالِي لِلصَّدُوقِ.
 الْمَصْدَرُ مِنْ بِحَارِ الْأَنْوَارِ: الْجُزْءُ ٩٨، الصَّفْحَتَانِ ١٠٢-١٠٣.'''),
       const SizedBox(height: 12),
-      SectionCard(title: 'الحديث: ٢ — ترتيب جواهر البحار: ١٠٢٦٩', fontSize: fontSize, highlight: true,
+      SectionCard(title: tr('الحديث: ٢ — ترتيب جواهر البحار: ١٠٢٦٩'), fontSize: fontSize, highlight: true,
         content: r'''قَالَ الصَّادِقُ (عَلَيْهِ السَّلَامُ): مَنْ بَاتَ عِنْدَ قَبْرِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) لَيْلَةَ عَاشُورَاءَ، لَقِيَ اللَّهَ يَوْمَ الْقِيَامَةِ مُلَطَّخًا بِدَمِهِ، وَكَأَنَّمَا قُتِلَ مَعَهُ فِي عَرْصَةِ كَرْبَلَاءَ.
 
 الْمَصْدَرُ الْأَصْلِيُّ: مِصْبَاحُ الْمُتَهَجِّدِ، وَإِقْبَالُ الْأَعْمَالِ.
 الْمَصْدَرُ مِنْ بِحَارِ الْأَنْوَارِ: الْجُزْءُ ٩٨، الصَّفْحَةُ ١٠٣.'''),
       const SizedBox(height: 12),
-      SectionCard(title: 'أَحَادِيثُ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) عُمُومًا', fontSize: fontSize, highlight: true,
+      SectionCard(title: tr('أَحَادِيثُ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) عُمُومًا'), fontSize: fontSize, highlight: true,
         content: r'''الْحَدِيثُ: ٣
 قَالَ الْإِمَامُ الصَّادِقُ (عَلَيْهِ السَّلَامُ): «مَنْ زَارَ الْحُسَيْنَ (عَلَيْهِ السَّلَامُ) عَارِفًا بِحَقِّهِ، يَأْتَمُّ بِهِ، غَفَرَ اللَّهُ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ وَمَا تَأَخَّرَ».
 الْمَصْدَرُ: كَامِلُ الزِّيَارَاتِ، الْبَابُ ٥٤؛ وَنُقِلَ فِي بِحَارِ الْأَنْوَارِ، الْجُزْءُ ١٠١، الصَّفْحَتَانِ ٢١-٢٢.
@@ -1605,22 +1605,22 @@ class _AudioPlayerControls extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            tooltip: 'تأخير 10 ثوانٍ',
+                            tooltip: tr('تأخير 10 ثوانٍ'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: -10)); },
                             icon: const Icon(Icons.replay_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
-                            tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
+                            tooltip: playing ? tr('إيقاف مؤقت') : tr('تشغيل'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); playing ? handler.pause() : handler.play(); },
                             icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 22),
                           ),
                           IconButton(
-                            tooltip: 'تقديم 10 ثوانٍ',
+                            tooltip: tr('تقديم 10 ثوانٍ'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: 10)); },
                             icon: const Icon(Icons.forward_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
-                            tooltip: 'إيقاف التسجيل',
+                            tooltip: tr('إيقاف التسجيل'),
                             onPressed: duration == Duration.zero ? null : () async { unawaited(tapFeedback()); await handler.stop(); },
                             icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 22),
                           ),
@@ -2097,7 +2097,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(tr('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}'), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
               IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
+                padding: EdgeInsets.zero, tooltip: tr('تحديد الورد اليومي'), onPressed: _customDailyTarget,
                 icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
             ]),
           Row(children: [
