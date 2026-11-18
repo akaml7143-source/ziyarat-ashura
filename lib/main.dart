@@ -2467,7 +2467,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: appColors.keys.map((name) => DropdownMenuItem<String>(
-                      value: name, child: Text(name),
+                      value: name, child: Text(tr(name)),
                     )).toList(),
                     onChanged: (value) {
                       unawaited(tapFeedback());
