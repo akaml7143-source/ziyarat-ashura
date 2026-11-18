@@ -868,7 +868,7 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: false,
         title: Row(
           children: [
-            const Text('زيارة عاشوراء',
+            Text(tr('زيارة عاشوراء'),
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
             const SizedBox(width: 8),
             Expanded(
