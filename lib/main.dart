@@ -50,9 +50,9 @@ String appText(String key, String language) {
     'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی'},
     'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
     'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
-    'listen': {'ar': 'اِسْتِمَاعُ الزِّيَارَةِ', 'fa': 'شنیدن زیارت'},
+    'listen': {'ar': 'الزِّيَارَةُ', 'fa': 'زیارت'},
     'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
-    'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'کارهای نیک، بدی‌ها را می‌زدایند'},
+    'tasbeeh': {'ar': 'أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ (ع) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ', 'fa': 'بهترین اعمال، تسبیح حضرت زهرا (س) و صلوات بر محمد و آل محمد'},
   };
   return values[key]?[language] ?? values[key]?['ar'] ?? tr(key);
 }
@@ -933,6 +933,9 @@ class _HomeScreenState extends State<HomeScreen> {
         actionsIconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 42),
+            padding: EdgeInsets.zero,
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.push(
@@ -944,6 +947,9 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: appText('private_message', widget.selectedLanguage),
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints.tightFor(width: 38, height: 42),
+            padding: EdgeInsets.zero,
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.push(
@@ -1532,7 +1538,8 @@ class AbbasVisitPage extends StatelessWidget {
   final double fontSize;
   const AbbasVisitPage({super.key, required this.fontSize});
 
-  static const String ziyaraText = r'''زيارة الامام العباس (عليه السلام)
+  static const String ziyaraText = r'''بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ
 
 سَلامُ اللهِ وَسَلامُ مَلائِكَتِهِ الْمُقَرَّبِينَ وَأَنْبِيَائِهِ الْمُرْسَلِينَ ، وَعِبَادِهِ الصَّالِحِينَ وَجَمِيعِ الشُّهَداءِ وَالصِّدِّيقِينَ ، وَالزَّاكِيَاتُ الطَّيِّبَاتُ فِيمَا تَغْتَدِي وَتَرُوحُ عَلَيْكَ يَابْنَ أَمِيرِ الْمُؤْمِنِينَ ، أَشْهَدُ لَكَ بِالتَّسْلِيمِ وَالتَّصْدِيقِ وَالْوَفَاءِ وَالنَّصِيحَةِ ، لِخَلَفِ النَّبِيِّ الْمُرْسَلِ ـ صَلَّى اللهُ عَلَيْهِ وَآلِهِ ـ ، وَالسِّبْطِ الْمُنْتَجَبِ ، وَالدَّلِيلِ الْعَالِمِ ، وَالْوَصِيِّ الْمُبَلِّغِ ، وَالْمَظْلُومِ الْمُهْتَضَمِ ، فَجَزَاكَ اللهُ عَن رَّسُولِهِ وَعَنْ أَمِيرِ الْمُؤْمِنينَ وَعَنْ فَاطِمَةَ والْحَسَنِ وَالْحُسَيْنِ ـ صَلَوَاتُ اللهِ عَلَيْهِمْ ـ أَفْضَلَ الْجَزاءِ ، بِمَا صَبَرْتَ وَاحْتَسَبْتَ وَأَعَنْتَ ، فَنِعْمَ عُقْبَى الدَّارِ ، لَعَنَ اللهُ مَنْ قَتَلَكَ ، وَلَعَنَ اللهُ مَنْ جَهِلَ حَقَّكَ وَاسْتَخَفَّ بِحُرْمَتِكَ ، وَلَعَنَ اللهُ مَنْ حَالَ بَيْنَكَ وَبَيْنَ مَاءِ الْفُرَاتِ ، أَشْهَدُ أَنَّكَ قُتِلْتَ مَظْلُوماً ، وَأَنَّ اللهَ مُنْجِزٌ لَّكُم مَّا وَعَدَكُمْ ، جِئْتُكَ يَابْنَ أَمِيرِ اْلُمْؤْمِنينَ وَافِداً إِلَيْكُمْ ، وَقَلْبِي مُسَلِّمٌ لَّكُمْ وَتابِعٌ ، وَأَنَا لَكُمْ تَابِعٌ وَنُصْرَتِي لَكُم مُّعَدَّةٌ ، حَتّى يَحْكُمَ اللهُ وَهُوَ خَيْرُ الْحَاكِمِينَ ، فَمَعَكُمْ مَعَكُمْ لا مَعَ عَدُوِّكُمْ ، إِنِّي بِكُمْ وَبِإِيَابِكُمْ مِنَ الْمُؤْمِنينَ ، وَبِمَنْ خَالَفَكُمْ وَقَتَلَكُمْ مِنَ الْكَافَرِينَ ، قَتَلَ اللهُ أُمَّةً قَتَلَتْكُمْ بِالأَيْدِي وَالأَلْسُنِ .
 
@@ -1754,7 +1761,7 @@ class _ListeningPageState extends State<ListeningPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Text(tr('استماع زيارة عاشوراء'),
+                child: Text(tr('زيارة عاشوراء'),
                   style: TextStyle(
                     color: isDark ? Colors.white : const Color(0xFF18251C),
                     fontSize: widget.fontSize + 3,
@@ -2102,6 +2109,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
   static const List<int> zahraTargets = [34, 33, 33];
 
   int count = 0, target = 1000000, dailyCount = 0, dailyTarget = 100;
+  int totalTasbeehCount = 0;
   int zahraCount = 0, zahraStageIndex = 0;
   bool zahraStageDone = false;
   bool loaded = false;
@@ -2150,6 +2158,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
+      totalTasbeehCount = (prefs.getInt('tasbeeh_all_count') ?? 0).clamp(0, 1000000000).toInt();
       target = 1000000;
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
@@ -2219,6 +2228,31 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     await HapticFeedback.mediumImpact();
   }
 
+  Future<void> _incrementTotalCount() async {
+    if (totalTasbeehCount >= 1000000000) return;
+    setState(() => totalTasbeehCount++);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_all_count', totalTasbeehCount);
+  }
+
+  String _totalCountScaleLabel() {
+    final n = totalTasbeehCount;
+    if (appLanguage.value == 'fa') {
+      if (n >= 1000000000) return 'میلیارد';
+      if (n >= 1000000) return 'میلیون';
+      if (n >= 1000) return 'هزار';
+      if (n >= 100) return 'صدگان';
+      if (n >= 10) return 'دهگان';
+      return 'یکان';
+    }
+    if (n >= 1000000000) return 'مليار';
+    if (n >= 1000000) return 'ملايين';
+    if (n >= 1000) return 'آلاف';
+    if (n >= 100) return 'مئات';
+    if (n >= 10) return 'عشرات';
+    return 'آحاد';
+  }
+
   Future<void> _increment() async {
     if (!loaded) return;
     unawaited(tapFeedback());
@@ -2280,10 +2314,12 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     setState(() {
       count = 0;
       dailyCount = 0;
+      totalTasbeehCount = 0;
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('tasbeeh_salawat_count', 0);
     await prefs.setInt('tasbeeh_daily_count', 0);
+    await prefs.setInt('tasbeeh_all_count', 0);
   }
 
   Future<void> _customDailyTarget() async {
@@ -2357,19 +2393,16 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
 
     return Container(
       color: pageColor,
-      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text(tr('أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
-            textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
-          const SizedBox(height: 5),
           ScaleTransition(
             scale: _tapPulse,
             child: InkWell(
-              onTap: () {
+              onTap: () async {
                 unawaited(_tapPulseController.forward(from: 0));
+                await _incrementTotalCount();
                 if (isMillion) {
                   _increment();
                 } else {
@@ -2378,7 +2411,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 116, height: 116,
+                width: 94, height: 94,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -2398,14 +2431,24 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              appLanguage.value == 'fa'
+                  ? 'شمار کل: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})'
+                  : 'العدد الكلي: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.bold),
+            ),
+          ),
           if (isMillion)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(trFormat(r'الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount', {r'$totalFormattedCount': '$totalFormattedCount'}),
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(trFormat(r'مجموع صلوات التحدّي: $totalFormattedCount', {r'$totalFormattedCount': '$totalFormattedCount'}),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 3),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(trFormat(r'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', {r'${dailyCount}': '$dailyCount', r'${dailyTarget}': '$dailyTarget'}), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
@@ -2453,11 +2496,11 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       child: Column(
         children: [
           Expanded(
-            flex: 6,
+            flex: 5,
             child: _buildTasbeehControl(accent, textColor, pageColor),
           ),
           Expanded(
-            flex: 5,
+            flex: 6,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
               children: [
