@@ -914,18 +914,12 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               tr('زيارة عاشوراء'),
-              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                [
-                  tr('زيارة عاشوراء'),
-                  tr('فضل زيارة عاشوراء'),
-                  tr('استماع الزيارة'),
-                  tr('زيارة العباس'),
-                  tr('التسبيح'),
-                ][selectedIndex],
+                labels[selectedIndex],
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
@@ -934,8 +928,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        actionsIconTheme: const IconThemeData(color: Colors.black),
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             onPressed: () {
