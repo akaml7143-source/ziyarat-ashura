@@ -920,10 +920,10 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Text(
                 labels[selectedIndex],
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, height: 1.05),
               ),
             ),
           ],
