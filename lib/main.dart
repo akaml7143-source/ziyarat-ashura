@@ -1057,12 +1057,14 @@ class SectionCard extends StatelessWidget {
   final String content;
   final double fontSize;
   final bool highlight;
+  final bool showTitle;
   const SectionCard({
     super.key,
     required this.title,
     required this.content,
     required this.fontSize,
     this.highlight = false,
+    this.showTitle = true,
   });
 
   @override
@@ -1078,8 +1080,10 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 17, height: 1.35, fontWeight: FontWeight.bold, color: Color(0xFF8A5A00)))),
-            const Divider(),
+            if (showTitle) ...[
+              Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 17, height: 1.35, fontWeight: FontWeight.bold, color: Color(0xFF8A5A00)))),
+              const Divider(),
+            ],
             SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
           ],
         ),
@@ -1109,11 +1113,6 @@ class NajahPoemCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(tr('النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold, height: 1.7),
-            ),
-            const Divider(height: 22),
             Text.rich(
               highlightImamHussein(
                 persianContent(poem),
@@ -1483,8 +1482,6 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein(tr('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ'), const TextStyle(color: Color(0xFF8A5A00), fontSize: 21, fontWeight: FontWeight.bold, height: 1.45)), textAlign: TextAlign.center),
-      const SizedBox(height: 14),
       SectionCard(title: tr('الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨'), fontSize: fontSize, highlight: true,
         content: appLanguage.value == 'fa' ? _fadlHadith1Fa : r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
 
@@ -1562,6 +1559,7 @@ class AbbasVisitPage extends StatelessWidget {
           content: ziyaraText,
           fontSize: fontSize,
           highlight: true,
+          showTitle: false,
         ),
         const SizedBox(height: 14),
         Card(
@@ -2764,6 +2762,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   final titleFaController = TextEditingController();
   final bodyFaController = TextEditingController();
   String announcementType = 'message';
+  String announcementLanguage = 'both';
   bool publishing = false;
 
   bool get isOwner => Firebase.apps.isNotEmpty && FirebaseAuth.instance.currentUser?.uid == ashuraOwnerUid;
@@ -2939,9 +2938,12 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
     final bodyAr = bodyArController.text.trim();
     final titleFa = titleFaController.text.trim();
     final bodyFa = bodyFaController.text.trim();
-    if (titleAr.isEmpty || bodyAr.isEmpty || titleFa.isEmpty || bodyFa.isEmpty) {
+    final needsArabic = announcementLanguage == 'ar' || announcementLanguage == 'both';
+    final needsPersian = announcementLanguage == 'fa' || announcementLanguage == 'both';
+    if ((needsArabic && (titleAr.isEmpty || bodyAr.isEmpty)) ||
+        (needsPersian && (titleFa.isEmpty || bodyFa.isEmpty))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('أكمل عنوان ونص الرسالة باللغتين العربية والفارسية.'))),
+        SnackBar(content: Text(tr('أكمل العنوان والنص للغة التي اخترتها.'))),
       );
       return;
     }
@@ -2953,6 +2955,7 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
         'bodyAr': bodyAr,
         'titleFa': titleFa,
         'bodyFa': bodyFa,
+        'language': announcementLanguage,
         'createdAt': FieldValue.serverTimestamp(),
         'createdBy': FirebaseAuth.instance.currentUser!.uid,
       });
@@ -3000,8 +3003,18 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
           );
         }
         final isFa = appLanguage.value == 'fa';
+        final visibleDocs = snapshot.data!.docs.where((doc) {
+          final target = (doc.data()['language'] as String?) ?? 'both';
+          return target == 'both' || target == (isFa ? 'fa' : 'ar');
+        }).toList();
+        if (visibleDocs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('لا توجد رسائل أو تنبيهات منشورة حالياً.'), textAlign: TextAlign.center),
+          );
+        }
         return Column(
-          children: snapshot.data!.docs.map((doc) {
+          children: visibleDocs.map((doc) {
             final data = doc.data();
             final title = (data[isFa ? 'titleFa' : 'titleAr'] as String?) ??
                 (data['titleAr'] as String? ?? '');
@@ -3051,6 +3064,17 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
             Text(tr('نشر رسالة لجميع المستخدمين'), style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
+              value: announcementLanguage,
+              decoration: InputDecoration(labelText: tr('لغة النشر')),
+              items: [
+                DropdownMenuItem(value: 'ar', child: Text(tr('العربية فقط'))),
+                DropdownMenuItem(value: 'fa', child: Text(tr('الفارسية فقط'))),
+                DropdownMenuItem(value: 'both', child: Text(tr('العربية والفارسية معاً'))),
+              ],
+              onChanged: publishing ? null : (v) { if (v != null) setState(() => announcementLanguage = v); },
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
               value: announcementType,
               decoration: InputDecoration(labelText: tr('نوع الرسالة')),
               items: [
@@ -3061,13 +3085,17 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
               onChanged: publishing ? null : (v) { if (v != null) setState(() => announcementType = v); },
             ),
             const SizedBox(height: 10),
-            TextField(controller: titleArController, decoration: InputDecoration(labelText: tr('العنوان بالعربية')), textDirection: TextDirection.rtl),
-            const SizedBox(height: 8),
-            TextField(controller: bodyArController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('نص الرسالة بالعربية')), textDirection: TextDirection.rtl),
-            const Divider(height: 24),
-            TextField(controller: titleFaController, decoration: InputDecoration(labelText: tr('عنوان الرسالة بالفارسية')), textDirection: TextDirection.rtl),
-            const SizedBox(height: 8),
-            TextField(controller: bodyFaController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('متن پیام به فارسی')), textDirection: TextDirection.rtl),
+            if (announcementLanguage != 'fa') ...[
+              TextField(controller: titleArController, decoration: InputDecoration(labelText: tr('العنوان بالعربية')), textDirection: TextDirection.rtl),
+              const SizedBox(height: 8),
+              TextField(controller: bodyArController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('نص الرسالة بالعربية')), textDirection: TextDirection.rtl),
+            ],
+            if (announcementLanguage == 'both') const Divider(height: 24),
+            if (announcementLanguage != 'ar') ...[
+              TextField(controller: titleFaController, decoration: InputDecoration(labelText: tr('عنوان الرسالة بالفارسية')), textDirection: TextDirection.rtl),
+              const SizedBox(height: 8),
+              TextField(controller: bodyFaController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('متن پیام به فارسی')), textDirection: TextDirection.rtl),
+            ],
             const SizedBox(height: 12),
             ElevatedButton.icon(
               onPressed: publishing ? null : publishAnnouncement,
