@@ -3,6 +3,17 @@ name: Notify users about a published app update
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      language:
+        description: "اختر لغة إشعار التحديث"
+        required: true
+        type: choice
+        default: both
+        options:
+          - ar
+          - fa
+          - both
 
 permissions:
   contents: read
@@ -28,9 +39,16 @@ jobs:
           ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_URL: ${{ github.event.release.html_url }}
+          SELECTED_LANGUAGE: ${{ github.event.inputs.language || 'both' }}
         run: |
           set -euo pipefail
-          for language in ar fa; do
+          case "$SELECTED_LANGUAGE" in
+            ar) languages="ar" ;;
+            fa) languages="fa" ;;
+            both|"") languages="ar fa" ;;
+            *) echo "Unsupported language: $SELECTED_LANGUAGE"; exit 1 ;;
+          esac
+          for language in $languages; do
             export LANGUAGE_CODE="$language"
             python3 - <<'PY' > payload.json
           import json, os
