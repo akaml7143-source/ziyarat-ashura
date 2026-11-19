@@ -908,6 +908,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: selectedIndex == 4 ? 72 : kToolbarHeight,
         backgroundColor: appPrimary,
         centerTitle: false,
         title: Row(
@@ -920,10 +921,15 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: Text(
                 labels[selectedIndex],
-                maxLines: 2,
+                maxLines: selectedIndex == 4 ? 3 : 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11, height: 1.05),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: selectedIndex == 4 ? 10 : 13,
+                  height: 1.05,
+                ),
               ),
             ),
           ],
