@@ -910,14 +910,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: Text(
-          tr('زيارة عاشوراء'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-        ),
-        flexibleSpace: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 108),
+        title: Row(
+          children: [
+            Text(
+              tr('زيارة عاشوراء'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
               child: Text(
                 [
                   tr('النجاة بزيارة الإمام الحسين (عليه السلام)'),
@@ -928,11 +928,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ][selectedIndex],
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                textAlign: TextAlign.start,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
-          ),
+          ],
         ),
         actions: [
           IconButton(
@@ -1009,7 +1009,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 190),
-                      height: 98,
+                      height: 82,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
                       decoration: BoxDecoration(
@@ -1026,7 +1026,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             softWrap: true,
                             maxLines: 4,
                             overflow: TextOverflow.clip,
-                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1.05),
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900, height: 1.12),
                           ),
                         ),
                       ),
@@ -1081,7 +1081,7 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
+            Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 17, height: 1.35, fontWeight: FontWeight.bold, color: Color(0xFF8A5A00)))),
             const Divider(),
             SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
           ],
@@ -1486,7 +1486,7 @@ class FavorsPage extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein(tr('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ'), const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
+      Text.rich(highlightImamHussein(tr('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ'), const TextStyle(color: Color(0xFF8A5A00), fontSize: 21, fontWeight: FontWeight.bold, height: 1.45)), textAlign: TextAlign.center),
       const SizedBox(height: 14),
       SectionCard(title: tr('الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨'), fontSize: fontSize, highlight: true,
         content: appLanguage.value == 'fa' ? _fadlHadith1Fa : r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
@@ -2353,8 +2353,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.4 : 1),
             ),
             alignment: Alignment.center,
-            child: Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 11, fontWeight: FontWeight.bold, height: 1.15)),
+            child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 10, fontWeight: FontWeight.bold, height: 1.12)),
           ),
         ),
       );
@@ -2458,18 +2458,18 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       child: Column(
         children: [
           Expanded(
-            flex: 1,
+            flex: 6,
             child: _buildTasbeehControl(accent, textColor, pageColor),
           ),
           Expanded(
-            flex: 2,
+            flex: 5,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
               children: [
                 const SizedBox(height: 5),
                 Text(tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 19, fontWeight: FontWeight.bold, height: 1.4),
                 ),
                 const SizedBox(height: 8),
                 Text(
