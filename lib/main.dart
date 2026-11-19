@@ -914,26 +914,28 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               tr('زيارة عاشوراء'),
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 [
-                  tr('النجاة بزيارة الإمام الحسين (عليه السلام)'),
-                  tr('أحاديث في فضل زيارة عاشوراء'),
-                  tr('استماع زيارة عاشوراء: بدون إنترنت'),
-                  tr('زيارة الإمام العباس بن علي (عليه السلام)'),
-                  tr('أفضل الأعمال: تسبيح السيدة فاطمة الزهراء (عليها السلام)'),
+                  tr('زيارة عاشوراء'),
+                  tr('فضل زيارة عاشوراء'),
+                  tr('استماع الزيارة'),
+                  tr('زيارة العباس'),
+                  tr('التسبيح'),
                 ][selectedIndex],
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.start,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ),
           ],
         ),
+        iconTheme: const IconThemeData(color: Colors.black),
+        actionsIconTheme: const IconThemeData(color: Colors.black),
         actions: [
           IconButton(
             onPressed: () {
