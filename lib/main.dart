@@ -60,15 +60,13 @@ String appText(String key, String language) {
 
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
-  'نيلي': Color(0xFF303F9F),
   'ماروني': Color(0xFF800020),
   'فيروزي': Color(0xFF40BFC1),
+  'ذهبي': Color(0xFFFFD700),
   'ذهبي رملي': Color(0xFFC6A15B),
   'بنفسجي': Color(0xFF7B2CBF),
   'سلفر': Color(0xFF9AA0A6),
   'تركوازي': Color(0xFF009FA3),
-  'برغندي': Color(0xFF5A1020),
-  'هافان': Color(0xFF8D5A3B),
 };
 
 final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
@@ -2383,8 +2381,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            constraints: const BoxConstraints(minHeight: 34),
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+            constraints: const BoxConstraints(minHeight: 30),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
             decoration: BoxDecoration(
               color: selected ? accent.withValues(alpha: 0.18) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
@@ -2392,7 +2390,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             ),
             alignment: Alignment.center,
             child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 10, fontWeight: FontWeight.bold, height: 1.12)),
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 9, fontWeight: FontWeight.bold, height: 1.08)),
           ),
         ),
       );
@@ -2418,17 +2416,17 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 80, height: 80,
+                width: 70, height: 70,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CircularProgressIndicator(value: currentProgress, strokeWidth: 7,
+                  CircularProgressIndicator(value: currentProgress, strokeWidth: 6,
                     backgroundColor: textColor.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation<Color>(accent)),
                   Center(
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       FittedBox(fit: BoxFit.scaleDown,
-                        child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
+                        child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold))),
                       Text(isMillion ? (appLanguage.value == 'fa' ? 'از یک میلیون' : 'مِنْ مِلْيُونٍ') : (appLanguage.value == 'fa' ? 'از $stageTarget' : 'مِنْ $stageTarget'), style: TextStyle(color: mutedText, fontSize: 10)),
                       if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ]),
@@ -2439,7 +2437,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.only(top: 1),
             child: Text(
               appLanguage.value == 'fa'
                   ? 'شمار کل: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})'
@@ -2455,7 +2453,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                 textAlign: TextAlign.center,
                 style: TextStyle(color: mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
             ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 1),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text(trFormat(r'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', {r'${dailyCount}': '$dailyCount', r'${dailyTarget}': '$dailyTarget'}), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
@@ -2509,14 +2507,13 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           Expanded(
             flex: 6,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
+              padding: const EdgeInsets.fromLTRB(10, 2, 10, 16),
               children: [
-                const SizedBox(height: 5),
                 Text(tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 19, fontWeight: FontWeight.bold, height: 1.4),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
                   textAlign: TextAlign.justify,
