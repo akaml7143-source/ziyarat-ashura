@@ -2418,8 +2418,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             child: InkWell(
               onTap: () async {
                 unawaited(_tapPulseController.forward(from: 0));
-                await _incrementTotalCount();
                 if (isMillion) {
+                  await _incrementTotalCount();
                   _increment();
                 } else {
                   _incrementZahra();
