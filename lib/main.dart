@@ -2378,11 +2378,10 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
   Widget _buildTasbeehControl(Color accent, Color textColor, Color pageColor) {
     final isMillion = isMillionMode;
     final stageTarget = zahraTargets[zahraStageIndex];
-    final millionProgressCount = count % 1000000;
     final currentProgress = isMillion
-        ? (millionProgressCount / 1000000).clamp(0.0, 1.0).toDouble()
+        ? (totalTasbeehCount / 1000000000).clamp(0.0, 1.0).toDouble()
         : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
-    final currentCount = isMillion ? millionProgressCount : zahraCount;
+    final currentCount = isMillion ? totalTasbeehCount : zahraCount;
     final formattedCount = _formatCount(currentCount);
     final mutedText = textColor.withValues(alpha: 0.68);
 
@@ -2392,16 +2391,16 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            constraints: const BoxConstraints(minHeight: 30),
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+            constraints: const BoxConstraints(minHeight: 25),
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
             decoration: BoxDecoration(
               color: selected ? accent.withValues(alpha: 0.18) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.4 : 1),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.2 : 0.8),
             ),
             alignment: Alignment.center,
             child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 9, fontWeight: FontWeight.bold, height: 1.08)),
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 8, fontWeight: FontWeight.bold, height: 1.0)),
           ),
         ),
       );
@@ -2438,7 +2437,10 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       FittedBox(fit: BoxFit.scaleDown,
                         child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text(isMillion ? (appLanguage.value == 'fa' ? 'از یک میلیون' : 'مِنْ مِلْيُونٍ') : (appLanguage.value == 'fa' ? 'از $stageTarget' : 'مِنْ $stageTarget'), style: TextStyle(color: mutedText, fontSize: 10)),
+                      Text(isMillion
+                          ? (appLanguage.value == 'fa' ? 'از یک میلیارد' : 'مِنْ مِلْيَارٍ')
+                          : (appLanguage.value == 'fa' ? 'از $stageTarget' : 'مِنْ $stageTarget'),
+                        style: TextStyle(color: mutedText, fontSize: 10)),
                       if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
                     ]),
                   ),
@@ -2447,40 +2449,38 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Text(
-              appLanguage.value == 'fa'
-                  ? 'شمار کل: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})'
-                  : 'العدد الكلي: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(height: 1),
           if (isMillion)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(trFormat(r'الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', {r'${dailyCount}': '$dailyCount', r'${dailyTarget}': '$dailyTarget'}), style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
-              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: tr('تحديد الورد اليومي'), onPressed: _customDailyTarget,
-                icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
-            ]),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                appLanguage.value == 'fa'
+                    ? 'شمار کل: ${_formatCount(totalTasbeehCount)}'
+                    : 'العدد الكلي: ${_formatCount(totalTasbeehCount)}',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ),
+          if (isMillion)
+            InkWell(
+              onTap: _customDailyTarget,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                child: Text(
+                  appLanguage.value == 'fa'
+                      ? 'ورد روزانه: ${_formatCount(dailyCount)} / ${_formatCount(dailyTarget)}'
+                      : 'الوِرْدُ اليَوْمِيُّ: ${_formatCount(dailyCount)} / ${_formatCount(dailyTarget)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           Row(children: [
             modeButton(appLanguage.value == 'fa' ? 'تسبیح حضرت فاطمه زهرا (سلام‌الله‌علیها)' : 'تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
             const SizedBox(width: 7),
             modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
           ]),
           const SizedBox(height: 2),
-          if (!isMillion)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(appLanguage.value == 'fa'
-                  ? (zahraStageDone ? 'برای رفتن به ذکر بعدی، فشار دهید' : 'مرحله ${zahraStageIndex + 1} از ۳')
-                  : (zahraStageDone
-                      ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
-                      : 'الْمَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: mutedText, fontSize: 10)),
-            ]),
         ],
       ),
     );
@@ -2504,72 +2504,70 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       color: pageColor,
       child: Column(
         children: [
-          Expanded(
-            flex: 5,
+          Flexible(
+            fit: FlexFit.loose,
             child: _buildTasbeehControl(accent, textColor, pageColor),
           ),
-          Expanded(
-            flex: 6,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 19, fontWeight: FontWeight.bold, height: 1.4),
+                  style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 18, fontWeight: FontWeight.bold, height: 1.2),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
                   textAlign: TextAlign.justify,
-                  style: TextStyle(height: 1.8),
-                ),
-                const SizedBox(height: 10),
-                ...List.generate(
-                  tasbeehHadithTexts.length,
-                  (index) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 7),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
-                            textAlign: TextAlign.start,
-                            style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const Divider(),
-                          SelectableText(
-                            (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
-                          ),
-                          const SizedBox(height: 9),
-                          Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
-                            style: const TextStyle(color: Colors.grey, height: 1.6),
-                          ),
-                          Text(trFormat(r'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}', {r'${tasbeehHadithPages[index]}': '${tasbeehHadithPages[index]}'}),
-                            style: const TextStyle(color: Colors.grey, height: 1.6),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  style: const TextStyle(height: 1.45, fontSize: 12),
                 ),
               ],
             ),
           ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
+              itemCount: tasbeehHadithTexts.length,
+              itemBuilder: (context, index) => Card(
+                margin: const EdgeInsets.symmetric(vertical: 5),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const Divider(),
+                      SelectableText(
+                        (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
+                      ),
+                      const SizedBox(height: 9),
+                      Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
+                        style: const TextStyle(color: Colors.grey, height: 1.6),
+                      ),
+                      Text(trFormat(r'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}', {r'${tasbeehHadithPages[index]}': '${tasbeehHadithPages[index]}'}),
+                        style: const TextStyle(color: Colors.grey, height: 1.6),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
-    );
-  }
-}
-
-class SettingsPage extends StatefulWidget {
+    ); extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
   final String selectedFont;
