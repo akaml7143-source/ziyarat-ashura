@@ -2378,10 +2378,11 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
   Widget _buildTasbeehControl(Color accent, Color textColor, Color pageColor) {
     final isMillion = isMillionMode;
     final stageTarget = zahraTargets[zahraStageIndex];
+    final millionProgressCount = count % 1000000;
     final currentProgress = isMillion
-        ? (totalTasbeehCount / 1000000000).clamp(0.0, 1.0).toDouble()
+        ? (millionProgressCount / 1000000).clamp(0.0, 1.0).toDouble()
         : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
-    final currentCount = isMillion ? totalTasbeehCount : zahraCount;
+    final currentCount = isMillion ? millionProgressCount : zahraCount;
     final formattedCount = _formatCount(currentCount);
     final mutedText = textColor.withValues(alpha: 0.68);
 
@@ -2567,7 +2568,11 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           ),
         ],
       ),
-    ); extends StatefulWidget {
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
   final String selectedFont;
