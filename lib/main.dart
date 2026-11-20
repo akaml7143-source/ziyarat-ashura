@@ -915,21 +915,24 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarHeight: kToolbarHeight,
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-          decoration: BoxDecoration(
-            border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Text(
-            'زيارة عاشوراء',
-            maxLines: 1,
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'NotoKufiArabic',
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              height: 1.1,
+        title: MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            decoration: BoxDecoration(
+              border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'زيارة عاشوراء',
+              maxLines: 1,
+              style: TextStyle(
+                color: Colors.white,
+                fontFamily: 'NotoKufiArabic',
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                height: 1.1,
+              ),
             ),
           ),
         ),
