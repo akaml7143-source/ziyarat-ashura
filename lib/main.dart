@@ -2427,15 +2427,15 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 116,
-                height: 116,
+                width: 104,
+                height: 104,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     // حلقة زخرفية تحيط بمئة حبّة مضيئة.
                     Container(
-                      width: 104,
-                      height: 104,
+                      width: 92,
+                      height: 92,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -2458,8 +2458,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                           ? 100
                           : litRemainder;
                       final isLit = index < litCount;
-                      const radius = 49.0;
-                      const beadSize = 4.2;
+                      const radius = 43.0;
+                      const beadSize = 3.8;
                       final dx = math.cos(angle) * radius;
                       final dy = math.sin(angle) * radius;
                       return Transform.translate(
@@ -2488,8 +2488,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       );
                     }),
                     Container(
-                      width: 76,
-                      height: 76,
+                      width: 68,
+                      height: 68,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: pageColor,
@@ -2609,21 +2609,39 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             child: _buildTasbeehControl(accent, textColor, pageColor),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF8A5A00), fontSize: 18, fontWeight: FontWeight.bold, height: 1.2),
+            padding: const EdgeInsets.fromLTRB(10, 2, 10, 3),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.045),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: accent.withValues(alpha: 0.8),
+                  width: 1.2,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
-                  textAlign: TextAlign.justify,
-                  style: const TextStyle(height: 1.45, fontSize: 12),
-                ),
-              ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF8A5A00),
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      height: 1.15,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
+                    textAlign: TextAlign.justify,
+                    style: const TextStyle(height: 1.35, fontSize: 11.5),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
