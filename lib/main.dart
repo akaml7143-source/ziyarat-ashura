@@ -2427,26 +2427,125 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 70, height: 70,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CircularProgressIndicator(value: currentProgress, strokeWidth: 6,
-                    backgroundColor: textColor.withValues(alpha: 0.12),
-                    valueColor: AlwaysStoppedAnimation<Color>(accent)),
-                  Center(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      FittedBox(fit: BoxFit.scaleDown,
-                        child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 24, fontWeight: FontWeight.bold))),
-                      Text(isMillion
-                          ? (appLanguage.value == 'fa' ? 'از یک میلیارد' : 'مِنْ مِلْيَارٍ')
-                          : (appLanguage.value == 'fa' ? 'از $stageTarget' : 'مِنْ $stageTarget'),
-                        style: TextStyle(color: mutedText, fontSize: 10)),
-                      if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ]),
-                  ),
-                ],
-              ),
+                width: 116,
+                height: 116,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // حلقة زخرفية تحيط بمئة حبّة مضيئة.
+                    Container(
+                      width: 104,
+                      height: 104,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.24),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.10),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...List.generate(100, (index) {
+                      final angle = (index * 2 * math.pi / 100) - math.pi / 2;
+                      final litRemainder = currentCount % 100;
+                      final litCount = currentCount > 0 && litRemainder == 0
+                          ? 100
+                          : litRemainder;
+                      final isLit = index < litCount;
+                      const radius = 49.0;
+                      const beadSize = 4.2;
+                      final dx = math.cos(angle) * radius;
+                      final dy = math.sin(angle) * radius;
+                      return Transform.translate(
+                        offset: Offset(dx, dy),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 140),
+                          width: beadSize,
+                          height: beadSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isLit
+                                ? const Color(0xFFFFD700)
+                                : textColor.withValues(alpha: 0.22),
+                            boxShadow: isLit
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFFFFD700)
+                                          .withValues(alpha: 0.75),
+                                      blurRadius: 7,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : const [],
+                          ),
+                        ),
+                      );
+                    }),
+                    Container(
+                      width: 76,
+                      height: 76,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: pageColor,
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.65),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.14),
+                            blurRadius: 9,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formattedCount,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              isMillion
+                                  ? (appLanguage.value == 'fa'
+                                      ? 'از یک میلیارد'
+                                      : 'مِنْ مِلْيَارٍ')
+                                  : (appLanguage.value == 'fa'
+                                      ? 'از $stageTarget'
+                                      : 'مِنْ $stageTarget'),
+                              style: TextStyle(color: mutedText, fontSize: 9),
+                            ),
+                            if (!isMillion)
+                              Text(
+                                zahraPhrases[zahraStageIndex],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: accent,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
