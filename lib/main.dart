@@ -479,7 +479,7 @@ class AshuraApp extends StatefulWidget {
 
 class _AshuraAppState extends State<AshuraApp> {
   bool isDarkMode = true;
-  double fontSize = 20;
+  double fontSize = 18;
   bool entered = false;
   bool loaded = false;
   String selectedFont = 'Amiri';
@@ -498,7 +498,7 @@ class _AshuraAppState extends State<AshuraApp> {
       if (!mounted) return;
       setState(() {
         isDarkMode = prefs.getBool('ashura_dark') ?? false;
-        fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
+        fontSize = (prefs.getDouble('ashura_font') ?? 18).clamp(16.0, 36.0).toDouble();
         entered = false;
         final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
         selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
@@ -576,6 +576,12 @@ class _AshuraAppState extends State<AshuraApp> {
     final primaryColor = appColors[selectedColor] ?? green;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(fontSize / 18),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
       title: appText('app', selectedLanguage),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
@@ -891,11 +897,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final appPrimary = Theme.of(context).colorScheme.primary;
     final pages = [
-      ZiyaratPage(fontSize: widget.fontSize),
-      FavorsPage(fontSize: widget.fontSize),
-      ListeningPage(fontSize: widget.fontSize),
-      AbbasVisitPage(fontSize: widget.fontSize),
-      TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
+      ZiyaratPage(fontSize: 18),
+      FavorsPage(fontSize: 18),
+      ListeningPage(fontSize: 18),
+      AbbasVisitPage(fontSize: 18),
+      TasbeehPage(fontSize: 18, selectedColor: widget.selectedColor),
     ];
     final labels = [
       appText('visit_ashura', widget.selectedLanguage),
@@ -906,57 +912,27 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: selectedIndex == 4 ? 76 : kToolbarHeight,
+        toolbarHeight: kToolbarHeight,
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: selectedIndex == 4
-            ? Text(
-                labels[selectedIndex],
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  height: 1.05,
-                ),
-              )
-            : selectedIndex == 2
-                ? Text(
-                    widget.selectedLanguage == 'fa' ? 'پخش زیارت بدون اینترنت' : 'استماع الزيارة بدون نت',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  )
-                : Row(
-                children: [
-                  Text(
-                    tr('زيارة عاشوراء'),
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      labels[selectedIndex],
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        height: 1.05,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        title: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Text(
+            'زيارة عاشوراء',
+            maxLines: 1,
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'NotoKufiArabic',
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              height: 1.1,
+            ),
+          ),
+        ),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
         actionsIconTheme: const IconThemeData(color: Colors.white),
