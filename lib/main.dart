@@ -2384,7 +2384,6 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
         : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
     final currentCount = isMillion ? millionProgressCount : zahraCount;
     final formattedCount = _formatCount(currentCount);
-    final totalFormattedCount = _formatCount(count);
     final mutedText = textColor.withValues(alpha: 0.68);
 
     Widget modeButton(String label, bool selected, VoidCallback onTap) {
@@ -2458,13 +2457,6 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
-          if (isMillion)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(trFormat(r'مجموع صلوات التحدّي: $totalFormattedCount', {r'$totalFormattedCount': '$totalFormattedCount'}),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
           const SizedBox(height: 1),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
