@@ -908,32 +908,45 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: selectedIndex == 4 ? 72 : kToolbarHeight,
+        toolbarHeight: selectedIndex == 4 ? 76 : kToolbarHeight,
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: Row(
-          children: [
-            Text(
-              tr('زيارة عاشوراء'),
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
+        title: selectedIndex == 4
+            ? Text(
                 labels[selectedIndex],
-                maxLines: selectedIndex == 4 ? 3 : 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: selectedIndex == 4 ? 10 : 13,
+                  fontSize: 15,
                   height: 1.05,
                 ),
+              )
+            : Row(
+                children: [
+                  Text(
+                    tr('زيارة عاشوراء'),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      labels[selectedIndex],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        height: 1.05,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
         actionsIconTheme: const IconThemeData(color: Colors.white),
@@ -1546,7 +1559,6 @@ class AbbasVisitPage extends StatelessWidget {
 
   static const String ziyaraText = r'''بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
 اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ
-
 سَلامُ اللهِ وَسَلامُ مَلائِكَتِهِ الْمُقَرَّبِينَ وَأَنْبِيَائِهِ الْمُرْسَلِينَ ، وَعِبَادِهِ الصَّالِحِينَ وَجَمِيعِ الشُّهَداءِ وَالصِّدِّيقِينَ ، وَالزَّاكِيَاتُ الطَّيِّبَاتُ فِيمَا تَغْتَدِي وَتَرُوحُ عَلَيْكَ يَابْنَ أَمِيرِ الْمُؤْمِنِينَ ، أَشْهَدُ لَكَ بِالتَّسْلِيمِ وَالتَّصْدِيقِ وَالْوَفَاءِ وَالنَّصِيحَةِ ، لِخَلَفِ النَّبِيِّ الْمُرْسَلِ ـ صَلَّى اللهُ عَلَيْهِ وَآلِهِ ـ ، وَالسِّبْطِ الْمُنْتَجَبِ ، وَالدَّلِيلِ الْعَالِمِ ، وَالْوَصِيِّ الْمُبَلِّغِ ، وَالْمَظْلُومِ الْمُهْتَضَمِ ، فَجَزَاكَ اللهُ عَن رَّسُولِهِ وَعَنْ أَمِيرِ الْمُؤْمِنينَ وَعَنْ فَاطِمَةَ والْحَسَنِ وَالْحُسَيْنِ ـ صَلَوَاتُ اللهِ عَلَيْهِمْ ـ أَفْضَلَ الْجَزاءِ ، بِمَا صَبَرْتَ وَاحْتَسَبْتَ وَأَعَنْتَ ، فَنِعْمَ عُقْبَى الدَّارِ ، لَعَنَ اللهُ مَنْ قَتَلَكَ ، وَلَعَنَ اللهُ مَنْ جَهِلَ حَقَّكَ وَاسْتَخَفَّ بِحُرْمَتِكَ ، وَلَعَنَ اللهُ مَنْ حَالَ بَيْنَكَ وَبَيْنَ مَاءِ الْفُرَاتِ ، أَشْهَدُ أَنَّكَ قُتِلْتَ مَظْلُوماً ، وَأَنَّ اللهَ مُنْجِزٌ لَّكُم مَّا وَعَدَكُمْ ، جِئْتُكَ يَابْنَ أَمِيرِ اْلُمْؤْمِنينَ وَافِداً إِلَيْكُمْ ، وَقَلْبِي مُسَلِّمٌ لَّكُمْ وَتابِعٌ ، وَأَنَا لَكُمْ تَابِعٌ وَنُصْرَتِي لَكُم مُّعَدَّةٌ ، حَتّى يَحْكُمَ اللهُ وَهُوَ خَيْرُ الْحَاكِمِينَ ، فَمَعَكُمْ مَعَكُمْ لا مَعَ عَدُوِّكُمْ ، إِنِّي بِكُمْ وَبِإِيَابِكُمْ مِنَ الْمُؤْمِنينَ ، وَبِمَنْ خَالَفَكُمْ وَقَتَلَكُمْ مِنَ الْكَافَرِينَ ، قَتَلَ اللهُ أُمَّةً قَتَلَتْكُمْ بِالأَيْدِي وَالأَلْسُنِ .
 
 ثمّ ادخل فانكبّ على القبر وقلْ :
@@ -1765,17 +1777,6 @@ class _ListeningPageState extends State<ListeningPage> {
         SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Text(tr('زيارة عاشوراء'),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF18251C),
-                    fontSize: widget.fontSize + 3,
-                    fontWeight: FontWeight.bold,
-                    shadows: const [Shadow(color: Colors.black54, blurRadius: 5)],
-                  ),
-                ),
-              ),
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
@@ -2417,7 +2418,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 94, height: 94,
+                width: 80, height: 80,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -2444,7 +2445,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                   ? 'شمار کل: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})'
                   : 'العدد الكلي: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})',
               textAlign: TextAlign.center,
-              style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.bold),
+              style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
           if (isMillion)
