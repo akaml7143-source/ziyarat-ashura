@@ -50,7 +50,7 @@ String appText(String key, String language) {
     'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی'},
     'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
     'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
-    'listen': {'ar': 'الزِّيَارَةُ', 'fa': 'زیارت'},
+    'listen': {'ar': 'استماع الزيارة', 'fa': 'شنیدن زیارت'},
     'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
     'tasbeeh': {'ar': 'أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ (ع) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ', 'fa': 'بهترین اعمال، تسبیح حضرت زهرا (س) و صلوات بر محمد و آل محمد'},
   };
@@ -60,15 +60,12 @@ String appText(String key, String language) {
 
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
-  'نيلي': Color(0xFF303F9F),
   'ماروني': Color(0xFF800020),
   'فيروزي': Color(0xFF40BFC1),
-  'ذهبي رملي': Color(0xFFC6A15B),
+  'ذهبي': Color(0xFFD4AF37),
+  'رملي': Color(0xFFC6A15B),
   'بنفسجي': Color(0xFF7B2CBF),
   'سلفر': Color(0xFF9AA0A6),
-  'تركوازي': Color(0xFF009FA3),
-  'برغندي': Color(0xFF5A1020),
-  'هافان': Color(0xFF8D5A3B),
 };
 
 final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
@@ -2417,12 +2414,17 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                 }
               },
               customBorder: const CircleBorder(),
-              child: SizedBox(
-                width: 80, height: 80,
-              child: Stack(
+              child: Container(
+                width: 82, height: 82,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.2),
+                ),
+                child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  CircularProgressIndicator(value: currentProgress, strokeWidth: 7,
+                  CircularProgressIndicator(value: currentProgress, strokeWidth: 6,
                     backgroundColor: textColor.withValues(alpha: 0.12),
                     valueColor: AlwaysStoppedAnimation<Color>(accent)),
                   Center(
@@ -2442,19 +2444,12 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             padding: const EdgeInsets.only(top: 2),
             child: Text(
               appLanguage.value == 'fa'
-                  ? 'شمار کل: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})'
-                  : 'العدد الكلي: ${_formatCount(totalTasbeehCount)} (${_totalCountScaleLabel()})',
+                  ? 'شمار کل: ${_formatCount(totalTasbeehCount)}'
+                  : 'العدد الكلي: ${_formatCount(totalTasbeehCount)}',
               textAlign: TextAlign.center,
               style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
             ),
           ),
-          if (isMillion)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(trFormat(r'مجموع صلوات التحدّي: $totalFormattedCount', {r'$totalFormattedCount': '$totalFormattedCount'}),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: mutedText, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
           const SizedBox(height: 3),
           if (isMillion)
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
