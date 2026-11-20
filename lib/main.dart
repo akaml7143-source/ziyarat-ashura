@@ -50,9 +50,9 @@ String appText(String key, String language) {
     'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی'},
     'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
     'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
-    'listen': {'ar': 'الزِّيَارَةُ', 'fa': 'زیارت'},
+    'listen': {'ar': 'استماع الزيارة', 'fa': 'پخش زیارت'},
     'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
-    'tasbeeh': {'ar': 'أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ الزَّهْرَاءِ (ع) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ', 'fa': 'بهترین اعمال، تسبیح حضرت زهرا (س) و صلوات بر محمد و آل محمد'},
+    'tasbeeh': {'ar': 'الحسنات', 'fa': 'نیکی‌ها'},
   };
   return values[key]?[language] ?? values[key]?['ar'] ?? tr(key);
 }
@@ -922,7 +922,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 1.05,
                 ),
               )
-            : Row(
+            : selectedIndex == 2
+                ? Text(
+                    widget.selectedLanguage == 'fa' ? 'پخش زیارت بدون اینترنت' : 'استماع الزيارة بدون نت',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  )
+                : Row(
                 children: [
                   Text(
                     tr('زيارة عاشوراء'),
