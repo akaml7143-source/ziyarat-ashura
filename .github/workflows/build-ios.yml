@@ -2,6 +2,12 @@ name: زيارة عاشوراء iOS
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'pubspec.yaml'
+      - 'lib/main.dart'
+      - '.github/workflows/build-ios.yml'
 
 permissions:
   contents: read
