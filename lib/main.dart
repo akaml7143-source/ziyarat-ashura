@@ -358,7 +358,6 @@ class _AshuraAppState extends State<AshuraApp> {
   bool loaded = false;
   String selectedFont = 'Amiri';
   String selectedColor = 'أخضر';
-  bool _introAudioStarted = false;
 
   @override
   void initState() {
@@ -414,30 +413,10 @@ class _AshuraAppState extends State<AshuraApp> {
     await prefs.setString('ashura_theme_color', value);
   }
 
-  Future<void> _playIntroAudio() async {
-    if (_introAudioStarted) return;
-    _introAudioStarted = true;
-
-    // مشغل مستقل حتى لا يوقف أو يغيّر صوت قارئ الزيارة.
-    final introPlayer = AudioPlayer();
-    try {
-      await introPlayer.setAsset('assets/ya_habibi_ya_hussain_intro.mp3');
-      await introPlayer.play();
-    } catch (error, stackTrace) {
-      debugPrint('تعذر تشغيل صوت مقدمة التطبيق: $error');
-      debugPrintStack(stackTrace: stackTrace);
-    } finally {
-      await introPlayer.dispose();
-    }
-  }
-
   Future<void> enterApp() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('ashura_entered', true);
-    if (mounted) {
-      setState(() => entered = true);
-      unawaited(_playIntroAudio());
-    }
+    if (mounted) setState(() => entered = true);
   }
 
   @override
@@ -535,6 +514,22 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1900),
     )..repeat(reverse: true);
+
+    // يبدأ صوت المقدمة فور ظهور شاشة الترحيب، قبل الضغط على زر الدخول.
+    unawaited(_playIntroAudio());
+  }
+
+  Future<void> _playIntroAudio() async {
+    final introPlayer = AudioPlayer();
+    try {
+      await introPlayer.setAsset('assets/ya_habibi_ya_hussain_intro.mp3');
+      await introPlayer.play();
+    } catch (error, stackTrace) {
+      debugPrint('تعذر تشغيل صوت مقدمة التطبيق: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    } finally {
+      await introPlayer.dispose();
+    }
   }
 
   @override
