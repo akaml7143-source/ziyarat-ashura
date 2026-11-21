@@ -63,7 +63,6 @@ String appText(String key, String language) {
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
   'ماروني': Color(0xFF800020),
-  'ذهبي رملي': Color(0xFFC6A15B),
   'بنفسجي': Color(0xFF7B2CBF),
   'سلفر': Color(0xFF9AA0A6),
 };
@@ -917,103 +916,95 @@ class _HomeScreenState extends State<HomeScreen> {
         title: MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            padding: const EdgeInsetsDirectional.fromSTEB(9, 3, 5, 3),
             decoration: BoxDecoration(
               border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text(
-              'زِيــــارَة عَاشُــــورَاءَ',
-              maxLines: 1,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                height: 1.1,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Flexible(
+                  fit: FlexFit.loose,
+                  child: Text(
+                    'زِيــــارَةُ عَاشُــــورَاءَ',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      height: 1.1,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    unawaited(tapFeedback());
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.forum_outlined),
+                  tooltip: appText('private_message', widget.selectedLanguage),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                  padding: EdgeInsets.zero,
+                  onPressed: () {
+                    unawaited(tapFeedback());
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SettingsPage(
+                          isDarkMode: widget.isDarkMode,
+                          fontSize: widget.fontSize,
+                          selectedFont: widget.selectedFont,
+                          selectedColor: widget.selectedColor,
+                          selectedLanguage: widget.selectedLanguage,
+                          onChangeLanguage: widget.onChangeLanguage,
+                          onToggleTheme: widget.onToggleTheme,
+                          onChangeFontSize: widget.onChangeFontSize,
+                          onChangeFontFamily: widget.onChangeFontFamily,
+                          onChangeThemeColor: widget.onChangeThemeColor,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.settings),
+                      if (updateAvailable)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.greenAccent,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  tooltip: appText('settings', widget.selectedLanguage),
+                ),
+              ],
             ),
           ),
         ),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          Padding(
-            padding: const EdgeInsetsDirectional.only(end: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-              decoration: BoxDecoration(
-                border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints.tightFor(width: 38, height: 42),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      unawaited(tapFeedback());
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
-                      );
-                    },
-                    icon: const Icon(Icons.forum_outlined),
-                    tooltip: appText('private_message', widget.selectedLanguage),
-                  ),
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints.tightFor(width: 38, height: 42),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
-                      unawaited(tapFeedback());
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => SettingsPage(
-                            isDarkMode: widget.isDarkMode,
-                            fontSize: widget.fontSize,
-                            selectedFont: widget.selectedFont,
-                            selectedColor: widget.selectedColor,
-                            selectedLanguage: widget.selectedLanguage,
-                            onChangeLanguage: widget.onChangeLanguage,
-                            onToggleTheme: widget.onToggleTheme,
-                            onChangeFontSize: widget.onChangeFontSize,
-                            onChangeFontFamily: widget.onChangeFontFamily,
-                            onChangeThemeColor: widget.onChangeThemeColor,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        const Icon(Icons.settings),
-                        if (updateAvailable)
-                          Positioned(
-                            top: -2,
-                            right: -2,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: Colors.greenAccent,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    tooltip: appText('settings', widget.selectedLanguage),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        actionsIconTheme: const IconThemeData(color: Colors.white)
       ),
       body: IndexedStack(index: selectedIndex, children: pages),
       bottomNavigationBar: SafeArea(
@@ -1141,7 +1132,7 @@ class NajahPoemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'النجاة بزيارة سيد الشهداء (عليه السلام)',
+              'النَّجَاةُ بِزِيَارَةِ سَيِّدِ الشُّهَدَاءِ (عَلَيْهِ السَّلَامُ)',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: (fontSize * 0.82).clamp(16.0, 22.0),
@@ -1786,17 +1777,19 @@ class _ListeningPageState extends State<ListeningPage> {
           alignment: Alignment.center,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
-        SafeArea(
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child:         SafeArea(
           child: Column(
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 10, 18, 4),
                 child: Align(
-                  alignment: Alignment.centerRight,
+                  alignment: AlignmentDirectional.centerEnd,
                   child: Text(
                     'استماع الزيارة بدون نت',
                     textDirection: TextDirection.rtl,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                     style: const TextStyle(
                       color: gold,
                       fontSize: 19,
@@ -1818,13 +1811,13 @@ class _ListeningPageState extends State<ListeningPage> {
                     return InkWell(
                       onTap: () { unawaited(tapFeedback()); playReader(reader); },
                       child: Align(
-                        alignment: Alignment.centerRight,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           child: Text(
                             reader['name']!,
                             textDirection: TextDirection.rtl,
-                            textAlign: TextAlign.right,
+                            textAlign: TextAlign.end,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
@@ -1846,6 +1839,7 @@ class _ListeningPageState extends State<ListeningPage> {
                 formatDuration: formatDuration,
               ),
             ],
+          ),
           ),
         ),
       ],
