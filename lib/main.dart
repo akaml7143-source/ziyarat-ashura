@@ -63,7 +63,9 @@ String appText(String key, String language) {
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
   'ماروني': Color(0xFF800020),
+  'فيروزي': Color(0xFF20B2AA),
   'بنفسجي': Color(0xFF7B2CBF),
+  'ذهبي رملي': Color(0xFFC2A46D),
   'سلفر': Color(0xFF9AA0A6),
 };
 
@@ -913,95 +915,122 @@ class _HomeScreenState extends State<HomeScreen> {
         toolbarHeight: kToolbarHeight,
         backgroundColor: appPrimary,
         centerTitle: false,
-        title: MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
-          child: Container(
-            padding: const EdgeInsetsDirectional.fromSTEB(9, 3, 5, 3),
-            decoration: BoxDecoration(
-              border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Flexible(
-                  fit: FlexFit.loose,
-                  child: Text(
-                    'زِيــــارَةُ عَاشُــــورَاءَ',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      height: 1.1,
-                    ),
+        flexibleSpace: Center(
+          child: IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 118),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'أَيْنَ الطَّالِبُ بِدَمِ الْمَقْتُولِ بِكَرْبَلَاءَ؟',
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    height: 1.1,
                   ),
                 ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints.tightFor(width: 36, height: 40),
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    unawaited(tapFeedback());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
-                    );
-                  },
-                  icon: const Icon(Icons.forum_outlined),
-                  tooltip: appText('private_message', widget.selectedLanguage),
-                ),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints.tightFor(width: 36, height: 40),
-                  padding: EdgeInsets.zero,
-                  onPressed: () {
-                    unawaited(tapFeedback());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SettingsPage(
-                          isDarkMode: widget.isDarkMode,
-                          fontSize: widget.fontSize,
-                          selectedFont: widget.selectedFont,
-                          selectedColor: widget.selectedColor,
-                          selectedLanguage: widget.selectedLanguage,
-                          onChangeLanguage: widget.onChangeLanguage,
-                          onToggleTheme: widget.onToggleTheme,
-                          onChangeFontSize: widget.onChangeFontSize,
-                          onChangeFontFamily: widget.onChangeFontFamily,
-                          onChangeThemeColor: widget.onChangeThemeColor,
-                        ),
-                      ),
-                    );
-                  },
-                  icon: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      const Icon(Icons.settings),
-                      if (updateAvailable)
-                        Positioned(
-                          top: -2,
-                          right: -2,
-                          child: Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.greenAccent,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  tooltip: appText('settings', widget.selectedLanguage),
-                ),
-              ],
+              ),
             ),
           ),
         ),
+        title: Container(
+          padding: const EdgeInsetsDirectional.fromSTEB(9, 5, 9, 5),
+          decoration: BoxDecoration(
+            border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'زِيــــارَةُ عَاشُــــورَاءَ',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              height: 1.1,
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8, top: 5, bottom: 5),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      unawaited(tapFeedback());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.forum_outlined),
+                    tooltip: appText('private_message', widget.selectedLanguage),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      unawaited(tapFeedback());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                            isDarkMode: widget.isDarkMode,
+                            fontSize: widget.fontSize,
+                            selectedFont: widget.selectedFont,
+                            selectedColor: widget.selectedColor,
+                            selectedLanguage: widget.selectedLanguage,
+                            onChangeLanguage: widget.onChangeLanguage,
+                            onToggleTheme: widget.onToggleTheme,
+                            onChangeFontSize: widget.onChangeFontSize,
+                            onChangeFontFamily: widget.onChangeFontFamily,
+                            onChangeThemeColor: widget.onChangeThemeColor,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(Icons.settings),
+                        if (updateAvailable)
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.greenAccent,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    tooltip: appText('settings', widget.selectedLanguage),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
         actionsIconTheme: const IconThemeData(color: Colors.white),
