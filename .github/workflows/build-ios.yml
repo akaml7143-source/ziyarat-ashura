@@ -1,0 +1,95 @@
+name: Build Ziyarat Ashura iOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Prepare approved Arabic fonts
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet fonttools
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          from fontTools.ttLib import TTFont
+          import re, shutil
+
+          archive = Path("assets/Amiri,Aref_Ruqaa,Cairo,Reem_Kufi,Tajawal.zip")
+          if not archive.is_file() or archive.stat().st_size == 0:
+              raise SystemExit("Approved Arabic font bundle is missing")
+          extracted = Path("assets/font_bundle")
+          output = Path("assets/selected_fonts")
+          extracted.mkdir(parents=True, exist_ok=True)
+          output.mkdir(parents=True, exist_ok=True)
+          with ZipFile(archive) as bundle:
+              for item in bundle.infolist():
+                  if not item.is_dir() and Path(item.filename).suffix.lower() in (".ttf", ".otf"):
+                      (extracted / Path(item.filename).name).write_bytes(bundle.read(item))
+
+          def family_names(path):
+              font = TTFont(path, lazy=True)
+              names = []
+              for record in font["name"].names:
+                  if record.nameID in (1, 16, 21):
+                      try: names.append(record.toUnicode())
+                      except Exception: pass
+              font.close()
+              return " ".join(names).lower()
+
+          fonts = list(extracted.glob("*.ttf")) + list(extracted.glob("*.otf"))
+          aliases = {
+              "ArefRuqaa": lambda n, f: ("aref" in n and "ruqaa" in n) or "aref" in f,
+              "Cairo": lambda n, f: "cairo" in n or "cairo" in f,
+              "ReemKufi": lambda n, f: ("reem" in n and "kufi" in n) or "reem" in f,
+              "Tajawal": lambda n, f: "tajawal" in n or "tajawal" in f,
+          }
+          for family, matcher in aliases.items():
+              matches = [p for p in fonts if matcher(family_names(p), re.sub(r"[^a-z]", "", p.stem.lower()))]
+              if not matches: raise SystemExit(f"Missing approved font: {family}")
+              shutil.copy2(matches[0], output / f"{family}.ttf")
+          for required in ("Amiri-Regular.ttf", "AmiriQuran.ttf"):
+              p = Path("assets") / required
+              if not p.is_file() or p.stat().st_size == 0: raise SystemExit(f"Missing font: {p}")
+          PY
+
+      - name: Generate iOS platform files
+        run: flutter create --platforms=ios .
+
+      - name: Configure iOS audio background mode
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" ios/Runner/Info.plist 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string audio" ios/Runner/Info.plist 2>/dev/null || true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build unsigned iOS IPA
+        run: flutter build ipa --release --no-codesign
+
+      - name: Upload iOS build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ziyarat-Ashura-iOS-Unsigned
+          path: |
+            build/ios/ipa/*.ipa
+            build/ios/archive/Runner.xcarchive
+          if-no-files-found: error
+          retention-days: 14
