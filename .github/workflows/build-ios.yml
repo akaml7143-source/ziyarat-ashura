@@ -88,8 +88,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate app launcher icons
-        run: dart run flutter_launcher_icons
+      - name: Generate iOS launcher icon only
+        run: |
+          cat > .flutter_launcher_icons-ios.yaml <<'YAML'
+          flutter_launcher_icons:
+            android: false
+            ios: true
+            image_path: "assets/ashura_icon.png"
+          YAML
+          dart run flutter_launcher_icons -f .flutter_launcher_icons-ios.yaml
 
       - name: Build unsigned iOS IPA
         run: flutter build ipa --release --no-codesign
