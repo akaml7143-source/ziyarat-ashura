@@ -308,7 +308,7 @@ Future<void> main() async {
     builder: () => AshuraAudioHandler(),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.ziyaratashura.audio',
-      androidNotificationChannelName: 'استماع زيارة عاشوراء',
+      androidNotificationChannelName: 'استماع الزيارة بدون نت',
       androidNotificationOngoing: true,
     ),
   );
@@ -691,9 +691,16 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 78,
         backgroundColor: appPrimary,
-        title: const Text('زيارة عاشوراء',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        title: Image.asset(
+          'assets/ashura_top_banner.png',
+          width: 218,
+          height: 72,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
         actions: [
           IconButton(
             onPressed: () {
@@ -1370,7 +1377,7 @@ class ListeningPage extends StatefulWidget {
     {'name': 'الحاج اســــــامة الكربلائي', 'file': 'osama_al_karbalaei.mp3'},
     {'name': 'الحاج ميـــــــــــــثم كاظم', 'file': 'maytham_kadhim.mp3'},
     {'name': 'الشيخ ميـــــــــــــثم التمار', 'file': 'maytham_al_tammar.mp3'},
-    {'name': 'الملا عبـــــــد الحجي قمبر', 'file': 'abdulhay_qambar.mp3'},
+    {'name': 'الملا عبدالحي قمبر', 'file': 'abdulhay_qambar.mp3'},
     {'name': 'الحاج علــــــــــي أبو ريحان', 'file': 'ali_abu_rayhan.mp3'},
   ];
 
@@ -1483,7 +1490,7 @@ class _ListeningPageState extends State<ListeningPage> {
                         child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         child: Text(
-                          reader['name']!,
+                          equalizeReaderName(reader['name']!),
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
