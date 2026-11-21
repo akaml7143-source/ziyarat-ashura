@@ -757,7 +757,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(12),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
@@ -767,7 +767,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'Amiri',
-                                fontSize: 23,
+                                fontSize: 26,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
                                   Shadow(
@@ -2371,7 +2371,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            constraints: const BoxConstraints(minHeight: 25),
+            constraints: const BoxConstraints(minHeight: 22),
             padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
             decoration: BoxDecoration(
               color: selected ? accent.withValues(alpha: 0.18) : Colors.transparent,
@@ -2380,7 +2380,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             ),
             alignment: Alignment.center,
             child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 8, fontWeight: FontWeight.bold, height: 1.0)),
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 9.5, fontWeight: FontWeight.bold, height: 1.0)),
           ),
         ),
       );
@@ -2406,15 +2406,15 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 104,
-                height: 104,
+                width: 132,
+                height: 132,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     // حلقة زخرفية تحيط بمئة حبّة مضيئة.
                     Container(
-                      width: 92,
-                      height: 92,
+                      width: 118,
+                      height: 118,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -2437,7 +2437,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                           ? 100
                           : litRemainder;
                       final isLit = index < litCount;
-                      const radius = 43.0;
+                      const radius = 55.0;
                       const beadSize = 3.8;
                       final dx = math.cos(angle) * radius;
                       final dy = math.sin(angle) * radius;
@@ -2467,8 +2467,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       );
                     }),
                     Container(
-                      width: 68,
-                      height: 68,
+                      width: 86,
+                      height: 86,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: pageColor,
@@ -2507,7 +2507,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                                   : (appLanguage.value == 'fa'
                                       ? 'از $stageTarget'
                                       : 'مِنْ $stageTarget'),
-                              style: TextStyle(color: mutedText, fontSize: 9),
+                              style: TextStyle(color: mutedText, fontSize: 10),
                             ),
                             if (!isMillion)
                               Text(
@@ -2515,7 +2515,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: accent,
-                                  fontSize: 8,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -2583,12 +2583,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       color: pageColor,
       child: Column(
         children: [
-          Flexible(
-            fit: FlexFit.loose,
-            child: _buildTasbeehControl(accent, textColor, pageColor),
-          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(10, 2, 10, 3),
+            padding: const EdgeInsets.fromLTRB(10, 1, 10, 2),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -2608,7 +2604,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Color(0xFF8A5A00),
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       height: 1.15,
                     ),
@@ -2617,7 +2613,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                   Text(
                     tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
                     textAlign: TextAlign.justify,
-                    style: const TextStyle(height: 1.35, fontSize: 11.5),
+                    style: const TextStyle(height: 1.35, fontSize: 12),
                   ),
                 ],
               ),
@@ -2625,7 +2621,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
+              padding: const EdgeInsets.fromLTRB(10, 1, 10, 5),
               itemCount: tasbeehHadithTexts.length,
               itemBuilder: (context, index) => Card(
                 margin: const EdgeInsets.symmetric(vertical: 5),
@@ -2641,13 +2637,13 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     children: [
                       Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 17),
                       ),
                       const Divider(),
                       SelectableText(
                         (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
                         textAlign: TextAlign.justify,
-                        style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
+                        style: TextStyle(fontSize: widget.fontSize - 1, height: 1.8, fontFamily: 'AmiriQuran'),
                       ),
                       const SizedBox(height: 9),
                       Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
@@ -2662,6 +2658,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               ),
             ),
           ),
+          _buildTasbeehControl(accent, textColor, pageColor),
         ],
       ),
     );
