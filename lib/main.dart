@@ -352,7 +352,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(savedFont) ? savedFont : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'iPhone', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -379,7 +379,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(value)) return;
+    if (!const ['Amiri', 'AmiriQuran', 'iPhone', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -412,7 +412,7 @@ class _AshuraAppState extends State<AshuraApp> {
       title: 'زيارة عاشوراء',
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
-         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
+         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont == 'iPhone' ? null : selectedFont,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
@@ -2305,11 +2305,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     items: const [
                       DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
                       DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
-                      DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text('Noto Naskh Arabic - النسخ العربي')),
+                      DropdownMenuItem<String>(value: 'iPhone', child: Text('iPhone - خط النظام (San Francisco)')),
                       DropdownMenuItem<String>(value: 'Cairo', child: Text('Cairo - خط كايرو')),
                       DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('Aref Ruqaa - خط الرقعة')),
                       DropdownMenuItem<String>(value: 'Tajawal', child: Text('Tajawal - خط تجوال الواضح')),
-                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text('Noto Kufi Arabic - الخط الكوفي الواضح')),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());
