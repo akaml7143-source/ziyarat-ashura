@@ -919,19 +919,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: IgnorePointer(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 118),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  'أَيْنَ الطَّالِبُ بِدَمِ الْمَقْتُولِ بِكَرْبَلَاءَ؟',
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    height: 1.1,
-                  ),
-                ),
+              child: Image.asset(
+                'assets/ashura_top_banner.png',
+                height: 38,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
             ),
           ),
