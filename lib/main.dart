@@ -2367,7 +2367,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
 
     Widget modeButton(String label, bool selected, VoidCallback onTap) {
       return SizedBox(
-        width: MediaQuery.of(context).size.width * 0.42,
+        width: MediaQuery.of(context).size.width * 0.36,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -2381,7 +2381,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             ),
             alignment: Alignment.center,
             child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 11, fontWeight: FontWeight.bold, height: 1.0)),
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 12, fontWeight: FontWeight.bold, height: 1.0)),
           ),
         ),
       );
@@ -2407,15 +2407,15 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 158,
-                height: 158,
+                width: 184,
+                height: 184,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     // حلقة زخرفية تحيط بمئة حبّة مضيئة.
                     Container(
-                      width: 142,
-                      height: 142,
+                      width: 166,
+                      height: 166,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -2438,8 +2438,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                           ? 100
                           : litRemainder;
                       final isLit = index < litCount;
-                      const radius = 66.0;
-                      const beadSize = 4.4;
+                      const radius = 77.0;
+                      const beadSize = 5.0;
                       final dx = math.cos(angle) * radius;
                       final dy = math.sin(angle) * radius;
                       return Transform.translate(
@@ -2468,8 +2468,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       );
                     }),
                     Container(
-                      width: 102,
-                      height: 102,
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: pageColor,
@@ -2495,21 +2495,18 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                                 formattedCount,
                                 style: TextStyle(
                                   color: textColor,
-                                  fontSize: 26,
+                                  fontSize: 30,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            Text(
-                              isMillion
-                                  ? (appLanguage.value == 'fa'
-                                      ? 'از یک میلیارد'
-                                      : 'مِنْ مِلْيَارٍ')
-                                  : (appLanguage.value == 'fa'
-                                      ? 'از $stageTarget'
-                                      : 'مِنْ $stageTarget'),
-                              style: TextStyle(color: mutedText, fontSize: 10),
-                            ),
+                            if (!isMillion)
+                              Text(
+                                appLanguage.value == 'fa'
+                                    ? 'از $stageTarget'
+                                    : 'مِنْ $stageTarget',
+                                style: TextStyle(color: mutedText, fontSize: 10),
+                              ),
                             if (!isMillion)
                               Text(
                                 zahraPhrases[zahraStageIndex],
@@ -2625,10 +2622,11 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(10, 1, 10, 5),
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 2),
               itemCount: tasbeehHadithTexts.length,
               itemBuilder: (context, index) => Card(
-                margin: const EdgeInsets.symmetric(vertical: 5),
+                margin: const EdgeInsets.symmetric(vertical: 3),
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
