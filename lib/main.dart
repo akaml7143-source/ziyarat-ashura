@@ -433,7 +433,7 @@ class _AshuraAppState extends State<AshuraApp> {
             const BottomNavigationBarThemeData(backgroundColor: Color(0xFF1F1F1F)),
       ),
       theme: ThemeData(
-         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
+         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont == 'iPhone' ? null : selectedFont,
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF9F6F0),
         cardColor: Colors.white,
