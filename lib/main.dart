@@ -2366,7 +2366,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     final mutedText = textColor.withValues(alpha: 0.68);
 
     Widget modeButton(String label, bool selected, VoidCallback onTap) {
-      return Expanded(
+      return SizedBox(
+        width: MediaQuery.of(context).size.width * 0.42,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -2380,7 +2381,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
             ),
             alignment: Alignment.center,
             child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 9.5, fontWeight: FontWeight.bold, height: 1.0)),
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 11, fontWeight: FontWeight.bold, height: 1.0)),
           ),
         ),
       );
@@ -2406,15 +2407,15 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 132,
-                height: 132,
+                width: 158,
+                height: 158,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     // حلقة زخرفية تحيط بمئة حبّة مضيئة.
                     Container(
-                      width: 118,
-                      height: 118,
+                      width: 142,
+                      height: 142,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -2437,8 +2438,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                           ? 100
                           : litRemainder;
                       final isLit = index < litCount;
-                      const radius = 55.0;
-                      const beadSize = 3.8;
+                      const radius = 66.0;
+                      const beadSize = 4.4;
                       final dx = math.cos(angle) * radius;
                       final dy = math.sin(angle) * radius;
                       return Transform.translate(
@@ -2467,8 +2468,8 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       );
                     }),
                     Container(
-                      width: 86,
-                      height: 86,
+                      width: 102,
+                      height: 102,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: pageColor,
@@ -2554,11 +2555,14 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                 ),
               ),
             ),
-          Row(children: [
-            modeButton(appLanguage.value == 'fa' ? 'تسبیح حضرت فاطمه زهرا (سلام‌الله‌علیها)' : 'تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
-            const SizedBox(width: 7),
-            modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
-          ]),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              modeButton(appLanguage.value == 'fa' ? 'تسبیح حضرت فاطمه زهرا (سلام‌الله‌علیها)' : 'تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
+              const SizedBox(width: 7),
+              modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
+            ],
+          ),
           const SizedBox(height: 2),
         ],
       ),
@@ -2604,7 +2608,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Color(0xFF8A5A00),
-                      fontSize: 18,
+                      fontSize: 19,
                       fontWeight: FontWeight.bold,
                       height: 1.15,
                     ),
@@ -2613,7 +2617,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                   Text(
                     tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
                     textAlign: TextAlign.justify,
-                    style: const TextStyle(height: 1.35, fontSize: 12),
+                    style: const TextStyle(height: 1.35, fontSize: 13),
                   ),
                 ],
               ),
@@ -2637,13 +2641,13 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                     children: [
                       Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
                         textAlign: TextAlign.start,
-                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 17),
+                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       const Divider(),
                       SelectableText(
                         (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
                         textAlign: TextAlign.justify,
-                        style: TextStyle(fontSize: widget.fontSize - 1, height: 1.8, fontFamily: 'AmiriQuran'),
+                        style: TextStyle(fontSize: widget.fontSize, height: 1.8, fontFamily: 'AmiriQuran'),
                       ),
                       const SizedBox(height: 9),
                       Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
