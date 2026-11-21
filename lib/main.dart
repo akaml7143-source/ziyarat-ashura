@@ -1004,7 +1004,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white)
+        actionsIconTheme: const IconThemeData(color: Colors.white),
       ),
       body: IndexedStack(index: selectedIndex, children: pages),
       bottomNavigationBar: SafeArea(
@@ -1779,7 +1779,7 @@ class _ListeningPageState extends State<ListeningPage> {
         ),
         Directionality(
           textDirection: TextDirection.rtl,
-          child:         SafeArea(
+          child: SafeArea(
           child: Column(
             children: [
               Padding(
