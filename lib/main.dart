@@ -587,7 +587,8 @@ class _AshuraAppState extends State<AshuraApp> {
       title: appText('app', selectedLanguage),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
-         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
+        iconTheme: const IconThemeData(size: 22),
+        fontFamily: selectedFont,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
