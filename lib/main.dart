@@ -301,26 +301,47 @@ Future<void> restoreSalawatReminder() async {
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  audioHandler = await AudioService.init(
-    builder: () => AshuraAudioHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.ziyaratashura.audio',
-      androidNotificationChannelName: 'استماع الزيارة بدون نت',
-      androidNotificationOngoing: true,
-    ),
-  );
+
+  // لا نسمح لفشل خدمة اختيارية بمنع ظهور واجهة التطبيق.
+  var firebaseReady = false;
   try {
-    await initNotifications();
-    await initUpdateMessaging();
-    // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
-    await rescheduleSavedReminders();
-    await restoreSalawatReminder();
-  } catch (error) {
-    debugPrint('تعذر تهيئة الإشعارات: $error');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 15));
+    firebaseReady = true;
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة Firebase عند التشغيل: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
+
+  try {
+    audioHandler = await AudioService.init(
+      builder: () => AshuraAudioHandler(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.ziyaratashura.audio',
+        androidNotificationChannelName: 'استماع الزيارة بدون نت',
+        androidNotificationOngoing: true,
+      ),
+    ).timeout(const Duration(seconds: 15));
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة خدمة الصوت؛ سيتم استخدام مشغل محلي: $error');
+    debugPrintStack(stackTrace: stackTrace);
+    audioHandler = AshuraAudioHandler();
+  }
+
+  try {
+    await initNotifications().timeout(const Duration(seconds: 12));
+    if (firebaseReady) {
+      await initUpdateMessaging().timeout(const Duration(seconds: 12));
+    }
+    // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
+    await rescheduleSavedReminders().timeout(const Duration(seconds: 12));
+    await restoreSalawatReminder().timeout(const Duration(seconds: 12));
+  } catch (error, stackTrace) {
+    debugPrint('تعذر إكمال تهيئة الإشعارات عند التشغيل: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
   runApp(const AshuraApp());
 }
 
