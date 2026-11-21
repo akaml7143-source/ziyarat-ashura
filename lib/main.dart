@@ -352,7 +352,7 @@ class _AshuraAppState extends State<AshuraApp> {
       fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
       entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
       final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'ReemKufi', 'Tajawal'].contains(savedFont) ? savedFont : 'Amiri';
+      selectedFont = const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(savedFont) ? savedFont : 'Amiri';
       final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
       selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
       loaded = true;
@@ -379,7 +379,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'ReemKufi', 'Tajawal'].contains(value)) return;
+    if (!const ['Amiri', 'AmiriQuran', 'Cairo', 'ArefRuqaa', 'Tajawal'].contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
