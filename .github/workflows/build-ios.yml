@@ -98,6 +98,21 @@ jobs:
           YAML
           dart run flutter_launcher_icons -f .flutter_launcher_icons-ios.yaml
 
+      - name: Disable Xcode code signing for unsigned build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p = Path("ios/Runner.xcodeproj/project.pbxproj")
+          s = p.read_text()
+          settings = 'CODE_SIGNING_ALLOWED = NO; CODE_SIGNING_REQUIRED = NO; CODE_SIGN_IDENTITY = "";'
+          s, count = re.subn(r'(buildSettings = \{)', r'\1\n\t\t\t\t' + settings, s)
+          if count == 0:
+              raise SystemExit("Could not locate Xcode build settings to disable signing")
+          p.write_text(s)
+          print(f"Disabled signing in {count} Xcode build configurations")
+          PY
+
       - name: Build unsigned iOS app
         run: flutter build ios --release --no-codesign
 
