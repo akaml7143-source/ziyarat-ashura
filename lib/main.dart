@@ -14,27 +14,59 @@ import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
+import 'app_localization.dart';
+import 'persian_content.dart';
 
 const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
 const Color darkBackground = Color(0xFF121212);
 
+const List<String> supportedFontFamilies = ['Amiri', 'AmiriQuran', 'ArefRuqaa', 'Cairo', 'ReemKufi', 'Tajawal'];
+
+String appText(String key, String language) {
+  const values = <String, Map<String, String>>{
+    'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا'},
+    'settings': {'ar': 'الإعدادات', 'fa': 'تنظیمات'},
+    'language': {'ar': 'لغة التطبيق', 'fa': 'زبان برنامه'},
+    'arabic': {'ar': 'العربية', 'fa': 'عربی'},
+    'persian': {'ar': 'الفارسية', 'fa': 'فارسی'},
+    'reminders': {'ar': 'منبه الزيارة', 'fa': 'یادآور زیارت'},
+    'reminders_desc': {'ar': 'تنبيه الزيارة والصلاة على محمد وآل محمد', 'fa': 'یادآوری زیارت و صلوات بر محمد و آل محمد'},
+    'night': {'ar': 'الوضع الليلي', 'fa': 'حالت شب'},
+    'enabled': {'ar': 'مفعّل', 'fa': 'فعال'},
+    'disabled': {'ar': 'غير مفعّل', 'fa': 'غیرفعال'},
+    'color': {'ar': 'تغيير لون التطبيق', 'fa': 'تغییر رنگ برنامه'},
+    'font': {'ar': 'نوع الخط', 'fa': 'نوع قلم'},
+    'font_size': {'ar': 'حجم الخط', 'fa': 'اندازه قلم'},
+    'current_size': {'ar': 'الحجم الحالي', 'fa': 'اندازه فعلی'},
+    'about': {'ar': 'حول التطبيق', 'fa': 'درباره برنامه'},
+    'about_desc': {'ar': 'معلومات التطبيق والإهداء وحقوق التصميم', 'fa': 'اطلاعات برنامه، تقدیم‌نامه و حقوق طراحی'},
+    'updates': {'ar': 'التحديثات', 'fa': 'به‌روزرسانی‌ها'},
+    'updates_desc': {'ar': 'آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق', 'fa': 'آخرین اخبار و اعلان‌ها و قابلیت‌های جدید برنامه'},
+    'private_message': {'ar': 'المراسلة الخاصة', 'fa': 'پیام خصوصی'},
+    'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
+    'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
+    'listen': {'ar': 'اِسْتِمَاعُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'پخش زیارت'},
+    'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
+    'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'نیکی‌ها'},
+  };
+  return values[key]?[language] ?? values[key]?['ar'] ?? tr(key);
+}
+
+
 const Map<String, Color> appColors = {
   'أخضر': Color(0xFF26734D),
-  'نيلي': Color(0xFF303F9F),
   'ماروني': Color(0xFF800020),
-  'فيروزي': Color(0xFF40BFC1),
-  'ذهبي رملي': Color(0xFFC6A15B),
+  'فيروزي': Color(0xFF20B2AA),
   'بنفسجي': Color(0xFF7B2CBF),
+  'ذهبي رملي': Color(0xFFC2A46D),
   'سلفر': Color(0xFF9AA0A6),
-  'تركوازي': Color(0xFF009FA3),
-  'برغندي': Color(0xFF5A1020),
-  'هافان': Color(0xFF8D5A3B),
 };
 
 final FlutterLocalNotificationsPlugin notifications = FlutterLocalNotificationsPlugin();
@@ -151,11 +183,27 @@ Future<void> initNotifications() async {
   exactAlarmsAllowed = await canScheduleExactAlarms();
 }
 
+
+Future<void> subscribeToUpdateLanguage(String language) async {
+  if (!Firebase.apps.isNotEmpty) return;
+  try {
+    final messaging = FirebaseMessaging.instance;
+    for (final code in const ['ar', 'fa']) {
+      if (code == language) {
+        await messaging.subscribeToTopic('app_updates_$code');
+      } else {
+        await messaging.unsubscribeFromTopic('app_updates_$code');
+      }
+    }
+  } catch (error) {
+    debugPrint('تعذر تحديث اشتراك إشعارات اللغة: $error');
+  }
+}
+
 Future<void> initUpdateMessaging() async {
   try {
     final messaging = FirebaseMessaging.instance;
     await messaging.requestPermission(alert: true, badge: true, sound: true);
-    await messaging.subscribeToTopic('app_updates');
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final notice = message.notification;
       if (notice == null) return;
@@ -219,21 +267,45 @@ Future<bool> ensureNotificationPermissions() async {
   return true;
 }
 Future<void> showReminderTestNotification() async {
-  await notifications.show(90999, 'زيارة عاشوراء',
-    'هل زرت الإمام الحسين عليه السلام هذا اليوم؟', reminderNotificationDetails);
+  await notifications.show(90999, tr('زيارة عاشوراء'),
+    tr('هل زرت الإمام الحسين (ع) هذا اليوم؟'), reminderNotificationDetails);
 }
 class AshuraReminder {
-  final int id; final int hour; final int minute; final List<int> weekdays; final bool enabled;
-  const AshuraReminder({required this.id, required this.hour, required this.minute, required this.weekdays, required this.enabled});
-  Map<String, dynamic> toJson() => {'id': id, 'hour': hour, 'minute': minute, 'weekdays': weekdays, 'enabled': enabled};
+  final int id;
+  final int hour;
+  final int minute;
+  final List<int> weekdays;
+  final bool enabled;
+  final String kind; // visit | salawat
+
+  const AshuraReminder({
+    required this.id,
+    required this.hour,
+    required this.minute,
+    required this.weekdays,
+    required this.enabled,
+    this.kind = 'visit',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id, 'hour': hour, 'minute': minute,
+    'weekdays': weekdays, 'enabled': enabled, 'kind': kind,
+  };
+
   factory AshuraReminder.fromJson(Map<String, dynamic> json) => AshuraReminder(
-    id: (json['id'] as num).toInt(), hour: (json['hour'] as num).toInt(), minute: (json['minute'] as num).toInt(),
+    id: (json['id'] as num).toInt(),
+    hour: (json['hour'] as num).toInt(),
+    minute: (json['minute'] as num).toInt(),
     weekdays: (json['weekdays'] as List).map((v) => (v as num).toInt()).where((d) => d >= 1 && d <= 7).toList(),
-    enabled: json['enabled'] == true);
+    enabled: json['enabled'] == true,
+    kind: json['kind'] == 'salawat' ? 'salawat' : 'visit',
+  );
+
   AshuraReminder copyWith({int? hour, int? minute, List<int>? weekdays, bool? enabled}) => AshuraReminder(
-    id: id, hour: hour ?? this.hour, minute: minute ?? this.minute, weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled);
+    id: id, hour: hour ?? this.hour, minute: minute ?? this.minute,
+    weekdays: weekdays ?? this.weekdays, enabled: enabled ?? this.enabled, kind: kind,
+  );
 }
-const String reminderMessage = 'عندما يتّسع يومك لزيارة عاشوراء رغم ضيق الوقت، فهذا التوفيق بعينه';
 int _notificationId(int reminderId, int weekday) => reminderId * 10 + weekday;
 AndroidScheduleMode get _scheduleMode => exactAlarmsAllowed ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
 tz.TZDateTime _nextWeekdayTime(int weekday, int hour, int minute) {
@@ -248,12 +320,22 @@ Future<void> cancelReminderNotifications(AshuraReminder reminder) async {
 Future<void> scheduleReminder(AshuraReminder reminder) async {
   await cancelReminderNotifications(reminder);
   if (!reminder.enabled || reminder.weekdays.isEmpty) return;
+  final isSalawat = reminder.kind == 'salawat';
+  final title = tr(isSalawat ? 'الصلاة على محمد وآل محمد' : 'زيارة عاشوراء');
+  final body = tr(isSalawat
+      ? 'هل صليت على محمد وآل محمد هذا اليوم؟'
+      : 'هل زرت الإمام الحسين (ع) هذا اليوم؟');
   for (final weekday in reminder.weekdays) {
-    await notifications.zonedSchedule(_notificationId(reminder.id, weekday), 'زيارة عاشوراء',
-      reminderMessage, _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
-      reminderNotificationDetails, androidScheduleMode: _scheduleMode,
+    await notifications.zonedSchedule(
+      _notificationId(reminder.id, weekday),
+      title,
+      body,
+      _nextWeekdayTime(weekday, reminder.hour, reminder.minute),
+      isSalawat ? salawatNotificationDetails : reminderNotificationDetails,
+      androidScheduleMode: _scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime);
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+    );
   }
 }
 Future<List<AshuraReminder>> loadSavedReminders() async {
@@ -266,8 +348,53 @@ Future<void> saveReminders(List<AshuraReminder> reminders) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('ashura_reminders_v2', jsonEncode(reminders.map((v) => v.toJson()).toList()));
 }
+Future<List<AshuraReminder>> migrateLegacyReminders() async {
+  final prefs = await SharedPreferences.getInstance();
+  var saved = await loadSavedReminders();
+  var nextId = saved.isEmpty
+      ? 2000
+      : saved.map((item) => item.id).reduce((a, b) => a > b ? a : b);
+  var changed = false;
+
+  if ((prefs.getBool('ashura_reminder_enabled') ?? false) &&
+      !saved.any((item) => item.kind == 'visit')) {
+    saved = [
+      ...saved,
+      AshuraReminder(
+        id: ++nextId,
+        hour: prefs.getInt('ashura_reminder_hour') ?? 20,
+        minute: prefs.getInt('ashura_reminder_minute') ?? 0,
+        weekdays: const [1, 2, 3, 4, 5, 6, 7],
+        enabled: true,
+        kind: 'visit',
+      ),
+    ];
+    changed = true;
+  }
+
+  if ((prefs.getBool('salawat_reminder_enabled') ?? false) &&
+      !saved.any((item) => item.kind == 'salawat')) {
+    saved = [
+      ...saved,
+      AshuraReminder(
+        id: ++nextId,
+        hour: prefs.getInt('salawat_reminder_hour') ?? 9,
+        minute: prefs.getInt('salawat_reminder_minute') ?? 0,
+        weekdays: const [1, 2, 3, 4, 5, 6, 7],
+        enabled: true,
+        kind: 'salawat',
+      ),
+    ];
+    changed = true;
+  }
+
+  if (changed) await saveReminders(saved);
+  return saved;
+}
 Future<void> rescheduleSavedReminders() async {
-  for (final reminder in await loadSavedReminders()) {
+  await notifications.cancel(salawatReminderNotificationId);
+  await notifications.cancel(1001); // معرّف منبّه الزيارة القديم
+  for (final reminder in await migrateLegacyReminders()) {
     try { await scheduleReminder(reminder); } catch (error) { debugPrint('تعذر إعادة جدولة المنبّه ${reminder.id}: $error'); }
   }
 }
@@ -301,26 +428,46 @@ Future<void> restoreSalawatReminder() async {
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  audioHandler = await AudioService.init(
-    builder: () => AshuraAudioHandler(),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.ziyaratashura.audio',
-      androidNotificationChannelName: 'استماع زيارة عاشوراء',
-      androidNotificationOngoing: true,
-    ),
-  );
+
+  // لا نسمح لفشل خدمة خارجية بمنع ظهور شاشة الدخول.
+  var firebaseReady = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseReady = true;
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة Firebase؛ سيعمل التطبيق بالوظائف المحلية: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    audioHandler = await AudioService.init(
+      builder: () => AshuraAudioHandler(),
+      config: const AudioServiceConfig(
+        androidNotificationChannelId: 'com.ziyaratashura.audio',
+        androidNotificationChannelName: 'استماع زيارة عاشوراء',
+        androidNotificationOngoing: true,
+      ),
+    );
+  } catch (error, stackTrace) {
+    debugPrint('تعذر تهيئة خدمة الصوت بالخلفية: $error');
+    debugPrintStack(stackTrace: stackTrace);
+    // يبقى مشغل الصوت داخل التطبيق متاحاً حتى إذا تعذر تسجيل خدمة الخلفية.
+    audioHandler = AshuraAudioHandler();
+  }
+
   try {
     await initNotifications();
-    await initUpdateMessaging();
-    // تهيئة المنطقة الزمنية وإعادة جدولة المنبّهات المحفوظة.
+    if (firebaseReady) {
+      await initUpdateMessaging();
+    }
     await rescheduleSavedReminders();
-    await restoreSalawatReminder();
-  } catch (error) {
+  } catch (error, stackTrace) {
     debugPrint('تعذر تهيئة الإشعارات: $error');
+    debugPrintStack(stackTrace: stackTrace);
   }
+
   runApp(const AshuraApp());
 }
 
@@ -332,11 +479,12 @@ class AshuraApp extends StatefulWidget {
 
 class _AshuraAppState extends State<AshuraApp> {
   bool isDarkMode = true;
-  double fontSize = 20;
+  double fontSize = 18;
   bool entered = false;
   bool loaded = false;
   String selectedFont = 'Amiri';
   String selectedColor = 'أخضر';
+  String selectedLanguage = 'ar';
 
   @override
   void initState() {
@@ -345,20 +493,29 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> loadSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      isDarkMode = prefs.getBool('ashura_dark') ?? false;
-      fontSize = (prefs.getDouble('ashura_font') ?? 20).clamp(16.0, 36.0).toDouble();
-      entered = false; // شاشة البداية تظهر عند كل تشغيل للتطبيق.
-      final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-      selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
-      final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
-      selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
-      loaded = true;
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return;
+      setState(() {
+        isDarkMode = prefs.getBool('ashura_dark') ?? false;
+        fontSize = (prefs.getDouble('ashura_font') ?? 18).clamp(16.0, 36.0).toDouble();
+        entered = false;
+        final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
+        selectedFont = supportedFontFamilies.contains(savedFont) ? savedFont : 'Amiri';
+        final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
+        selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
+        final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
+        selectedLanguage = const ['ar', 'fa'].contains(savedLanguage) ? savedLanguage : 'ar';
+        appLanguage.value = selectedLanguage;
+        unawaited(subscribeToUpdateLanguage(selectedLanguage));
+        loaded = true;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('تعذر تحميل الإعدادات المحفوظة؛ سيتم فتح التطبيق بالإعدادات الافتراضية: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) setState(() => loaded = true);
+    }
 
-    // إعادة جدولة جميع المنبّهات المحفوظة عند فتح التطبيق.
     try {
       await rescheduleSavedReminders();
     } catch (error) {
@@ -379,7 +536,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(value)) return;
+    if (!supportedFontFamilies.contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -390,6 +547,16 @@ class _AshuraAppState extends State<AshuraApp> {
     setState(() => selectedColor = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_theme_color', value);
+  }
+
+  Future<void> changeLanguage(String value) async {
+    if (!const ['ar', 'fa'].contains(value)) return;
+    appLanguage.value = value;
+    unawaited(subscribeToUpdateLanguage(value));
+    setState(() => selectedLanguage = value);
+    unawaited(rescheduleSavedReminders());
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('ashura_language', value);
   }
 
   Future<void> enterApp() async {
@@ -409,10 +576,17 @@ class _AshuraAppState extends State<AshuraApp> {
     final primaryColor = appColors[selectedColor] ?? green;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'زيارة عاشوراء',
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: TextScaler.linear(fontSize / 18),
+        ),
+        child: child ?? const SizedBox.shrink(),
+      ),
+      title: appText('app', selectedLanguage),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       darkTheme: ThemeData(
-         iconTheme: const IconThemeData(size: 22),        fontFamily: selectedFont,
+        iconTheme: const IconThemeData(size: 22),
+        fontFamily: selectedFont,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: darkBackground,
         cardColor: const Color(0xFF1E1E1E),
@@ -461,6 +635,8 @@ class _AshuraAppState extends State<AshuraApp> {
                 fontSize: fontSize,
                 selectedFont: selectedFont,
                 selectedColor: selectedColor,
+                selectedLanguage: selectedLanguage,
+                onChangeLanguage: changeLanguage,
                 onToggleTheme: toggleTheme,
                 onChangeFontSize: changeFontSize,
                 onChangeFontFamily: changeFontFamily,
@@ -580,18 +756,17 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Padding(
-                          padding: EdgeInsets.all(14),
+                          padding: const EdgeInsets.all(14),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              'تَفَضَّلْ بِالدُّخُولِ',
+                              tr('تَفَضَّلْ بِالدُّخُولِ'),
                               textAlign: TextAlign.center,
                               maxLines: 1,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontFamily: 'Amiri',
                                 fontSize: 23,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
@@ -611,10 +786,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
-    );
+    ),
+  );
   }
 }
 class _WelcomeOrnament extends StatelessWidget {
@@ -643,11 +818,46 @@ class _WelcomeOrnament extends StatelessWidget {
   }
 }
 
+
+Future<bool> checkPublishedUpdateAvailable() async {
+  HttpClient? client;
+  try {
+    final info = await PackageInfo.fromPlatform();
+    client = HttpClient()..connectionTimeout = const Duration(seconds: 12);
+    final request = await client.getUrl(Uri.parse(
+      'https://api.github.com/repos/akaml7143-source/ziyarat-ashura/releases/latest',
+    ));
+    request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github+json');
+    request.headers.set(HttpHeaders.userAgentHeader, 'Ziyarat-Ashura-App');
+    final response = await request.close();
+    if (response.statusCode != 200) return false;
+    final data = jsonDecode(await response.transform(utf8.decoder).join()) as Map<String, dynamic>;
+    final latest = (data['tag_name'] as String? ?? '').replaceFirst(RegExp(r'^v'), '').split('+').first;
+    final current = info.version.split('+').first;
+    List<int> parts(String value) => value.split('.').map((part) =>
+      int.tryParse(part.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0).toList();
+    final a = parts(current), b = parts(latest);
+    for (var i = 0; i < (a.length > b.length ? a.length : b.length); i++) {
+      final x = i < a.length ? a[i] : 0;
+      final y = i < b.length ? b[i] : 0;
+      if (y != x) return y > x;
+    }
+    return false;
+  } catch (error) {
+    debugPrint('تعذر التحقق من وجود تحديث: $error');
+    return false;
+  } finally {
+    client?.close(force: true);
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   final bool isDarkMode;
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -659,6 +869,8 @@ class HomeScreen extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -671,64 +883,149 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int selectedIndex = 0;
+  bool updateAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkPublishedUpdateAvailable().then((available) {
+      if (mounted) setState(() => updateAvailable = available);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final appPrimary = Theme.of(context).colorScheme.primary;
     final pages = [
-      ZiyaratPage(fontSize: widget.fontSize),
-      FavorsPage(fontSize: widget.fontSize),
-      ListeningPage(fontSize: widget.fontSize),
-      AbbasVisitPage(fontSize: widget.fontSize),
-      TasbeehPage(fontSize: widget.fontSize, selectedColor: widget.selectedColor),
+      ZiyaratPage(fontSize: 18),
+      FavorsPage(fontSize: 18),
+      ListeningPage(fontSize: 18),
+      AbbasVisitPage(fontSize: 18),
+      TasbeehPage(fontSize: 18, selectedColor: widget.selectedColor),
     ];
-    const labels = [
-      'زِيَارَةُ عَاشُورَاءَ',
-      'فَضْلُ زِيَارَةِ عَاشُورَاءَ',
-      'اِسْتِمَاعُ الزِّيَارَةِ',
-      'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)',
-      'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ',
+    final labels = [
+      appText('visit_ashura', widget.selectedLanguage),
+      appText('visit_fadl', widget.selectedLanguage),
+      appText('listen', widget.selectedLanguage),
+      appText('abbas', widget.selectedLanguage),
+      appText('tasbeeh', widget.selectedLanguage),
     ];
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: kToolbarHeight,
         backgroundColor: appPrimary,
-        title: const Text('زيارة عاشوراء',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            onPressed: () {
-              unawaited(tapFeedback());
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
-              );
-            },
-            icon: const Icon(Icons.forum_outlined),
-            tooltip: 'المراسلة الخاصة',
-          ),
-          IconButton(
-            onPressed: () {
-              unawaited(tapFeedback());
-              Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SettingsPage(
-                  isDarkMode: widget.isDarkMode,
-                  fontSize: widget.fontSize,
-                  selectedFont: widget.selectedFont,
-                  selectedColor: widget.selectedColor,
-                  onToggleTheme: widget.onToggleTheme,
-                  onChangeFontSize: widget.onChangeFontSize,
-                  onChangeFontFamily: widget.onChangeFontFamily,
-                  onChangeThemeColor: widget.onChangeThemeColor,
-                ),
+        centerTitle: false,
+        flexibleSpace: Center(
+          child: IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 118),
+              child: Image.asset(
+                'assets/ashura_top_banner.png',
+                height: 38,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
-            );
-            },
-            icon: const Icon(Icons.settings),
-            tooltip: 'الإعدادات',
+            ),
+          ),
+        ),
+        title: Container(
+          padding: const EdgeInsetsDirectional.fromSTEB(9, 5, 9, 5),
+          decoration: BoxDecoration(
+            border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Text(
+            'زِيــــارَةُ عَاشُــــورَاءَ',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              height: 1.1,
+            ),
+          ),
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 8, top: 5, bottom: 5),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: gold.withValues(alpha: 0.85), width: 1.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      unawaited(tapFeedback());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MessagingEntryPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.forum_outlined),
+                    tooltip: appText('private_message', widget.selectedLanguage),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(width: 36, height: 40),
+                    padding: EdgeInsets.zero,
+                    onPressed: () {
+                      unawaited(tapFeedback());
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SettingsPage(
+                            isDarkMode: widget.isDarkMode,
+                            fontSize: widget.fontSize,
+                            selectedFont: widget.selectedFont,
+                            selectedColor: widget.selectedColor,
+                            selectedLanguage: widget.selectedLanguage,
+                            onChangeLanguage: widget.onChangeLanguage,
+                            onToggleTheme: widget.onToggleTheme,
+                            onChangeFontSize: widget.onChangeFontSize,
+                            onChangeFontFamily: widget.onChangeFontFamily,
+                            onChangeThemeColor: widget.onChangeThemeColor,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(Icons.settings),
+                        if (updateAvailable)
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.greenAccent,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 1.2),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    tooltip: appText('settings', widget.selectedLanguage),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
       ),
       body: IndexedStack(index: selectedIndex, children: pages),
       bottomNavigationBar: SafeArea(
@@ -748,7 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () { unawaited(tapFeedback()); setState(() => selectedIndex = index); },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 190),
-                      height: 98,
+                      height: 82,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
                       decoration: BoxDecoration(
@@ -765,7 +1062,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             softWrap: true,
                             maxLines: 4,
                             overflow: TextOverflow.clip,
-                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1.05),
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900, height: 1.12),
                           ),
                         ),
                       ),
@@ -799,12 +1096,14 @@ class SectionCard extends StatelessWidget {
   final String content;
   final double fontSize;
   final bool highlight;
+  final bool showTitle;
   const SectionCard({
     super.key,
     required this.title,
     required this.content,
     required this.fontSize,
     this.highlight = false,
+    this.showTitle = true,
   });
 
   @override
@@ -820,9 +1119,11 @@ class SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold))),
-            const Divider(),
-            SelectableText.rich(highlightImamHussein(content, TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
+            if (showTitle) ...[
+              Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 17, height: 1.35, fontWeight: FontWeight.bold, color: Color(0xFF8A5A00)))),
+              const Divider(),
+            ],
+            SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85,))),
           ],
         ),
       ),
@@ -852,22 +1153,25 @@ class NajahPoemCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'النَّجَاةُ بِزِيَارَةِ الإِمَامِ الحُسَيْنِ (عَلَيْهِ السَّلَامُ)',
+              'النَّجَاةُ بِزِيَارَةِ سَيِّدِ الشُّهَدَاءِ (عَلَيْهِ السَّلَامُ)',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold, height: 1.7),
+              style: TextStyle(
+                fontSize: (fontSize * 0.82).clamp(16.0, 22.0),
+                fontWeight: FontWeight.bold,
+                color: gold,
+              ),
             ),
-            const Divider(height: 22),
+            const SizedBox(height: 8),
             Text.rich(
               highlightImamHussein(
-                poem,
-                TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9, fontFamily: 'AmiriQuran'),
+                persianContent(poem),
+                TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9,),
               ),
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)',
+            Text(tr('للشاعر جمال الدين علي بن عبدالعزيز الخليعي الموصلي (المتوفى سنة ٥٨٠ للهجرة)'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
             ),
@@ -896,6 +1200,7 @@ class ZiyaratPage extends StatelessWidget {
       'اللَّهُمَّ الْعَنْ أَبَا سُفْيَانَ وَمُعَاوِيَةَ وَيَزِيدَ بْنَ مُعَاوِيَةَ، عَلَيْهِمْ مِنْكَ اللَّعْنَةُ أَبَدَ الْآبِدِينَ. وَهَذَا يَوْمٌ فَرِحَتْ بِهِ آلُ زِيَادٍ وَآلُ مَرْوَانَ بِقَتْلِهِمُ الْحُسَيْنَ صَلَوَاتُ اللهِ عَلَيْهِ. اللَّهُمَّ فَضَاعِفْ عَلَيْهِمُ اللَّعْنَ مِنْكَ وَالْعَذَابَ الْأَلِيمَ.\n\n'
       'اللَّهُمَّ إِنِّي أَتَقَرَّبُ إِلَيْكَ فِي هَذَا الْيَوْمِ وَفِي مَوْقِفِي هَذَا وَأَيَّامِ حَيَاتِي بِالْبَرَاءَةِ مِنْهُمْ وَاللَّعْنَةِ عَلَيْهِمْ، وَبِالْمُوَالَاةِ لِنَبِيِّكَ وَآلِ نَبِيِّكَ عَلَيْهِ وَعَلَيْهِمُ السَّلَامُ.';
 
+
   static const String cursePhrase =
       'اللَّهُمَّ الْعَنْ أَوَّلَ ظَالِمٍ ظَلَمَ حَقَّ مُحَمَّدٍ وَآلِ مُحَمَّدٍ وَآخِرَ تَابِعٍ لَهُ عَلَى ذَلِكَ. اللَّهُمَّ الْعَنِ الْعِصَابَةَ الَّتِي جَاهَدَتِ الْحُسَيْنَ وَشَايَعَتْ وَبَايَعَتْ وَتَابَعَتْ عَلَى قَتْلِهِ، اللَّهُمَّ الْعَنْهُمْ جَمِيعاً.';
   static const String salamPhrase =
@@ -912,35 +1217,35 @@ class ZiyaratPage extends StatelessWidget {
       children: [
         NajahPoemCard(fontSize: fontSize),
         const SizedBox(height: 12),
-        SectionCard(title: 'نية الزيارة', content: intentionText,
+        SectionCard(title: tr('نية الزيارة'), content: intentionText,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
-        SectionCard(title: 'نص زيارة عاشوراء كاملاً', content: visitText,
+        SectionCard(title: tr('نص زيارة عاشوراء كاملاً'), content: visitText,
             fontSize: fontSize),
         const SizedBox(height: 12),
         CounterWidget(
           storageKey: 'ashura_lعن_counter',
-          title: 'ثم تقول (100 مرّة) - اللعن',
+          title: tr('ثم تقول (100 مرّة) - اللعن'),
           phrase: cursePhrase,
           fontSize: fontSize,
         ),
         const SizedBox(height: 12),
         CounterWidget(
           storageKey: 'ashura_salam_counter',
-          title: 'ثم تقول (100 مرّة) - السلام',
+          title: tr('ثم تقول (100 مرّة) - السلام'),
           phrase: salamPhrase,
           fontSize: fontSize,
         ),
         const SizedBox(height: 12),
-        SectionCard(title: 'بعد المئة', content: afterHundred,
+        SectionCard(title: tr('بعد المئة'), content: afterHundred,
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
-        SectionCard(title: 'سجدة الزيارة', content: 'ثم تسجد وتقول:\n\n$sajda',
+        SectionCard(title: tr('سجدة الزيارة'), content: appLanguage.value == 'fa' ? 'سپس سجده کن و بگو:\n\n${persianContent(sajda)}' : 'ثم تسجد وتقول:\n\n$sajda',
             fontSize: fontSize, highlight: true),
         const SizedBox(height: 12),
         CompletedVisitCounter(),
         const SizedBox(height: 20),
-        const Text('المصدر: مفاتيح الجنان، زيارة عاشوراء.',
+        Text(tr('المصدر: مفاتيح الجنان، زيارة عاشوراء.'),
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey)),
       ],
@@ -983,7 +1288,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
     if (!mounted) return;
     setState(() => completedVisits = nextCount);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تقبّل الله زيارتكم، تم تسجيل القراءة')),
+      SnackBar(content: Text(tr('تقبّل الله زيارتكم، تم تسجيل القراءة'))),
     );
   }
 
@@ -991,16 +1296,16 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('إعادة العداد'),
-        content: const Text('هل تريد تصفير عدد الزيارات المكتملة؟'),
+        title: Text(tr('إعادة العداد')),
+        content: Text(tr('هل تريد تصفير عدد الزيارات المكتملة؟')),
         actions: [
           TextButton(
             onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, false); },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           TextButton(
             onPressed: () { unawaited(tapFeedback()); Navigator.pop(dialogContext, true); },
-            child: const Text('تصفير'),
+            child: Text(tr('تصفير')),
           ),
         ],
       ),
@@ -1023,8 +1328,8 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text(
-              'عداد الزيارات المكتملة',
+            Text(
+              tr('عداد الزيارات المكتملة'),
               style: TextStyle(
                 color: gold,
                 fontSize: 19,
@@ -1032,15 +1337,15 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.',
+            Text(
+              tr('بعد إكمال قراءة الزيارة مع فقراتها، اضغط الزر لتسجيلها.'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             isLoading
                 ? const CircularProgressIndicator()
                 : Text(
-                    '$completedVisits زيارة مكتملة',
+                    trFormat(r'$completedVisits زيارة مكتملة', {r'$completedVisits': '$completedVisits'}),
                     style: const TextStyle(
                       fontSize: 25,
                       color: gold,
@@ -1053,7 +1358,7 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               child: ElevatedButton.icon(
                 onPressed: isLoading ? null : () { unawaited(tapFeedback()); markVisitCompleted(); },
                 icon: const Icon(Icons.check_circle_outline),
-                label: const Text('أتممت قراءة الزيارة كاملة'),
+                label: Text(tr('أتممت قراءة الزيارة كاملة')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,
@@ -1062,11 +1367,11 @@ class _CompletedVisitCounterState extends State<CompletedVisitCounter> {
               ),
             ),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
                 onPressed: isLoading || completedVisits == 0 ? null : () { unawaited(tapFeedback()); resetCount(); },
                 icon: const Icon(Icons.refresh, size: 22),
-                label: const Text('تصفير العداد'),
+                label: Text(tr('تصفير العداد')),
               ),
             ),
           ],
@@ -1140,7 +1445,7 @@ class _CounterWidgetState extends State<CounterWidget> {
             Text(widget.title, style: const TextStyle(fontSize: 19,
                 fontWeight: FontWeight.bold, color: gold)),
             const SizedBox(height: 12),
-            SelectableText.rich(highlightImamHussein(widget.phrase,
+            SelectableText.rich(highlightImamHussein(persianContent(widget.phrase),
                 TextStyle(fontSize: widget.fontSize, height: 1.9)), textAlign: TextAlign.center),
             const SizedBox(height: 18),
             Text('$count / 100', style: const TextStyle(fontSize: 25,
@@ -1160,16 +1465,16 @@ class _CounterWidgetState extends State<CounterWidget> {
                 ElevatedButton.icon(
                   onPressed: count < 100 ? () { unawaited(tapFeedback()); increment(); } : null,
                   icon: const Icon(Icons.touch_app),
-                  label: Text('العدد: $count'),
+                  label: Text(trFormat(r'العدد: $count', {r'$count': '$count'})),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
                 ),
                 IconButton(onPressed: () { unawaited(tapFeedback()); reset(); }, icon: const Icon(Icons.refresh),
-                    tooltip: 'إعادة العداد'),
+                    tooltip: tr('إعادة العداد')),
               ],
             ),
             if (count == 100)
-              const Text('أحسنت، اكتمل العدد',
+              Text(tr('أحسنت، اكتمل العدد'),
                   style: TextStyle(color: Colors.green,
                       fontWeight: FontWeight.bold)),
           ],
@@ -1182,14 +1487,52 @@ class _CounterWidgetState extends State<CounterWidget> {
 class FavorsPage extends StatelessWidget {
   final double fontSize;
   const FavorsPage({super.key, required this.fontSize});
+
+  static const String _fadlHadith1Fa = r'''ریان بن شبیب می‌گوید: در نخستین روز ماه محرم بر امام رضا (علیه‌السلام) وارد شدم. حضرت پرسید: ای پسر شبیب، روزه‌ای؟ گفتم: نه. فرمود: این روزی است که زکریا (علیه‌السلام) پروردگارش را خواند و گفت: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾. خداوند دعایش را پذیرفت و به فرشتگان فرمان داد زکریا را بشارت دهند ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾. پس هر کس این روز را روزه بگیرد و خداوند را بخواند، خدا دعایش را همان‌گونه که دعای زکریا را پذیرفت، می‌پذیرد.
+
+سپس فرمود: ای پسر شبیب، محرم ماهی است که مردم روزگار جاهلیت به احترام آن، ستم و جنگ را حرام می‌شمردند؛ اما این امت حرمت این ماه و حرمت پیامبرش را نشناخت. در این ماه فرزندان پیامبر را کشتند، زنان خاندانش را اسیر کردند و اموالشان را غارت نمودند؛ خداوند هرگز این کار را بر آنان نبخشاید.
+
+ای پسر شبیب، اگر برای چیزی گریه می‌کنی، برای حسین بن علی بن ابی‌طالب (علیه‌السلام) گریه کن؛ زیرا او مظلومانه کشته شد و هجده مرد از خاندانش همراه او به شهادت رسیدند که همانندی در زمین نداشتند. آسمان‌های هفت‌گانه و زمین‌ها برای شهادتش گریستند و چهار هزار فرشته برای یاری‌اش به زمین فرود آمدند، اما او را شهید یافتند. آنان کنار قبرش پریشان و غبارآلود می‌مانند تا قائم قیام کند و از یاران او باشند؛ شعارشان «ای خون‌خواهان حسین» است.
+
+ای پسر شبیب، پدرم از پدرانش نقل کرد که چون جدّم حسین (علیه‌السلام) کشته شد، آسمان خون و خاک سرخ بارید.
+
+ای پسر شبیب، اگر برای حسین گریه کنی تا اشک‌هایت بر گونه‌هایت جاری شود، خداوند همه گناهانت، کوچک و بزرگ و اندک و بسیار را می‌آمرزد.
+
+ای پسر شبیب، اگر دوست داری خدا را در حالی دیدار کنی که گناهی بر تو نباشد، حسین (علیه‌السلام) را زیارت کن.
+
+ای پسر شبیب، اگر دوست داری در غرفه‌های ساخته‌شده بهشتی همراه پیامبر (صلی‌الله‌علیه‌وآله) ساکن شوی، قاتلان حسین را نفرین کن.
+
+ای پسر شبیب، اگر دوست داری پاداشی همانند شهیدان همراه حسین داشته باشی، هرگاه او را یاد کردی بگو: «ای کاش با آنان بودم تا به کامیابی بزرگی می‌رسیدم».
+
+ای پسر شبیب، اگر دوست داری در درجات بلند بهشت با ما باشی، در اندوه ما اندوهگین و در شادی ما شادمان باش و به ولایت ما پایبند بمان؛ زیرا اگر کسی سنگی را دوست بدارد، خداوند روز قیامت او را با همان سنگ محشور می‌کند.
+
+منابع: عیون اخبار الرضا و امالی شیخ صدوق؛ بحارالأنوار، جلد ۹۸، صفحات ۱۰۲ و ۱۰۳.''';
+  static const String _fadlHadith2Fa = r'''امام صادق (علیه‌السلام) فرمود: هر کس شب عاشورا نزد قبر حسین (علیه‌السلام) بماند، روز قیامت خدا را در حالی دیدار می‌کند که به خون آغشته است؛ گویی در میدان کربلا همراه آن حضرت به شهادت رسیده است.
+
+منابع: مصباح المتهجّد و اقبال الأعمال؛ بحارالأنوار، جلد ۹۸، صفحه ۱۰۳.''';
+  static const String _fadlHadith3Fa = r'''حدیث سوم:
+امام صادق (علیه‌السلام) فرمود: هر کس حسین (علیه‌السلام) را با شناخت حقّ او زیارت کند و به او اقتدا نماید، خداوند گناهان گذشته و آینده‌اش را می‌آمرزد.
+
+منبع: کامل الزیارات، باب ۵۴؛ بحارالأنوار، جلد ۱۰۱، صفحات ۲۱ و ۲۲.
+
+حدیث چهارم:
+امام صادق (علیه‌السلام) فرمود: هر مؤمنی که حسین (علیه‌السلام) را در غیر روز عید و عرفه، با شناخت حقّ او زیارت کند، خداوند برایش بیست حجّ پذیرفته، بیست عمره پذیرفته و بیست جهاد همراه پیامبر فرستاده یا امامی عادل می‌نویسد.
+
+منبع: کامل الزیارات، باب ۷۴، حدیث ۱.
+
+حدیث پنجم:
+امام صادق (علیه‌السلام) فرمود: هر کس قبر حسین (علیه‌السلام) را با شناخت حقّ او زیارت کند، مانند کسی است که سه حج همراه رسول خدا (صلی‌الله‌علیه‌وآله) به‌جا آورده باشد.
+
+منبع: کامل الزیارات، صفحه ۱۴۰.
+
+یادآوری علمی: روایت‌ها همراه با منابعشان آورده شده‌اند؛ این نقل به معنای صدور حکم مستقل رجالی درباره صحّت همه سندها نیست، زیرا بررسی آن نیازمند مطالعه تخصصی اسناد است.''';
+
   @override
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(16),
     children: [
-      Text.rich(highlightImamHussein('أَحَادِيثٌ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) فِي يَوْمِ عَاشُورَاءَ', const TextStyle(color: gold, fontSize: 22, fontWeight: FontWeight.bold, height: 1.6)), textAlign: TextAlign.center),
-      const SizedBox(height: 14),
-      SectionCard(title: 'الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨', fontSize: fontSize, highlight: true,
-        content: r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
+      SectionCard(title: tr('الحديث: ١ — ترتيب جواهر البحار: ١٠٢٦٨'), fontSize: fontSize, highlight: true,
+        content: appLanguage.value == 'fa' ? _fadlHadith1Fa : r'''قَالَ الرَّيَّانُ بْنُ شَبِيبٍ: دَخَلْتُ عَلَى الرِّضَا (عَلَيْهِ السَّلَامُ) فِي أَوَّلِ يَوْمٍ مِنْ مُحَرَّمٍ، فَقَالَ (عَلَيْهِ السَّلَامُ) لِي: يَا ابْنَ شَبِيبٍ، أَصَائِمٌ أَنْتَ؟ فَقُلْتُ: لَا، فَقَالَ: إِنَّ هَذَا الْيَوْمَ هُوَ الْيَوْمُ الَّذِي دَعَا فِيهِ زَكَرِيَّا (عَلَيْهِ السَّلَامُ) رَبَّهُ عَزَّ وَجَلَّ فَقَالَ: ﴿رَبِّ هَبْ لِي مِنْ لَدُنْكَ ذُرِّيَّةً طَيِّبَةً إِنَّكَ سَمِيعُ الدُّعَاءِ﴾، فَاسْتَجَابَ اللَّهُ لَهُ، وَأَمَرَ الْمَلَائِكَةَ فَنَادَتْ زَكَرِيَّا (عَلَيْهِ السَّلَامُ): ﴿وَهُوَ قَائِمٌ يُصَلِّي فِي الْمِحْرَابِ أَنَّ اللَّهَ يُبَشِّرُكَ بِيَحْيَى﴾، فَمَنْ صَامَ هَذَا الْيَوْمَ، ثُمَّ دَعَا اللَّهَ عَزَّ وَجَلَّ، اسْتَجَابَ اللَّهُ لَهُ كَمَا اسْتَجَابَ لِزَكَرِيَّا (عَلَيْهِ السَّلَامُ).
 
 ثُمَّ قَالَ (عَلَيْهِ السَّلَامُ): يَا ابْنَ شَبِيبٍ، إِنَّ الْمُحَرَّمَ هُوَ الشَّهْرُ الَّذِي كَانَ أَهْلُ الْجَاهِلِيَّةِ فِيمَا مَضَى يُحَرِّمُونَ فِيهِ الظُّلْمَ وَالْقِتَالَ لِحُرْمَتِهِ، فَمَا عَرَفَتْ هَذِهِ الْأُمَّةُ حُرْمَةَ شَهْرِهَا وَلَا حُرْمَةَ نَبِيِّهَا (صَلَّى اللَّهُ عَلَيْهِ وَآلِهِ وَسَلَّمَ)، لَقَدْ قَتَلُوا فِي هَذَا الشَّهْرِ ذُرِّيَّتَهُ، وَسَبَوْا نِسَاءَهُ، وَانْتَهَبُوا ثَقَلَهُ، فَلَا غَفَرَ اللَّهُ لَهُمْ ذَلِكَ أَبَدًا.
 
@@ -1210,14 +1553,14 @@ class FavorsPage extends StatelessWidget {
 الْمَصْدَرُ الْأَصْلِيُّ: عُيُونُ أَخْبَارِ الرِّضَا (عَلَيْهِ السَّلَامُ)، وَالْأَمَالِي لِلصَّدُوقِ.
 الْمَصْدَرُ مِنْ بِحَارِ الْأَنْوَارِ: الْجُزْءُ ٩٨، الصَّفْحَتَانِ ١٠٢-١٠٣.'''),
       const SizedBox(height: 12),
-      SectionCard(title: 'الحديث: ٢ — ترتيب جواهر البحار: ١٠٢٦٩', fontSize: fontSize, highlight: true,
-        content: r'''قَالَ الصَّادِقُ (عَلَيْهِ السَّلَامُ): مَنْ بَاتَ عِنْدَ قَبْرِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) لَيْلَةَ عَاشُورَاءَ، لَقِيَ اللَّهَ يَوْمَ الْقِيَامَةِ مُلَطَّخًا بِدَمِهِ، وَكَأَنَّمَا قُتِلَ مَعَهُ فِي عَرْصَةِ كَرْبَلَاءَ.
+      SectionCard(title: tr('الحديث: ٢ — ترتيب جواهر البحار: ١٠٢٦٩'), fontSize: fontSize, highlight: true,
+        content: appLanguage.value == 'fa' ? _fadlHadith2Fa : r'''قَالَ الصَّادِقُ (عَلَيْهِ السَّلَامُ): مَنْ بَاتَ عِنْدَ قَبْرِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) لَيْلَةَ عَاشُورَاءَ، لَقِيَ اللَّهَ يَوْمَ الْقِيَامَةِ مُلَطَّخًا بِدَمِهِ، وَكَأَنَّمَا قُتِلَ مَعَهُ فِي عَرْصَةِ كَرْبَلَاءَ.
 
 الْمَصْدَرُ الْأَصْلِيُّ: مِصْبَاحُ الْمُتَهَجِّدِ، وَإِقْبَالُ الْأَعْمَالِ.
 الْمَصْدَرُ مِنْ بِحَارِ الْأَنْوَارِ: الْجُزْءُ ٩٨، الصَّفْحَةُ ١٠٣.'''),
       const SizedBox(height: 12),
-      SectionCard(title: 'أَحَادِيثُ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) عُمُومًا', fontSize: fontSize, highlight: true,
-        content: r'''الْحَدِيثُ: ٣
+      SectionCard(title: tr('أَحَادِيثُ فِي فَضْلِ زِيَارَةِ الْإِمَامِ الْحُسَيْنِ (عَلَيْهِ السَّلَامُ) عُمُومًا'), fontSize: fontSize, highlight: true,
+        content: appLanguage.value == 'fa' ? _fadlHadith3Fa : r'''الْحَدِيثُ: ٣
 قَالَ الْإِمَامُ الصَّادِقُ (عَلَيْهِ السَّلَامُ): «مَنْ زَارَ الْحُسَيْنَ (عَلَيْهِ السَّلَامُ) عَارِفًا بِحَقِّهِ، يَأْتَمُّ بِهِ، غَفَرَ اللَّهُ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ وَمَا تَأَخَّرَ».
 الْمَصْدَرُ: كَامِلُ الزِّيَارَاتِ، الْبَابُ ٥٤؛ وَنُقِلَ فِي بِحَارِ الْأَنْوَارِ، الْجُزْءُ ١٠١، الصَّفْحَتَانِ ٢١-٢٢.
 
@@ -1238,8 +1581,8 @@ class AbbasVisitPage extends StatelessWidget {
   final double fontSize;
   const AbbasVisitPage({super.key, required this.fontSize});
 
-  static const String ziyaraText = r'''زيارة الامام العباس (عليه السلام)
-
+  static const String ziyaraText = r'''بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ
 سَلامُ اللهِ وَسَلامُ مَلائِكَتِهِ الْمُقَرَّبِينَ وَأَنْبِيَائِهِ الْمُرْسَلِينَ ، وَعِبَادِهِ الصَّالِحِينَ وَجَمِيعِ الشُّهَداءِ وَالصِّدِّيقِينَ ، وَالزَّاكِيَاتُ الطَّيِّبَاتُ فِيمَا تَغْتَدِي وَتَرُوحُ عَلَيْكَ يَابْنَ أَمِيرِ الْمُؤْمِنِينَ ، أَشْهَدُ لَكَ بِالتَّسْلِيمِ وَالتَّصْدِيقِ وَالْوَفَاءِ وَالنَّصِيحَةِ ، لِخَلَفِ النَّبِيِّ الْمُرْسَلِ ـ صَلَّى اللهُ عَلَيْهِ وَآلِهِ ـ ، وَالسِّبْطِ الْمُنْتَجَبِ ، وَالدَّلِيلِ الْعَالِمِ ، وَالْوَصِيِّ الْمُبَلِّغِ ، وَالْمَظْلُومِ الْمُهْتَضَمِ ، فَجَزَاكَ اللهُ عَن رَّسُولِهِ وَعَنْ أَمِيرِ الْمُؤْمِنينَ وَعَنْ فَاطِمَةَ والْحَسَنِ وَالْحُسَيْنِ ـ صَلَوَاتُ اللهِ عَلَيْهِمْ ـ أَفْضَلَ الْجَزاءِ ، بِمَا صَبَرْتَ وَاحْتَسَبْتَ وَأَعَنْتَ ، فَنِعْمَ عُقْبَى الدَّارِ ، لَعَنَ اللهُ مَنْ قَتَلَكَ ، وَلَعَنَ اللهُ مَنْ جَهِلَ حَقَّكَ وَاسْتَخَفَّ بِحُرْمَتِكَ ، وَلَعَنَ اللهُ مَنْ حَالَ بَيْنَكَ وَبَيْنَ مَاءِ الْفُرَاتِ ، أَشْهَدُ أَنَّكَ قُتِلْتَ مَظْلُوماً ، وَأَنَّ اللهَ مُنْجِزٌ لَّكُم مَّا وَعَدَكُمْ ، جِئْتُكَ يَابْنَ أَمِيرِ اْلُمْؤْمِنينَ وَافِداً إِلَيْكُمْ ، وَقَلْبِي مُسَلِّمٌ لَّكُمْ وَتابِعٌ ، وَأَنَا لَكُمْ تَابِعٌ وَنُصْرَتِي لَكُم مُّعَدَّةٌ ، حَتّى يَحْكُمَ اللهُ وَهُوَ خَيْرُ الْحَاكِمِينَ ، فَمَعَكُمْ مَعَكُمْ لا مَعَ عَدُوِّكُمْ ، إِنِّي بِكُمْ وَبِإِيَابِكُمْ مِنَ الْمُؤْمِنينَ ، وَبِمَنْ خَالَفَكُمْ وَقَتَلَكُمْ مِنَ الْكَافَرِينَ ، قَتَلَ اللهُ أُمَّةً قَتَلَتْكُمْ بِالأَيْدِي وَالأَلْسُنِ .
 
 ثمّ ادخل فانكبّ على القبر وقلْ :
@@ -1254,16 +1597,18 @@ class AbbasVisitPage extends StatelessWidget {
 
 اَلسَّلامُ عَلَيْكَ يَا أَبَا الْفَضْلِ الْعَبَّاسَ بْنَ أَمِيرِ الْمُؤْمِنينَ ، اَلسَّلامُ عَلَيْكَ يَابْنَ سَيِّدِ الْوَصِيِّينَ ، اَلسَّلامُ عَلَيْكَ يَابْنَ أَوَّلِ الْقَوْمِ إِسْلاماً ، وَّأَقْدَمِهِمْ إِيْمَاناً وَّأَقْوَمِهِمْ بِدِينِ اللهِ ، وَأَحْوَطِهِمْ عَلَى الإِسْلامِ ، أَشْهَدُ لَقَدْ نَصَحْتَ للهِ وَلِرَسُولِهِ وَلِأَخيكَ ، فَنِعْمَ الأَخُ الْمُواسي ، فَلَعَنَ اللهُ أُمَّةً قَتَلَتْكَ ، وَلَعَنَ اللهُ أُمَّةً ظَلَمَتْكَ ، وَلَعَنَ اللهُ أُمَّةً اسْتَحَلَّتْ مِنْكَ الْمَحَارِمَ ، وَانْتَهَكَتْ حُرْمَةَ الإِسْلامِ ، فَنِعْمَ الصَّابِرُ الْمُجَاهِدُ الْمُحَامِي النَّاصِرُ ، وَالأَخُ الدَّافِعُ عَنْ أَخِيهِ ، الْمُجيبُ إِلَى طَاعَةِ رَبِّهِ ، الرَّاغِبُ فِيمَا زَهِدَ فِيهِ غَيْرُهُ مِنَ الثَّوَابِ الْجَزِيلِ وَالثَّنَاءِ الْجَمِيلِ ، وَأَلْحَقَكَ اللهُ بِدَرَجَةِ آبَائِكَ فِي جَنَّاتِ النَّعِيمِ ، اَللَّـهُمَّ إِنِّي تَعَرَّضْتُ لِزِيَارَةِ أَوْلِيَائِكَ رَغْبَةً فِي ثَوَابِكَ ، وَرَجَاءً لِّمَغْفِرَتِكَ وَجَزيلِ إِحْسَانِكَ ، فَأَسْأَلُكَ أَنْ تُصَلِّيَ عَلَى مُحَمَّدٍ وَّآلِهِ الطَّاهِرِينَ ، وَأَنْ تَجْعَلَ رِزْقِي بِهِمْ دَارًّا ، وَّعَيْشِي بِهِمْ قَارًّا ، وَّزِيَارَتِي بِهِمْ مَقْبُولَةً ، وَّحَيَاتِي بِهِمْ طَيِّبَةً ، وَّأَدْرِجْنِي إِدْرَاجَ الْمُكْرَمِينَ ، وَاجْعَلْنِي مِمَّن يَّنْقَلِبُ مِنْ زِيَارَةِ مَشَاهِدِ أَحِبَّائِكَ مُفْلِحاً مُّنْجِحاً ، قَدِ اسْتَوْجَبَ غُفْرَانَ الذُّنُوبِ وَسَتْرَ الْعُيُوبِ وَكَشْفَ الْكُرُوبِ ، إِنَّكَ أَهْلُ التَّقْوَى وَأَهْلُ الْمَغْفِرَةِ .''';
 
+
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         SectionCard(
-          title: 'زيارة الإمام العباس (عليه السلام)',
+          title: tr('زيارة الإمام العباس (عليه السلام)'),
           content: ziyaraText,
           fontSize: fontSize,
           highlight: true,
+          showTitle: false,
         ),
         const SizedBox(height: 14),
         Card(
@@ -1278,13 +1623,12 @@ class AbbasVisitPage extends StatelessWidget {
               children: [
                 const Icon(Icons.headphones, color: gold, size: 22),
                 const SizedBox(height: 8),
-                const Text(
-                  'استماع زيارة أبي الفضل العباس',
+                Text(tr('استماع زيارة أبي الفضل العباس'),
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: gold),
                 ),
                 const SizedBox(height: 6),
-                const Text('القارئ: الشيخ شبر معله', textAlign: TextAlign.center),
+                Text(tr('القارئ: الشيخ شبر معله'), textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -1300,20 +1644,20 @@ class AbbasVisitPage extends StatelessWidget {
                             );
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله')),
+                                SnackBar(content: Text(tr('جاري تشغيل زيارة أبي الفضل العباس بصوت الشيخ شبر معله'))),
                               );
                             }
                           } catch (error) {
                             debugPrint('Abbas audio error: $error');
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3')),
+                                SnackBar(content: Text(tr('تعذر تشغيل التسجيل؛ تحقق من وجود الملف assets/shibr_maalla_abbas.mp3'))),
                               );
                             }
                           }
                         },
                         icon: const Icon(Icons.play_arrow, size: 22),
-                        label: const Text('تشغيل الزيارة'),
+                        label: Text(tr('تشغيل الزيارة')),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
@@ -1329,12 +1673,12 @@ class AbbasVisitPage extends StatelessWidget {
                           await (audioHandler as AshuraAudioHandler).stop();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم إيقاف التشغيل')),
+                              SnackBar(content: Text(tr('تم إيقاف التشغيل'))),
                             );
                           }
                         },
                         icon: const Icon(Icons.stop_circle_outlined, size: 22),
-                        label: const Text('إيقاف التشغيل'),
+                        label: Text(tr('إيقاف التشغيل')),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Theme.of(context).colorScheme.primary,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -1392,7 +1736,7 @@ class _ListeningPageState extends State<ListeningPage> {
       debugPrint('Audio error: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تعذر تشغيل ${reader['name']}؛ تحقق من وجود الملف في assets.')),
+          SnackBar(content: Text(trFormat(r'تعذر تشغيل $name؛ تحقق من وجود الملف في assets.', {r'$name': reader['name'].toString()}))),
         );
       }
     }
@@ -1454,24 +1798,33 @@ class _ListeningPageState extends State<ListeningPage> {
           alignment: Alignment.center,
           errorBuilder: (_, __, ___) => const SizedBox.shrink(),
         ),
-        SafeArea(
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: SafeArea(
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Text(
-                  'استماع زيارة عاشوراء',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF18251C),
-                    fontSize: widget.fontSize + 3,
-                    fontWeight: FontWeight.bold,
-                    shadows: const [Shadow(color: Colors.black54, blurRadius: 5)],
+                padding: const EdgeInsets.fromLTRB(18, 10, 18, 4),
+                child: Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: Text(
+                    'استماع الزيارة بدون نت',
+                    textDirection: TextDirection.rtl,
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(
+                      color: gold,
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(color: Colors.black87, blurRadius: 5),
+                      ],
+                    ),
                   ),
                 ),
               ),
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
                   itemCount: ListeningPage.readers.length,
                   itemBuilder: (context, index) {
                     final reader = ListeningPage.readers[index];
@@ -1479,16 +1832,16 @@ class _ListeningPageState extends State<ListeningPage> {
                     return InkWell(
                       onTap: () { unawaited(tapFeedback()); playReader(reader); },
                       child: Align(
-                        alignment: Alignment.centerRight,
+                        alignment: AlignmentDirectional.centerEnd,
                         child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
-                        child: Text(
-                          reader['name']!,
-                          textAlign: TextAlign.right,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          child: Text(
+                            reader['name']!,
+                            textDirection: TextDirection.rtl,
+                            textAlign: TextAlign.end,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
-                             fontFamily: 'Amiri',
                              fontWeight: FontWeight.bold,
                              shadows: const [
                                Shadow(color: Colors.black, blurRadius: 6, offset: Offset(1, 1)),
@@ -1507,6 +1860,7 @@ class _ListeningPageState extends State<ListeningPage> {
                 formatDuration: formatDuration,
               ),
             ],
+          ),
           ),
         ),
       ],
@@ -1585,22 +1939,22 @@ class _AudioPlayerControls extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                            tooltip: 'تأخير 10 ثوانٍ',
+                            tooltip: tr('تأخير 10 ثوانٍ'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: -10)); },
                             icon: const Icon(Icons.replay_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
-                            tooltip: playing ? 'إيقاف مؤقت' : 'تشغيل',
+                            tooltip: playing ? tr('إيقاف مؤقت') : tr('تشغيل'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); playing ? handler.pause() : handler.play(); },
                             icon: Icon(playing ? Icons.pause_circle_filled : Icons.play_circle_fill, color: gold, size: 22),
                           ),
                           IconButton(
-                            tooltip: 'تقديم 10 ثوانٍ',
+                            tooltip: tr('تقديم 10 ثوانٍ'),
                             onPressed: duration == Duration.zero ? null : () { unawaited(tapFeedback()); handler.seekRelative(const Duration(seconds: 10)); },
                             icon: const Icon(Icons.forward_10, color: Colors.white, size: 22),
                           ),
                           IconButton(
-                            tooltip: 'إيقاف التسجيل',
+                            tooltip: tr('إيقاف التسجيل'),
                             onPressed: duration == Duration.zero ? null : () async { unawaited(tapFeedback()); await handler.stop(); },
                             icon: const Icon(Icons.stop_circle_outlined, color: Colors.white, size: 22),
                           ),
@@ -1712,6 +2066,38 @@ const List<String> tasbeehHadithTexts = [
   "قال النبيّ (صلى الله عليه وآله وسلم): رأيت في ما يرى النائم عمّي حمزة بن عبد المطّلب وأخي جعفر بن أبي طالب، وبين يديهما طبق من نبق فأكلا ساعة، فتحوّل النبق عنباً فأكلا ساعة، فتحوّل العنب لهما رطباً فأكلا ساعة، فدنوت منهما، وقلت: بأبي أنتما، أيّ الأعمال وجدتما أفضل؟ قالا: فديناك بالآباء والأمّهات، وجدنا أفضل الأعمال الصلاة عليك، وسقي الماء، وحبّ عليّ بن أبي طالب (عليه السلام). (النبق: ثمر السدر).",
   "قال النبيّ (صلى الله عليه وآله وسلم): من صلّى عليّ في كتاب، لم تزل الملائكة تستغفر له ما دام اسمي في ذلك الكتاب."
 ];
+const List<String> tasbeehHadithTextsFa = [
+  'امام رضا (علیه‌السلام) فرمود: هر کس وسیله‌ای برای پاک شدن گناهانش نمی‌یابد، بسیار بر محمد و خاندانش درود فرستد؛ زیرا صلوات گناهان را از میان می‌برد. همچنین فرمود: صلوات بر محمد و خاندانش نزد خداوند هم‌سنگ تسبیح و تهلیل و تکبیر است.',
+  'امام صادق (علیه‌السلام) فرمود: هرگاه یکی از پیامبران یاد شد، نخست بر محمد درود فرستید و سپس بر آن پیامبر؛ درود خدا بر محمد و خاندانش و همه پیامبران باد.',
+  'از امام باقر یا امام صادق (علیهماالسلام) روایت شده است: سنگین‌ترین چیزی که روز قیامت در ترازوی اعمال نهاده می‌شود، صلوات بر محمد و خاندان اوست.',
+  'یکی از یاران نزد امام صادق (علیه‌السلام) گفت: خدایا بر محمد و خاندان محمد درود فرست، همان‌گونه که بر ابراهیم درود فرستادی. حضرت فرمود: نه؛ بلکه بگو: به برترین صورتی که بر ابراهیم و خاندان ابراهیم درود و برکت فرستادی؛ همانا تو ستوده و بزرگواری.',
+  'امیرمؤمنان (علیه‌السلام) فرمود: بر محمد و خاندان محمد درود فرستید؛ زیرا خداوند دعای شما را هنگام یاد کردن از محمد و درود فرستادن بر او و پاسداشت حق او می‌پذیرد.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) درباره فضیلت ماه رمضان فرمود: هر کس در این ماه بسیار بر من درود فرستد، خداوند روزی که ترازوها سبک می‌شوند، ترازوی اعمالش را سنگین می‌کند.',
+  'امام عسکری (علیه‌السلام) فرمود: خداوند ابراهیم را به دوستی ویژه خود برگزید، زیرا بسیار بر محمد و خاندانش درود می‌فرستاد.',
+  'ابوحمزه ثمالی از امام صادق (علیه‌السلام) درباره آیه «إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً» پرسید. حضرت فرمود: صلوات خدا رحمت، صلوات فرشتگان پاکیزه‌داشتن و صلوات مردم دعاست. و معنای «وَسَلِّمُوا تَسْليماً» تسلیم بودن در برابر آن چیزی است که از پیامبر رسیده است. سپس شیوه صلوات را آموخت و فرمود پاداش آن رهایی از گناهان، همچون روزی است که انسان از مادر زاده شده است.',
+  'عبدالسلام بن نعیم می‌گوید: به امام صادق (علیه‌السلام) گفتم وارد خانه خدا شدم و جز صلوات بر پیامبر دعایی به خاطرم نیامد. حضرت فرمود: هیچ‌کس با چیزی برتر از آنچه تو با آن بازگشتی، بازنگشته است.',
+  'امیرمؤمنان (علیه‌السلام) فرمود: هر دعایی از آسمان پوشیده می‌ماند تا آن‌که بر محمد و خاندانش درود فرستاده شود.',
+  'صبّاح بن سیابه از امام صادق (علیه‌السلام) نقل می‌کند: آیا چیزی به تو بیاموزم که خداوند به سبب آن چهره‌ات را از گرمای دوزخ حفظ کند؟ گفتم: آری. فرمود: پس از نماز صبح صد مرتبه بگو «خدایا بر محمد و خاندان محمد درود فرست»؛ خداوند تو را از گرمای دوزخ حفظ می‌کند.',
+  'ابوالمغیره از امام کاظم (علیه‌السلام) نقل می‌کند: هر کس پس از نماز صبح و مغرب، پیش از آن‌که از جای خود برخیزد یا با کسی سخن بگوید، آیه «إِنَّ اللّهَ وَمَلائِكَتَهُ يُصَلُّونَ عَلَى النَّبِيِّ يا أَيُّهَا الَّذينَ آمَنُوا صَلُّوا عَلَيْهِ وَسَلِّمُوا تَسْليماً» را بخواند و بگوید «خدایا بر محمد و فرزندانش درود فرست»، خداوند صد حاجت او را برآورده می‌کند: هفتاد حاجت در دنیا و سی حاجت در آخرت. حضرت توضیح داد که صلوات خدا رحمت، صلوات فرشتگان پاکیزه‌داشتن و صلوات مؤمنان دعاست؛ سپس دعایی برای درود بر پیامبر و خاندانش در میان پیشینیان، پسینیان، فرشتگان مقرب و پیامبران آموخت و برای آن آمرزش گناهان، برآورده شدن دعا و گشایش روزی را بیان کرد.',
+  'مردی نزد امام صادق (علیه‌السلام) گفت: خدایا بر محمد و اهل‌بیت محمد درود فرست. حضرت فرمود: این تعبیر را محدود کردی؛ آیا نمی‌دانی اهل‌بیت پنج تنِ اصحاب کساء هستند؟ آن مرد پرسید چگونه بگویم؟ فرمود: بگو «خدایا بر محمد و خاندان محمد درود فرست» تا ما و پیروانمان در آن داخل شویم.',
+  'رسول خدا (صلی‌الله‌علیه‌وآله) فرمود: صدای خود را هنگام صلوات فرستادن بر من بلند کنید؛ زیرا صلوات نفاق را از میان می‌برد.',
+  'رسول خدا (صلی‌الله‌علیه‌وآله) فرمود: هر کس روز جمعه صد مرتبه بر من درود فرستد، خداوند شصت حاجت او را برآورده می‌کند؛ سی حاجت از امور دنیا و سی حاجت از امور آخرت.',
+  'رسول خدا (صلی‌الله‌علیه‌وآله) فرمود: هر کس یک بار بر من درود فرستد، خدا ده بار بر او درود می‌فرستد؛ اگر ده بار درود فرستد، خدا صد بار و اگر صد بار درود فرستد، خدا هزار بار بر او درود می‌فرستد؛ و هر کس هزار بار بر من درود فرستد، خداوند هرگز او را در آتش عذاب نمی‌کند.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: هر کس یک بار بر من درود فرستد، ذره‌ای از گناهانش باقی نمی‌ماند.',
+  'امام رضا (علیه‌السلام) فرمود: هر کس راهی برای جبران گناهانش نمی‌یابد، بسیار بر محمد و خاندانش درود فرستد؛ زیرا صلوات گناهان را به‌کلی از میان می‌برد.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: هر کس مرا یاد کند و بر من درود نفرستد، بدبخت شده است؛ هر کس ماه رمضان را درک کند و رحمت الهی شاملش نشود، بدبخت است؛ و هر کس پدر و مادر یا یکی از آن دو را درک کند و به آنان نیکی نکند، بدبخت است.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: هیچ دعایی نیست مگر آن‌که میان آن و آسمان حجابی است تا بر محمد و خاندان محمد درود فرستاده شود. چون صلوات فرستاده شود، حجاب کنار می‌رود و دعا بالا می‌رود؛ و اگر صلوات فرستاده نشود، دعا بالا برده نمی‌شود.',
+  'رسول خدا (صلی‌الله‌علیه‌وآله) فرمود: خداوند فرشته‌ای را گمارده که نام همه آفریدگان و پدرانشان را می‌داند و پس از وفات من تا قیامت کنار قبرم می‌ایستد. هر کس بر من درود فرستد، آن فرشته می‌گوید: ای محمد، فلانی فرزند فلانی چنین درودی فرستاد؛ و پروردگارم برای هر درود، ده بار بر آن بنده درود می‌فرستد.',
+  'رسول خدا (صلی‌الله‌علیه‌وآله) فرمود: یاد خدا عبادت است، یاد من عبادت است، یاد علی عبادت است و یاد امامان از فرزندان او عبادت است.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: هر کس هر روز سه بار و هر شب سه بار از روی محبت و شوق بر من درود فرستد، بر خداست که گناهان آن شب و روز او را بیامرزد.',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: در خواب عمویم حمزه و برادرم جعفر بن ابی‌طالب را دیدم که پیش رویشان ظرفی از میوه سدر بود. خوردند و آن به انگور تبدیل شد؛ خوردند و انگور به خرمای تازه تبدیل شد. نزدشان رفتم و پرسیدم: کدام عمل را برتر یافتید؟ گفتند: پدران و مادرانمان فدایت، برترین اعمال را در درود فرستادن بر تو، آب دادن و دوستی علی بن ابی‌طالب (علیه‌السلام) یافتیم. (نبق: میوه درخت سدر است.)',
+  'پیامبر (صلی‌الله‌علیه‌وآله) فرمود: هر کس در نوشته‌ای بر من درود فرستد، فرشتگان تا زمانی که نام من در آن نوشته باقی است، پیوسته برای او آمرزش می‌خواهند.',
+];
+const List<String> tasbeehHadithOriginalSourcesFa = [
+  'عیون اخبار الرضا (علیه‌السلام)؛ امالی صدوق','امالی صدوق','قرب الإسناد','قرب الإسناد','الخصال','امالی صدوق','علل الشرایع','معانی الأخبار',
+  'ثواب الأعمال','ثواب الأعمال','ثواب الأعمال','ثواب الأعمال','ثواب الأعمال','ثواب الأعمال','ثواب الأعمال','جامع الأخبار','جامع الأخبار','جامع الأخبار','جامع الأخبار','جامع الأخبار','جمال الأسبوع','الاختصاص','الدعوات','الدعوات','منیة المرید'
+];
+
 const List<String> tasbeehHadithOriginalSources = [
   "عيون أخبار الرضا (عليه السلام)؛ الأمالي للصدوق",
   "الأمالي للصدوق",
@@ -1776,6 +2162,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
   static const List<int> zahraTargets = [34, 33, 33];
 
   int count = 0, target = 1000000, dailyCount = 0, dailyTarget = 100;
+  int totalTasbeehCount = 0;
   int zahraCount = 0, zahraStageIndex = 0;
   bool zahraStageDone = false;
   bool loaded = false;
@@ -1824,6 +2211,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     if (!mounted) return;
     setState(() {
       count = prefs.getInt('tasbeeh_salawat_count') ?? 0;
+      totalTasbeehCount = (prefs.getInt('tasbeeh_all_count') ?? 0).clamp(0, 1000000000).toInt();
       target = 1000000;
       dailyCount = prefs.getInt('tasbeeh_daily_count') ?? 0;
       dailyTarget = prefs.getInt('tasbeeh_daily_target') ?? 100;
@@ -1875,7 +2263,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     await prefs.setBool('zahra_tasbeeh_stage_done', false);
     if (finishedAll && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.')),
+        SnackBar(content: Text(tr('أتممت تسبيح الزهراء (ع)، تقبّل الله أعمالكم.'))),
       );
     }
   }
@@ -1893,6 +2281,31 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     await HapticFeedback.mediumImpact();
   }
 
+  Future<void> _incrementTotalCount() async {
+    if (totalTasbeehCount >= 1000000000) return;
+    setState(() => totalTasbeehCount++);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('tasbeeh_all_count', totalTasbeehCount);
+  }
+
+  String _totalCountScaleLabel() {
+    final n = totalTasbeehCount;
+    if (appLanguage.value == 'fa') {
+      if (n >= 1000000000) return 'میلیارد';
+      if (n >= 1000000) return 'میلیون';
+      if (n >= 1000) return 'هزار';
+      if (n >= 100) return 'صدگان';
+      if (n >= 10) return 'دهگان';
+      return 'یکان';
+    }
+    if (n >= 1000000000) return 'مليار';
+    if (n >= 1000000) return 'ملايين';
+    if (n >= 1000) return 'آلاف';
+    if (n >= 100) return 'مئات';
+    if (n >= 10) return 'عشرات';
+    return 'آحاد';
+  }
+
   Future<void> _increment() async {
     if (!loaded) return;
     unawaited(tapFeedback());
@@ -1907,6 +2320,13 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
 
   String _millionChallengeTitle() {
     final milestone = (count ~/ 1000000) + 1;
+    if (appLanguage.value == 'fa') {
+      if (milestone == 1) return 'چالش یک میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone == 2) return 'چالش دو میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone == 3) return 'چالش سه میلیون صلوات بر محمد و خاندان محمد';
+      if (milestone >= 1000) return 'چالش یک میلیارد صلوات بر محمد و خاندان محمد';
+      return 'چالش $milestone میلیون صلوات بر محمد و خاندان محمد';
+    }
     if (milestone == 1) return 'تَحَدِّي الْمِلْيُونِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
     if (milestone == 2) return 'تَحَدِّي الْمِلْيُونَيْنِ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
     if (milestone == 3) return 'تَحَدِّي ثَلَاثَةِ مَلَايِينَ صَلَاةً عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ';
@@ -1923,22 +2343,22 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إعادة عدّاد الصلاة'),
-        content: const Text('هل تريد تصفير العدد الكلي والورد اليومي للصلاة؟'),
+        title: Text(tr('إعادة عدّاد الصلاة')),
+        content: Text(tr('هل تريد تصفير العدد الكلي والورد اليومي للصلاة؟')),
         actions: [
           TextButton(
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.pop(context, false);
             },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
               unawaited(tapFeedback());
               Navigator.pop(context, true);
             },
-            child: const Text('تصفير'),
+            child: Text(tr('تصفير')),
           ),
         ],
       ),
@@ -1947,10 +2367,12 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     setState(() {
       count = 0;
       dailyCount = 0;
+      totalTasbeehCount = 0;
     });
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('tasbeeh_salawat_count', 0);
     await prefs.setInt('tasbeeh_daily_count', 0);
+    await prefs.setInt('tasbeeh_all_count', 0);
   }
 
   Future<void> _customDailyTarget() async {
@@ -1958,11 +2380,11 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
     final value = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تحديد الورد اليومي'),
+        title: Text(tr('تحديد الورد اليومي')),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'عدد الصلوات اليومي'),
+          decoration: InputDecoration(labelText: tr('عدد الصلوات اليومي')),
         ),
         actions: [
           TextButton(
@@ -1970,7 +2392,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               unawaited(tapFeedback());
               Navigator.pop(context);
             },
-            child: const Text('إلغاء'),
+            child: Text(tr('إلغاء')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1978,7 +2400,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               final parsed = int.tryParse(controller.text.trim());
               if (parsed != null && parsed > 0) Navigator.pop(context, parsed);
             },
-            child: const Text('حفظ'),
+            child: Text(tr('حفظ')),
           ),
         ],
       ),
@@ -1998,25 +2420,25 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
         : (zahraCount / stageTarget).clamp(0.0, 1.0).toDouble();
     final currentCount = isMillion ? millionProgressCount : zahraCount;
     final formattedCount = _formatCount(currentCount);
-    final totalFormattedCount = _formatCount(count);
     final mutedText = textColor.withValues(alpha: 0.68);
 
     Widget modeButton(String label, bool selected, VoidCallback onTap) {
-      return Expanded(
+      return SizedBox(
+        width: MediaQuery.of(context).size.width * 0.36,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            constraints: const BoxConstraints(minHeight: 34),
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+            constraints: const BoxConstraints(minHeight: 22),
+            padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
             decoration: BoxDecoration(
               color: selected ? accent.withValues(alpha: 0.18) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.4 : 1),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: accent.withValues(alpha: selected ? 0.85 : 0.30), width: selected ? 1.2 : 0.8),
             ),
             alignment: Alignment.center,
-            child: Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: selected ? accent : textColor, fontSize: 11, fontWeight: FontWeight.bold, height: 1.15)),
+            child: Text(label, textAlign: TextAlign.center, maxLines: 3, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: selected ? accent : textColor, fontSize: 12, fontWeight: FontWeight.bold, height: 1.0)),
           ),
         ),
       );
@@ -2024,20 +2446,17 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
 
     return Container(
       color: pageColor,
-      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 5),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text('أَفْضَلُ الْأَعْمَالِ تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ) وَالصَّلَاةُ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
-            textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold, height: 1.25)),
-          const SizedBox(height: 5),
           ScaleTransition(
             scale: _tapPulse,
             child: InkWell(
-              onTap: () {
+              onTap: () async {
                 unawaited(_tapPulseController.forward(from: 0));
                 if (isMillion) {
+                  await _incrementTotalCount();
                   _increment();
                 } else {
                   _incrementZahra();
@@ -2045,55 +2464,160 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
               },
               customBorder: const CircleBorder(),
               child: SizedBox(
-                width: 116, height: 116,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CircularProgressIndicator(value: currentProgress, strokeWidth: 7,
-                    backgroundColor: textColor.withValues(alpha: 0.12),
-                    valueColor: AlwaysStoppedAnimation<Color>(accent)),
-                  Center(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      FittedBox(fit: BoxFit.scaleDown,
-                        child: Text(formattedCount, style: TextStyle(color: textColor, fontSize: 27, fontWeight: FontWeight.bold))),
-                      Text(isMillion ? 'مِنْ مِلْيُونٍ' : 'مِنْ $stageTarget', style: TextStyle(color: mutedText, fontSize: 10)),
-                      if (!isMillion) Text(zahraPhrases[zahraStageIndex], style: TextStyle(color: accent, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ]),
-                  ),
-                ],
-              ),
+                width: 184,
+                height: 184,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // حلقة زخرفية تحيط بمئة حبّة مضيئة.
+                    Container(
+                      width: 166,
+                      height: 166,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.24),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.10),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                    ...List.generate(100, (index) {
+                      final angle = (index * 2 * math.pi / 100) - math.pi / 2;
+                      final litRemainder = currentCount % 100;
+                      final litCount = currentCount > 0 && litRemainder == 0
+                          ? 100
+                          : litRemainder;
+                      final isLit = index < litCount;
+                      const radius = 77.0;
+                      const beadSize = 5.0;
+                      final dx = math.cos(angle) * radius;
+                      final dy = math.sin(angle) * radius;
+                      return Transform.translate(
+                        offset: Offset(dx, dy),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 140),
+                          width: beadSize,
+                          height: beadSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isLit
+                                ? const Color(0xFFFFD700)
+                                : textColor.withValues(alpha: 0.22),
+                            boxShadow: isLit
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(0xFFFFD700)
+                                          .withValues(alpha: 0.75),
+                                      blurRadius: 7,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                : const [],
+                          ),
+                        ),
+                      );
+                    }),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: pageColor,
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.65),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.14),
+                            blurRadius: 9,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                formattedCount,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            if (!isMillion)
+                              Text(
+                                appLanguage.value == 'fa'
+                                    ? 'از $stageTarget'
+                                    : 'مِنْ $stageTarget',
+                                style: TextStyle(color: mutedText, fontSize: 10),
+                              ),
+                            if (!isMillion)
+                              Text(
+                                zahraPhrases[zahraStageIndex],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: accent,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           if (isMillion)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text('الْعَدَدُ الْكُلِّيُّ: $totalFormattedCount',
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                appLanguage.value == 'fa'
+                    ? 'شمار کل: ${_formatCount(totalTasbeehCount)}'
+                    : 'العدد الكلي: ${_formatCount(totalTasbeehCount)}',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: accent, fontSize: 12, fontWeight: FontWeight.bold)),
+                style: TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.bold),
+              ),
             ),
-          const SizedBox(height: 6),
           if (isMillion)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text('الوِرْدُ اليَوْمِيُّ: ${dailyCount} / ${dailyTarget}', style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold)),
-              IconButton(visualDensity: VisualDensity.compact, constraints: const BoxConstraints.tightFor(width: 28, height: 25),
-                padding: EdgeInsets.zero, tooltip: 'تحديد الورد اليومي', onPressed: _customDailyTarget,
-                icon: Icon(Icons.flag_outlined, color: accent, size: 17)),
-            ]),
-          Row(children: [
-            modeButton('تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
-            const SizedBox(width: 7),
-            modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
-          ]),
+            InkWell(
+              onTap: _customDailyTarget,
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                child: Text(
+                  appLanguage.value == 'fa'
+                      ? 'ورد روزانه: ${_formatCount(dailyCount)} / ${_formatCount(dailyTarget)}'
+                      : 'الوِرْدُ اليَوْمِيُّ: ${_formatCount(dailyCount)} / ${_formatCount(dailyTarget)}',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: mutedText, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              modeButton(appLanguage.value == 'fa' ? 'تسبیح حضرت فاطمه زهرا (سلام‌الله‌علیها)' : 'تَسْبِيحُ السَّيِّدَةِ فَاطِمَةَ الزَّهْرَاءِ (عَلَيْهَا السَّلَامُ)', !isMillion, () => setState(() => isMillionMode = false)),
+              const SizedBox(width: 7),
+              modeButton(_millionChallengeTitle(), isMillion, () => setState(() => isMillionMode = true)),
+            ],
+          ),
           const SizedBox(height: 2),
-          if (!isMillion)
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(zahraStageDone
-                  ? 'اِسْتَمِرَّ بِالضَّغْطِ لِلِانْتِقَالِ إِلَى التَّسْبِيحِ التَّالِي'
-                  : 'الْمَرْحَلَةُ ${zahraStageIndex + 1} مِنْ 3',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: mutedText, fontSize: 10)),
-            ]),
         ],
       ),
     );
@@ -2117,70 +2641,83 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
       color: pageColor,
       child: Column(
         children: [
-          Expanded(
-            flex: 1,
-            child: _buildTasbeehControl(accent, textColor, pageColor),
-          ),
-          Expanded(
-            flex: 2,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 20),
-              children: [
-                const SizedBox(height: 5),
-                const Text(
-                  'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: gold, fontSize: 20, fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 1, 10, 2),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.045),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: accent.withValues(alpha: 0.8),
+                  width: 1.2,
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.',
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(height: 1.8),
-                ),
-                const SizedBox(height: 10),
-                ...List.generate(
-                  tasbeehHadithTexts.length,
-                  (index) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 7),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          const Divider(),
-                          SelectableText(
-                            vocalizeHadithText(tasbeehHadithTexts[index]),
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(fontSize: widget.fontSize - 2, height: 1.8, fontFamily: 'AmiriQuran'),
-                          ),
-                          const SizedBox(height: 9),
-                          Text(
-                            'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}',
-                            style: const TextStyle(color: Colors.grey, height: 1.6),
-                          ),
-                          Text(
-                            'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}',
-                            style: const TextStyle(color: Colors.grey, height: 1.6),
-                          ),
-                        ],
-                      ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF8A5A00),
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      height: 1.15,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  Text(
+                    tr('أَحَادِيثٌ فِي فَضْلِ الصَّلَاةِ عَلَى مُحَمَّدٍ وَآلِ مُحَمَّدٍ، وَأَنَّ الصَّلَاةَ عَلَيْهِمْ تُكَفِّرُ الذُّنُوبَ وَتُثَقِّلُ الْمِيزَانَ، وَفِيمَا يُقَالُ عِنْدَ ذِكْرِ الْأَنْبِيَاءِ، وَعِلَّةِ اتِّخَاذِ اللَّهِ إِبْرَاهِيمَ خَلِيلًا. هَذِهِ النُّصُوصُ مِنْ مَجْمُوعَةِ «جَوَاهِرِ الْبِحَارِ» الْمُقْتَبَسَةِ مِنْ «بِحَارِ الْأَنْوَارِ» لِلْعَلَّامَةِ الْمَجْلِسِيِّ، مَعَ إِبْقَاءِ أَرْقَامِهَا وَمَصَادِرِهَا كَمَا وَرَدَتْ فِي النَّصِّ الْمُرْسَلِ.'),
+                    textAlign: TextAlign.justify,
+                    style: const TextStyle(height: 1.35, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
           ),
+          Expanded(
+            child: ListView.builder(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 2),
+              itemCount: tasbeehHadithTexts.length,
+              itemBuilder: (context, index) => Card(
+                margin: const EdgeInsets.symmetric(vertical: 3),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(trFormat(r'الحديث: ${index + 1}  |  ترتيب جواهر البحار: ${9455 + index}', {r'${index + 1}': '${index + 1}', r'${9455 + index}': '${9455 + index}'}),
+                        textAlign: TextAlign.start,
+                        style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      const Divider(),
+                      SelectableText(
+                        (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
+                        textAlign: TextAlign.justify,
+                        style: TextStyle(fontSize: widget.fontSize, height: 1.8,),
+                      ),
+                      const SizedBox(height: 9),
+                      Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
+                        style: const TextStyle(color: Colors.grey, height: 1.6),
+                      ),
+                      Text(trFormat(r'المصدر من بحار الأنوار: ج ٩١، ص ${tasbeehHadithPages[index]}', {r'${tasbeehHadithPages[index]}': '${tasbeehHadithPages[index]}'}),
+                        style: const TextStyle(color: Colors.grey, height: 1.6),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _buildTasbeehControl(accent, textColor, pageColor),
         ],
       ),
     );
@@ -2192,6 +2729,8 @@ class SettingsPage extends StatefulWidget {
   final double fontSize;
   final String selectedFont;
   final String selectedColor;
+  final String selectedLanguage;
+  final Function(String) onChangeLanguage;
   final VoidCallback onToggleTheme;
   final Function(double) onChangeFontSize;
   final Function(String) onChangeFontFamily;
@@ -2202,6 +2741,8 @@ class SettingsPage extends StatefulWidget {
     required this.fontSize,
     required this.selectedFont,
     required this.selectedColor,
+    required this.selectedLanguage,
+    required this.onChangeLanguage,
     required this.onToggleTheme,
     required this.onChangeFontSize,
     required this.onChangeFontFamily,
@@ -2215,6 +2756,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String localFont;
   late String localColor;
   late double localFontSize;
+  late String localLanguage;
 
   @override
   void initState() {
@@ -2222,6 +2764,7 @@ class _SettingsPageState extends State<SettingsPage> {
     localFont = widget.selectedFont;
     localColor = widget.selectedColor;
     localFontSize = widget.fontSize;
+    localLanguage = widget.selectedLanguage;
   }
 
   @override
@@ -2230,29 +2773,61 @@ class _SettingsPageState extends State<SettingsPage> {
     if (oldWidget.selectedFont != widget.selectedFont) localFont = widget.selectedFont;
     if (oldWidget.selectedColor != widget.selectedColor) localColor = widget.selectedColor;
     if (oldWidget.fontSize != widget.fontSize) localFontSize = widget.fontSize;
+    if (oldWidget.selectedLanguage != widget.selectedLanguage) localLanguage = widget.selectedLanguage;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
+      appBar: AppBar(title: Text(appText('settings', localLanguage))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           Card(
             child: ListTile(
               leading: const Icon(Icons.alarm, color: gold),
-              title: const Text('المنبهات'),
-              subtitle: const Text('تنبيه الزيارة: هل زرت الإمام الحسين؟ وتنبيه الصلاة: هل صليت على محمد وآل محمد؟'),
+              title: Text(appText('reminders', localLanguage)),
+              subtitle: Text(appText('reminders_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const ReminderManagerPage())); },
             ),
           ),
           Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.translate, color: gold),
+                    title: Text(appText('language', localLanguage)),
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: localLanguage,
+                    isExpanded: true,
+                    decoration: const InputDecoration(border: OutlineInputBorder()),
+                    items: [
+                      DropdownMenuItem(value: 'ar', child: Text(appText('arabic', localLanguage))),
+                      DropdownMenuItem(value: 'fa', child: Text(appText('persian', localLanguage))),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        unawaited(tapFeedback());
+                        setState(() => localLanguage = value);
+                        widget.onChangeLanguage(value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Card(
             child: SwitchListTile(
               secondary: const Icon(Icons.dark_mode, color: gold),
-              title: const Text('الوضع الليلي'),
-              subtitle: Text(widget.isDarkMode ? 'مفعّل' : 'غير مفعّل'),
+              title: Text(appText('night', localLanguage)),
+              subtitle: Text(appText(widget.isDarkMode ? 'enabled' : 'disabled', localLanguage)),
               value: widget.isDarkMode,
               onChanged: (_) { unawaited(tapFeedback()); widget.onToggleTheme(); },
             ),
@@ -2263,17 +2838,17 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.palette, color: gold),
-                    title: Text('تغيير لون التطبيق'),
+                    leading: const Icon(Icons.palette, color: gold),
+                    title: Text(appText('color', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localColor,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: appColors.keys.map((name) => DropdownMenuItem<String>(
-                      value: name, child: Text(name),
+                      value: name, child: Text(tr(name)),
                     )).toList(),
                     onChanged: (value) {
                       unawaited(tapFeedback());
@@ -2293,23 +2868,22 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const ListTile(
+                  ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.font_download, color: gold),
-                    title: Text('نوع الخط'),
+                    leading: const Icon(Icons.font_download, color: gold),
+                    title: Text(appText('font', localLanguage)),
                   ),
                   DropdownButtonFormField<String>(
                     value: localFont,
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem<String>(value: 'Amiri', child: Text('Amiri - خط النسخ')),
-                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('Amiri Quran - الخط القرآني')),
-                      DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text('Noto Naskh Arabic - النسخ العربي')),
-                      DropdownMenuItem<String>(value: 'Cairo', child: Text('Cairo - خط كايرو')),
-                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('Aref Ruqaa - خط الرقعة')),
-                      DropdownMenuItem<String>(value: 'Tajawal', child: Text('Tajawal - خط تجوال الواضح')),
-                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text('Noto Kufi Arabic - الخط الكوفي الواضح')),
+                    items: [
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text('أميري - النسخ')),
+                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('أميري قرآن - الخط القرآني')),
+                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('عارف رقعة - الرقعة')),
+                      DropdownMenuItem<String>(value: 'Cairo', child: Text('كايرو')),
+                      DropdownMenuItem<String>(value: 'ReemKufi', child: Text('ريم كوفي')),
+                      DropdownMenuItem<String>(value: 'Tajawal', child: Text('تجوال')),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());
@@ -2326,8 +2900,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.text_fields, color: gold),
-              title: const Text('حجم الخط'),
-              subtitle: Text('الحجم الحالي: ${localFontSize.toInt()}'),
+              title: Text(appText('font_size', localLanguage)),
+              subtitle: Text('${appText('current_size', localLanguage)}: ${localFontSize.toInt()}'),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -2348,8 +2922,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.info_outline, color: gold),
-              title: const Text('حول التطبيق'),
-              subtitle: const Text('معلومات التطبيق والإهداء وحقوق التصميم'),
+              title: Text(appText('about', localLanguage)),
+              subtitle: Text(appText('about_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () { unawaited(tapFeedback()); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutAppPage())); },
             ),
@@ -2357,8 +2931,8 @@ class _SettingsPageState extends State<SettingsPage> {
           Card(
             child: ListTile(
               leading: const Icon(Icons.campaign_outlined, color: gold),
-              title: const Text('التحديثات'),
-              subtitle: const Text('آخر الأخبار والتنبيهات والإضافات الجديدة للتطبيق'),
+              title: Text(appText('updates', localLanguage)),
+              subtitle: Text(appText('updates_desc', localLanguage)),
               trailing: const Icon(Icons.chevron_left),
               onTap: () {
                 unawaited(tapFeedback());
@@ -2388,6 +2962,24 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
   String? apkUrl;
   String? releaseUrl;
   DateTime? publishedAt;
+  final titleArController = TextEditingController();
+  final bodyArController = TextEditingController();
+  final titleFaController = TextEditingController();
+  final bodyFaController = TextEditingController();
+  String announcementType = 'message';
+  String announcementLanguage = 'both';
+  bool publishing = false;
+
+  bool get isOwner => Firebase.apps.isNotEmpty && FirebaseAuth.instance.currentUser?.uid == ashuraOwnerUid;
+
+  @override
+  void dispose() {
+    titleArController.dispose();
+    bodyArController.dispose();
+    titleFaController.dispose();
+    bodyFaController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -2410,10 +3002,10 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
       if (response.statusCode == 404) {
-        throw Exception('لم يُنشر إصدار رسمي على GitHub Releases حتى الآن.');
+        throw Exception(tr('لم يُنشر إصدار رسمي على GitHub Releases حتى الآن.'));
       }
       if (response.statusCode != 200) {
-        throw Exception('تعذر فحص التحديثات (HTTP ${response.statusCode}).');
+        throw Exception(trFormat(r'تعذر فحص التحديثات (HTTP $statusCode).', {r'$statusCode': '${response.statusCode}'}));
       }
       final data = jsonDecode(body) as Map<String, dynamic>;
       final tag = (data['tag_name'] as String? ?? '').trim();
@@ -2460,20 +3052,275 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
     final uri = Uri.tryParse(url);
     if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر فتح رابط تنزيل التحديث.')),
+        SnackBar(content: Text(tr('تعذر فتح رابط تنزيل التحديث.'))),
       );
     }
   }
 
+
+
+  Future<void> signInAdmin() async {
+    if (Firebase.apps.isEmpty) return;
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final credentials = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(tr('دخول إدارة التطبيق')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.username],
+              decoration: InputDecoration(labelText: tr('البريد الإلكتروني')),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              autofillHints: const [AutofillHints.password],
+              decoration: InputDecoration(labelText: tr('كلمة المرور')),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(tr('إلغاء'))),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, {
+              'email': emailController.text.trim(),
+              'password': passwordController.text,
+            }),
+            child: Text(tr('دخول')),
+          ),
+        ],
+      ),
+    );
+    emailController.dispose();
+    passwordController.dispose();
+    if (credentials == null) return;
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: credentials['email']!,
+        password: credentials['password']!,
+      );
+      if (!isOwner) {
+        await FirebaseAuth.instance.signOut();
+        throw StateError(tr('هذا الحساب لا يملك صلاحية إدارة التطبيق.'));
+      }
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr('تم تسجيل دخول الإدارة بنجاح.'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(trFormat(r'تعذر دخول الإدارة: $error', {r'$error': '$e'}))),
+        );
+      }
+    }
+  }
+
+  Widget buildAdminSignIn() {
+    if (isOwner || Firebase.apps.isEmpty) return const SizedBox.shrink();
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.admin_panel_settings_outlined, color: gold),
+        title: Text(tr('دخول إدارة التطبيق')),
+        subtitle: Text(tr('سجّل الدخول بحساب الإدارة لنشر الرسائل والتنبيهات للجميع.')),
+        trailing: const Icon(Icons.login),
+        onTap: signInAdmin,
+      ),
+    );
+  }
+
+  Future<void> publishAnnouncement() async {
+    if (!isOwner || publishing) return;
+    final titleAr = titleArController.text.trim();
+    final bodyAr = bodyArController.text.trim();
+    final titleFa = titleFaController.text.trim();
+    final bodyFa = bodyFaController.text.trim();
+    final needsArabic = announcementLanguage == 'ar' || announcementLanguage == 'both';
+    final needsPersian = announcementLanguage == 'fa' || announcementLanguage == 'both';
+    if ((needsArabic && (titleAr.isEmpty || bodyAr.isEmpty)) ||
+        (needsPersian && (titleFa.isEmpty || bodyFa.isEmpty))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('أكمل العنوان والنص للغة التي اخترتها.'))),
+      );
+      return;
+    }
+    setState(() => publishing = true);
+    try {
+      await FirebaseFirestore.instance.collection('app_updates').add({
+        'type': announcementType,
+        'titleAr': titleAr,
+        'bodyAr': bodyAr,
+        'titleFa': titleFa,
+        'bodyFa': bodyFa,
+        'language': announcementLanguage,
+        'createdAt': FieldValue.serverTimestamp(),
+        'createdBy': FirebaseAuth.instance.currentUser!.uid,
+      });
+      titleArController.clear();
+      bodyArController.clear();
+      titleFaController.clear();
+      bodyFaController.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(tr('تم نشر الرسالة للمستخدمين.'))),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(trFormat(r'تعذر نشر الرسالة: $error', {r'$error': '$e'}))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => publishing = false);
+    }
+  }
+
+  Widget buildAnnouncements() {
+    if (Firebase.apps.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(tr('تعذر الاتصال بخدمة الرسائل حالياً.')),
+      );
+    }
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('app_updates')
+        .orderBy('createdAt', descending: true).snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('تعذر تحميل رسائل التطبيق. تحقق من الاتصال وقواعد Firebase.')),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('لا توجد رسائل أو تنبيهات منشورة حالياً.'), textAlign: TextAlign.center),
+          );
+        }
+        final isFa = appLanguage.value == 'fa';
+        final visibleDocs = snapshot.data!.docs.where((doc) {
+          final target = (doc.data()['language'] as String?) ?? 'both';
+          return target == 'both' || target == (isFa ? 'fa' : 'ar');
+        }).toList();
+        if (visibleDocs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(tr('لا توجد رسائل أو تنبيهات منشورة حالياً.'), textAlign: TextAlign.center),
+          );
+        }
+        return Column(
+          children: visibleDocs.map((doc) {
+            final data = doc.data();
+            final title = (data[isFa ? 'titleFa' : 'titleAr'] as String?) ??
+                (data['titleAr'] as String? ?? '');
+            final body = (data[isFa ? 'bodyFa' : 'bodyAr'] as String?) ??
+                (data['bodyAr'] as String? ?? '');
+            final kind = data['type'] as String? ?? 'message';
+            final label = switch (kind) {
+              'condolence' => tr('تعزية'),
+              'thanks' => tr('شكر وتقدير'),
+              _ => tr('رسالة من إدارة التطبيق'),
+            };
+            final timestamp = data['createdAt'];
+            final date = timestamp is Timestamp
+                ? timestamp.toDate().toLocal().toString().substring(0, 16)
+                : '';
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(label, style: const TextStyle(color: gold, fontWeight: FontWeight.bold)),
+                    if (date.isNotEmpty) Text(date, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                    const SizedBox(height: 6),
+                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Text(body, style: const TextStyle(height: 1.7)),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget buildAnnouncementComposer() {
+    if (!isOwner) return const SizedBox.shrink();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(tr('نشر رسالة لجميع المستخدمين'), style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: announcementLanguage,
+              decoration: InputDecoration(labelText: tr('لغة النشر')),
+              items: [
+                DropdownMenuItem(value: 'ar', child: Text(tr('العربية فقط'))),
+                DropdownMenuItem(value: 'fa', child: Text(tr('الفارسية فقط'))),
+                DropdownMenuItem(value: 'both', child: Text(tr('العربية والفارسية معاً'))),
+              ],
+              onChanged: publishing ? null : (v) { if (v != null) setState(() => announcementLanguage = v); },
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: announcementType,
+              decoration: InputDecoration(labelText: tr('نوع الرسالة')),
+              items: [
+                DropdownMenuItem(value: 'message', child: Text(tr('رسالة من إدارة التطبيق'))),
+                DropdownMenuItem(value: 'condolence', child: Text(tr('تعزية'))),
+                DropdownMenuItem(value: 'thanks', child: Text(tr('شكر وتقدير'))),
+              ],
+              onChanged: publishing ? null : (v) { if (v != null) setState(() => announcementType = v); },
+            ),
+            const SizedBox(height: 10),
+            if (announcementLanguage != 'fa') ...[
+              TextField(controller: titleArController, decoration: InputDecoration(labelText: tr('العنوان بالعربية')), textDirection: TextDirection.rtl),
+              const SizedBox(height: 8),
+              TextField(controller: bodyArController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('نص الرسالة بالعربية')), textDirection: TextDirection.rtl),
+            ],
+            if (announcementLanguage == 'both') const Divider(height: 24),
+            if (announcementLanguage != 'ar') ...[
+              TextField(controller: titleFaController, decoration: InputDecoration(labelText: tr('عنوان الرسالة بالفارسية')), textDirection: TextDirection.rtl),
+              const SizedBox(height: 8),
+              TextField(controller: bodyFaController, minLines: 2, maxLines: 5, decoration: InputDecoration(labelText: tr('متن پیام به فارسی')), textDirection: TextDirection.rtl),
+            ],
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: publishing ? null : publishAnnouncement,
+              icon: publishing ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.send),
+              label: Text(tr('نشر للجميع')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final dateText = publishedAt == null ? '' :
       '${publishedAt!.year}/${publishedAt!.month.toString().padLeft(2, '0')}/${publishedAt!.day.toString().padLeft(2, '0')}';
     return Scaffold(
       appBar: AppBar(
-        title: const Text('التحديثات'),
+        title: Text(tr('التحديثات')),
         actions: [IconButton(
-          tooltip: 'فحص التحديثات',
+          tooltip: tr('فحص التحديثات'),
           onPressed: loading ? null : checkForUpdates,
           icon: const Icon(Icons.refresh),
         )],
@@ -2483,34 +3330,37 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
         : ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              buildAdminSignIn(),
+              buildAnnouncementComposer(),
+              buildAnnouncements(),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    const Text('حالة التطبيق', style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
+                    Text(tr('حالة التطبيق'), style: TextStyle(color: gold, fontSize: 19, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 10),
-                    Text('الإصدار المثبّت: $currentVersion', textAlign: TextAlign.right),
+                    Text(trFormat(r'الإصدار المثبّت: $currentVersion', {r'$currentVersion': currentVersion ?? ''}), textAlign: TextAlign.start),
                     if (latestVersion != null) ...[
                       const SizedBox(height: 6),
-                      Text('أحدث إصدار: $latestVersion', textAlign: TextAlign.right),
+                      Text(trFormat(r'أحدث إصدار: $latestVersion', {r'$latestVersion': latestVersion ?? ''}), textAlign: TextAlign.start),
                     ],
                     const SizedBox(height: 12),
                     if (error != null)
-                      Text(error!, textAlign: TextAlign.right, style: const TextStyle(color: Colors.orangeAccent))
+                      Text(error!, textAlign: TextAlign.start, style: const TextStyle(color: Colors.orangeAccent))
                     else if (hasUpdate)
-                      const Text('يتوفر تحديث جديد للتطبيق.', textAlign: TextAlign.right,
+                      Text(tr('يتوفر تحديث جديد للتطبيق.'), textAlign: TextAlign.start,
                         style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))
                     else
-                      const Text('أنت تستخدم أحدث إصدار منشور.', textAlign: TextAlign.right),
+                      Text(tr('أنت تستخدم أحدث إصدار منشور.'), textAlign: TextAlign.start),
                     const SizedBox(height: 12),
                     if (hasUpdate && (apkUrl != null || releaseUrl != null))
                       ElevatedButton.icon(
                         onPressed: openDownload,
                         icon: const Icon(Icons.download),
-                        label: const Text('تنزيل التحديث'),
+                        label: Text(tr('تنزيل التحديث')),
                       ),
                     if (releaseUrl != null && !hasUpdate)
-                      TextButton(onPressed: openDownload, child: const Text('فتح صفحة الإصدار على GitHub')),
+                      TextButton(onPressed: openDownload, child: Text(tr('فتح صفحة الإصدار على GitHub'))),
                   ]),
                 ),
               ),
@@ -2519,23 +3369,23 @@ class _AppUpdatesPageState extends State<AppUpdatesPage> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                      Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : 'تفاصيل آخر تحديث',
-                        textAlign: TextAlign.right,
+                      Text(releaseTitle?.isNotEmpty == true ? releaseTitle! : tr('تفاصيل آخر تحديث'),
+                        textAlign: TextAlign.start,
                         style: const TextStyle(color: gold, fontSize: 18, fontWeight: FontWeight.bold)),
-                      if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.right,
+                      if (dateText.isNotEmpty) Text(dateText, textAlign: TextAlign.start,
                         style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       const Divider(),
-                      Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : 'لا توجد تفاصيل مضافة لهذا الإصدار.',
-                        textAlign: TextAlign.right, style: const TextStyle(height: 1.7)),
+                      Text(releaseNotes?.isNotEmpty == true ? releaseNotes! : tr('لا توجد تفاصيل مضافة لهذا الإصدار.'),
+                        textAlign: TextAlign.start, style: const TextStyle(height: 1.7)),
                     ]),
                   ),
                 ),
-              const Padding(
-                padding: EdgeInsets.all(8),
+              Padding(
+                padding: const EdgeInsets.all(8),
                 child: Text(
-                  'يتم تنزيل ملف APK من صفحة الإصدار الرسمية. بعد اكتمال التنزيل، افتح الملف ووافق على التثبيت من Android. لن تُحذف بيانات التطبيق عند تثبيت تحديث موقّع بالمفتاح نفسه.',
+                  tr('يتم تنزيل ملف APK من صفحة الإصدار الرسمية. بعد اكتمال التنزيل، افتح الملف ووافق على التثبيت من Android. لن تُحذف بيانات التطبيق عند تثبيت تحديث موقّع بالمفتاح نفسه.'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey, height: 1.6),
                 ),
               ),
             ],
@@ -2553,9 +3403,6 @@ class ReminderManagerPage extends StatefulWidget {
 class _ReminderManagerPageState extends State<ReminderManagerPage> {
   List<AshuraReminder> reminders = [];
   bool loading = true;
-  bool salawatEnabled = false;
-  int salawatHour = 9;
-  int salawatMinute = 0;
 
   static const List<String> dayNames = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
 
@@ -2566,86 +3413,49 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> load() async {
-    var saved = await loadSavedReminders();
-    // اطلب صلاحية عرض الإشعارات عند فتح صفحة المنبّه، حتى للأوقات المحفوظة سابقاً.
+    var saved = await migrateLegacyReminders();
     final canSchedule = await ensurePermissions();
     if (!canSchedule && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'))),
+      );
     }
-    if (saved.isEmpty) {
+    if (!saved.any((item) => item.kind == 'visit')) {
+      final firstId = saved.isEmpty
+          ? 2000
+          : saved.map((item) => item.id).reduce((a, b) => a > b ? a : b);
       saved = [
-        AshuraReminder(id: 2001, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: 2002, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: 2003, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        ...saved,
+        AshuraReminder(id: firstId + 1, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: firstId + 2, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
+        AshuraReminder(id: firstId + 3, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
       ];
       await saveReminders(saved);
     }
-    final prefs = await SharedPreferences.getInstance();
-    final savedSalawatEnabled = prefs.getBool('salawat_reminder_enabled') ?? false;
-    final savedSalawatHour = prefs.getInt('salawat_reminder_hour') ?? 9;
-    final savedSalawatMinute = prefs.getInt('salawat_reminder_minute') ?? 0;
     if (canSchedule) {
       for (final reminder in saved.where((item) => item.enabled)) {
         await scheduleReminder(reminder);
       }
-      await scheduleSalawatReminder(enabled: savedSalawatEnabled,
-        hour: savedSalawatHour, minute: savedSalawatMinute);
     }
     if (!mounted) return;
     setState(() {
       reminders = saved;
-      salawatEnabled = savedSalawatEnabled;
-      salawatHour = savedSalawatHour;
-      salawatMinute = savedSalawatMinute;
       loading = false;
     });
-  }
-
-  Future<void> updateSalawatReminder({bool? enabled, int? hour, int? minute}) async {
-    final nextEnabled = enabled ?? salawatEnabled;
-    if (nextEnabled && !await ensurePermissions()) return;
-    final nextHour = hour ?? salawatHour;
-    final nextMinute = minute ?? salawatMinute;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('salawat_reminder_enabled', nextEnabled);
-    await prefs.setInt('salawat_reminder_hour', nextHour);
-    await prefs.setInt('salawat_reminder_minute', nextMinute);
-    try {
-      await scheduleSalawatReminder(enabled: nextEnabled, hour: nextHour, minute: nextMinute);
-    } catch (error) {
-      await prefs.setBool('salawat_reminder_enabled', salawatEnabled);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذرت جدولة منبّه الصلاة: $error')));
-      return;
-    }
-    if (!mounted) return;
-    setState(() {
-      salawatEnabled = nextEnabled;
-      salawatHour = nextHour;
-      salawatMinute = nextMinute;
-    });
-  }
-
-  Future<void> chooseSalawatTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: salawatHour, minute: salawatMinute),
-    );
-    if (picked != null) {
-      await updateSalawatReminder(hour: picked.hour, minute: picked.minute);
-    }
   }
 
   Future<bool> ensurePermissions() async {
     final granted = await ensureNotificationPermissions();
     if (!granted) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('يرجى السماح بإشعارات التطبيق من إعدادات الهاتف.'))),
+      );
       return false;
     }
     if (!exactAlarmsAllowed && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لم يُفعّل التوقيت الدقيق؛ ستعمل الإشعارات بالتوقيت المتاح وقد تتأخر قليلاً.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(tr('لم يُفعّل التوقيت الدقيق؛ قد تتأخر الإشعارات قليلاً.'))),
+      );
     }
     return true;
   }
@@ -2657,18 +3467,20 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
     }
   }
 
-  Future<void> addReminder() async {
-    if (reminders.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يمكنك إضافة خمسة أوقات كحد أقصى لزيارة عاشوراء.')),
-      );
-      return;
-    }
+  Future<void> addReminder({required String kind}) async {
     final nextId = (reminders.isEmpty ? 2000 : reminders.map((r) => r.id).reduce((a, b) => a > b ? a : b)) + 1;
-    const defaultHours = [8, 14, 20, 11, 17];
-    final defaultHour = defaultHours[reminders.length.clamp(0, 4).toInt()];
-    final draft = AshuraReminder(id: nextId, hour: defaultHour, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: true);
-    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames));
+    final draft = AshuraReminder(
+      id: nextId,
+      hour: kind == 'salawat' ? 9 : 8,
+      minute: 0,
+      weekdays: const [1,2,3,4,5,6,7],
+      enabled: true,
+      kind: kind,
+    );
+    final result = await showDialog<AshuraReminder>(
+      context: context,
+      builder: (_) => ReminderEditorDialog(reminder: draft, dayNames: dayNames),
+    );
     if (result == null) return;
     if (result.enabled && !await ensurePermissions()) return;
     setState(() => reminders = [...reminders, result]);
@@ -2676,7 +3488,10 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> editReminder(AshuraReminder old) async {
-    final result = await showDialog<AshuraReminder>(context: context, builder: (_) => ReminderEditorDialog(reminder: old, dayNames: dayNames));
+    final result = await showDialog<AshuraReminder>(
+      context: context,
+      builder: (_) => ReminderEditorDialog(reminder: old, dayNames: dayNames),
+    );
     if (result == null) return;
     if (result.enabled && !await ensurePermissions()) return;
     setState(() => reminders = reminders.map((r) => r.id == old.id ? result : r).toList());
@@ -2696,100 +3511,103 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   String daySummary(List<int> days) {
-    if (days.length == 7) return 'كل أيام الأسبوع';
-    if (days.isEmpty) return 'لم تُحدد أيام';
-    return days.map((d) => dayNames[d - 1]).join('، ');
+    if (days.length == 7) return tr('كل أيام الأسبوع');
+    if (days.isEmpty) return tr('لم تُحدد أيام');
+    return days.map((d) => tr(dayNames[d - 1])).join('، ');
+  }
+
+  Widget reminderCard(AshuraReminder reminder) {
+    final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      child: ListTile(
+        leading: Icon(reminder.kind == 'salawat' ? Icons.volunteer_activism : Icons.alarm, color: gold),
+        title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+        subtitle: Text(daySummary(reminder.weekdays)),
+        onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Switch(value: reminder.enabled, onChanged: (value) { unawaited(tapFeedback()); toggleReminder(reminder, value); }),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                unawaited(tapFeedback());
+                if (value == 'edit') editReminder(reminder);
+                if (value == 'delete') deleteReminder(reminder);
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'edit', child: Text(tr('تعديل'))),
+                PopupMenuItem(value: 'delete', child: Text(tr('حذف'))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget reminderSection({required String kind, required String title, required String emptyText}) {
+    final items = reminders.where((r) => r.kind == kind).toList()
+      ..sort((a, b) => a.hour != b.hour ? a.hour.compareTo(b.hour) : a.minute.compareTo(b.minute));
+    return Card(
+      margin: const EdgeInsets.only(bottom: 14),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, textAlign: TextAlign.center,
+              style: const TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 17)),
+            const SizedBox(height: 6),
+            if (items.isEmpty)
+              Padding(padding: const EdgeInsets.all(12), child: Text(emptyText, textAlign: TextAlign.center)),
+            ...items.map(reminderCard),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: () { unawaited(tapFeedback()); addReminder(kind: kind); },
+              icon: const Icon(Icons.add_alarm),
+              label: Text(tr('إضافة منبّه')),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('المنبهات')),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: reminders.length >= 5 ? null : () { unawaited(tapFeedback()); addReminder(); },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_alarm),
-        label: const Text('إضافة منبّه'),
-      ),
+      appBar: AppBar(title: Text(tr('المنبّهات'))),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.notifications_active, color: gold),
-                    title: const Text('اختبار الإشعار المنبثق'),
-                    subtitle: const Text('أرسل إشعاراً تجريبياً الآن للتحقق من الصلاحيات'),
+                    title: Text(tr('اختبار الإشعار المنبثق')),
+                    subtitle: Text(tr('أرسل إشعاراً تجريبياً الآن للتحقق من الصلاحيات')),
                     onTap: () async {
                       unawaited(tapFeedback());
                       if (!await ensurePermissions()) return;
                       await showReminderTestNotification();
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.')));
+                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(tr('أُرسل الاختبار. إذا لم يظهر كنافذة منبثقة، فعّل الإشعارات المنبثقة وإشعارات شاشة القفل من إعدادات الهاتف.'))),
+                      );
                     },
                   ),
                 ),
-                Card(
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        secondary: const Icon(Icons.volunteer_activism, color: gold),
-                        title: const Text('منبه الصلاة على محمد وآل محمد'),
-                        subtitle: const Text('هل صليت على محمد وآل محمد هذا اليوم؟'),
-                        value: salawatEnabled,
-                        onChanged: (value) { unawaited(tapFeedback()); updateSalawatReminder(enabled: value); },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.access_time, color: gold),
-                        title: const Text('وقت منبّه الصلاة على محمد وآل محمد'),
-                        subtitle: Text(TimeOfDay(hour: salawatHour, minute: salawatMinute).format(context)),
-                        trailing: const Icon(Icons.edit, color: gold),
-                        onTap: () { unawaited(tapFeedback()); chooseSalawatTime(); },
-                      ),
-                    ],
-                  ),
+                reminderSection(
+                  kind: 'salawat',
+                  title: tr('منبّهات الصلاة على محمد وآل محمد'),
+                  emptyText: tr('لا توجد منبّهات للصلاة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Text('منبّهات زيارة عاشوراء (حتى خمسة أوقات)',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: gold, fontWeight: FontWeight.bold)),
+                reminderSection(
+                  kind: 'visit',
+                  title: tr('منبّهات زيارة عاشوراء'),
+                  emptyText: tr('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.'),
                 ),
-                if (reminders.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('لا توجد منبّهات للزيارة حالياً. أضف منبّهاً وحدد وقته وأيام تكراره.',
-                      textAlign: TextAlign.center),
-                  ),
-                ...reminders.map((reminder) {
-                  final time = TimeOfDay(hour: reminder.hour, minute: reminder.minute).format(context);
-                  return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.alarm, color: gold, size: 22),
-                      title: Text(time, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
-                      subtitle: Text(daySummary(reminder.weekdays)),
-                      onTap: () { unawaited(tapFeedback()); editReminder(reminder); },
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Switch(value: reminder.enabled, onChanged: (value) { unawaited(tapFeedback()); toggleReminder(reminder, value); }),
-                          PopupMenuButton<String>(
-                            onSelected: (value) {
-                              unawaited(tapFeedback());
-                              if (value == 'edit') editReminder(reminder);
-                              if (value == 'delete') deleteReminder(reminder);
-                            },
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('تعديل')),
-                              PopupMenuItem(value: 'delete', child: Text('حذف')),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
               ],
             ),
     );
@@ -2821,7 +3639,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
   Widget build(BuildContext context) {
     final time = TimeOfDay(hour: hour, minute: minute);
     return AlertDialog(
-      title: const Text('إعداد المنبّه'),
+      title: Text(tr('إعداد المنبّه')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2829,7 +3647,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.access_time, color: gold),
-              title: const Text('وقت التنبيه'),
+              title: Text(tr('وقت التنبيه')),
               subtitle: Text(time.format(context)),
               onTap: () async {
                 unawaited(tapFeedback());
@@ -2838,7 +3656,7 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
               },
             ),
             const Divider(),
-            const Align(alignment: Alignment.centerRight, child: Text('أيام التكرار', style: TextStyle(fontWeight: FontWeight.bold))),
+            Align(alignment: AlignmentDirectional.centerEnd, child: Text(tr('أيام التكرار'), style: const TextStyle(fontWeight: FontWeight.bold))),
             ...List.generate(widget.dayNames.length, (index) => CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               dense: true,
@@ -2857,10 +3675,10 @@ class _ReminderEditorDialogState extends State<ReminderEditorDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: const Text('إلغاء')),
+        TextButton(onPressed: () { unawaited(tapFeedback()); Navigator.pop(context); }, child: Text(tr('إلغاء'))),
         ElevatedButton(
           onPressed: days.isEmpty ? null : () { unawaited(tapFeedback()); Navigator.pop(context, widget.reminder.copyWith(hour: hour, minute: minute, weekdays: days)); },
-          child: const Text('حفظ'),
+          child: Text(tr('حفظ')),
         ),
       ],
     );
@@ -2885,10 +3703,27 @@ class AboutAppPage extends StatelessWidget {
 11/11/2026
 جَمِيعُ الْحُقُوقِ مَحْفُوظَةٌ''';
 
+
+  static const String aboutTextFa = '''زیارت عاشورا
+
+برنامه‌ای اسلامی با هدف زنده نگه‌داشتن یاد امام حسین بن علی (علیه‌السلام)، گسترش فضیلت‌های زیارت عاشورا و تقویت پیوند با سرور شهیدان و خاندان پاک ایشان است.
+
+این برنامه متن زیارت عاشورا و فضیلت آن، زیارت امام عباس (علیه‌السلام)، امکان شنیدن زیارت با صدای چند قاری و مجموعه‌ای از امکانات برای آسان‌تر شدن خواندن، شنیدن و یادآوری روزانه زیارت را در بر دارد.
+
+● تقدیم ●
+
+به امام حسین بن علی (علیه‌السلام)، خاندان پاک ایشان و دوستداران و پیروانشان؛ این کار کوچک را تقدیم می‌کنیم و از خداوند متعال پذیرش و توفیق خدمت به محمد و خاندان محمد را خواستاریم.
+
+با سپاس
+کامل الکمیتی
+11/11/2026
+تمامی حقوق محفوظ است''';
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حَوْلَ التَّطْبِيقِ')),
+      appBar: AppBar(title: Text(tr('حَوْلَ التَّطْبِيقِ'))),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) => Center(
@@ -2905,13 +3740,12 @@ class AboutAppPage extends StatelessWidget {
                     child: Directionality(
                       textDirection: TextDirection.rtl,
                       child: Text(
-                        aboutText,
+                        appLanguage.value == 'fa' ? aboutTextFa : aboutText,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 17,
                           height: 1.48,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'AmiriQuran',
                         ),
                       ),
                     ),

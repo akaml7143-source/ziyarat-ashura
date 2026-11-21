@@ -18,7 +18,26 @@ service cloud.firestore {
 
     match /app_updates/{updateId} {
       allow read: if true;
-      allow create, update, delete: if false;
+      allow create: if isOwner()
+        && request.resource.data.keys().hasOnly([
+          'type', 'titleAr', 'bodyAr', 'titleFa', 'bodyFa', 'createdAt', 'createdBy'
+        ])
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.titleAr is string
+        && request.resource.data.bodyAr is string
+        && request.resource.data.titleFa is string
+        && request.resource.data.bodyFa is string
+        && request.resource.data.titleAr.size() > 0
+        && request.resource.data.bodyAr.size() > 0
+        && request.resource.data.titleFa.size() > 0
+        && request.resource.data.bodyFa.size() > 0
+        && request.resource.data.titleAr.size() <= 160
+        && request.resource.data.titleFa.size() <= 160
+        && request.resource.data.bodyAr.size() <= 3000
+        && request.resource.data.bodyFa.size() <= 3000
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if isOwner();
     }
 
     match /conversations/{conversationId} {
