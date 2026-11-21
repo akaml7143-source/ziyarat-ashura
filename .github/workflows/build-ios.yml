@@ -98,15 +98,24 @@ jobs:
           YAML
           dart run flutter_launcher_icons -f .flutter_launcher_icons-ios.yaml
 
-      - name: Build unsigned iOS IPA
-        run: flutter build ipa --release --no-codesign
+      - name: Build unsigned iOS app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        run: |
+          set -euo pipefail
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          test -d "$APP_PATH"
+          mkdir -p build/ios/ipa/Payload
+          ditto "$APP_PATH" build/ios/ipa/Payload/Runner.app
+          cd build/ios/ipa
+          zip -qry "Ziyarat-Ashura-iOS-Unsigned.ipa" Payload
+          test -s "Ziyarat-Ashura-iOS-Unsigned.ipa"
 
       - name: Upload iOS build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Ziyarat-Ashura-iOS-Unsigned
-          path: |
-            build/ios/ipa/*.ipa
-            build/ios/archive/Runner.xcarchive
+          path: build/ios/ipa/Ziyarat-Ashura-iOS-Unsigned.ipa
           if-no-files-found: error
           retention-days: 14
