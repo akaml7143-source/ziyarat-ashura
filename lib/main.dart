@@ -757,7 +757,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       ),
                       child: Center(
                         child: Padding(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
@@ -767,7 +767,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: 'Amiri',
-                                fontSize: 26,
+                                fontSize: 23,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
                                   Shadow(
@@ -2494,7 +2494,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                                 formattedCount,
                                 style: TextStyle(
                                   color: textColor,
-                                  fontSize: 23,
+                                  fontSize: 26,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -2631,7 +2631,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                   side: BorderSide(color: accent.withValues(alpha: 0.8), width: 1.2),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
