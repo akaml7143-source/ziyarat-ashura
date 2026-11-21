@@ -1,7 +1,7 @@
 name: ashura_visit
 description: تطبيق زيارة عاشوراء
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -42,12 +42,15 @@ flutter:
     - family: AmiriQuran
       fonts:
         - asset: assets/AmiriQuran.ttf
-    - family: Cairo
-      fonts:
-        - asset: assets/Cairo.ttf
     - family: ArefRuqaa
       fonts:
-        - asset: assets/ArefRuqaa-Regular.ttf
+        - asset: assets/selected_fonts/ArefRuqaa.ttf
+    - family: Cairo
+      fonts:
+        - asset: assets/selected_fonts/Cairo.ttf
+    - family: ReemKufi
+      fonts:
+        - asset: assets/selected_fonts/ReemKufi.ttf
     - family: Tajawal
       fonts:
-        - asset: assets/Tajawal-Regular.ttf
+        - asset: assets/selected_fonts/Tajawal.ttf
