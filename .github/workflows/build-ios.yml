@@ -25,8 +25,10 @@ jobs:
       - name: Prepare approved Arabic fonts
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet fonttools
-          python3 - <<'PY'
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet --upgrade pip
+          .venv/bin/python -m pip install --quiet fonttools
+          .venv/bin/python - <<'PY'
           from pathlib import Path
           from zipfile import ZipFile
           from fontTools.ttLib import TTFont
