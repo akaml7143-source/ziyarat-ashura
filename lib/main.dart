@@ -918,10 +918,10 @@ class _HomeScreenState extends State<HomeScreen> {
         flexibleSpace: Center(
           child: IgnorePointer(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 118),
+              padding: const EdgeInsets.symmetric(horizontal: 70),
               child: Image.asset(
                 'assets/ashura_top_banner.png',
-                height: 38,
+                height: 52,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
@@ -1714,7 +1714,7 @@ class ListeningPage extends StatefulWidget {
     {'name': 'الحاج اســــــامة الكربلائي', 'file': 'osama_al_karbalaei.mp3'},
     {'name': 'الحاج ميـــــــــــــثم كاظم', 'file': 'maytham_kadhim.mp3'},
     {'name': 'الشيخ ميـــــــــــــثم التمار', 'file': 'maytham_al_tammar.mp3'},
-    {'name': 'الملا عبـــــــد الحجي قمبر', 'file': 'abdulhay_qambar.mp3'},
+    {'name': 'الملا عبــــــدالحي قمبر', 'file': 'abdulhay_qambar.mp3'},
     {'name': 'الحاج علــــــــــي أبو ريحان', 'file': 'ali_abu_rayhan.mp3'},
   ];
 
@@ -1805,12 +1805,12 @@ class _ListeningPageState extends State<ListeningPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 10, 18, 4),
-                child: Align(
-                  alignment: AlignmentDirectional.centerEnd,
+                child: SizedBox(
+                  width: double.infinity,
                   child: Text(
                     'استماع الزيارة بدون نت',
                     textDirection: TextDirection.rtl,
-                    textAlign: TextAlign.end,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: gold,
                       fontSize: 19,
