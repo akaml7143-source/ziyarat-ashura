@@ -67,7 +67,14 @@ jobs:
               matches = [p for p in fonts if matcher(family_names(p), re.sub(r"[^a-z]", "", p.stem.lower()))]
               if not matches: raise SystemExit(f"Missing approved font: {family}")
               shutil.copy2(matches[0], output / f"{family}.ttf")
-          for required in ("Amiri-Regular.ttf", "AmiriQuran.ttf"):
+              asset_names = {
+                  "ArefRuqaa": "Aref_Ruqaa-Regular.ttf",
+                  "Cairo": "Cairo.ttf",
+                  "ReemKufi": "Reem_Kufi.ttf",
+                  "Tajawal": "Tajawal-Regular.ttf",
+              }
+              shutil.copy2(matches[0], Path("assets") / asset_names[family])
+          for required in ("Amiri-Regular.ttf", "AmiriQuran.ttf", "Aref_Ruqaa-Regular.ttf", "Cairo.ttf", "Reem_Kufi.ttf", "Tajawal-Regular.ttf"):
               p = Path("assets") / required
               if not p.is_file() or p.stat().st_size == 0: raise SystemExit(f"Missing font: {p}")
           PY
