@@ -27,6 +27,8 @@ const Color gold = Color(0xFFFFD700);
 const Color green = Color(0xFF26734D);
 const Color darkBackground = Color(0xFF121212);
 
+const List<String> supportedFontFamilies = ['Amiri', 'AmiriQuran', 'ArefRuqaa', 'Cairo', 'ReemKufi', 'Tajawal'];
+
 String appText(String key, String language) {
   const values = <String, Map<String, String>>{
     'app': {'ar': 'زيارة عاشوراء', 'fa': 'زیارت عاشورا'},
@@ -501,7 +503,7 @@ class _AshuraAppState extends State<AshuraApp> {
         fontSize = (prefs.getDouble('ashura_font') ?? 18).clamp(16.0, 36.0).toDouble();
         entered = false;
         final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
-        selectedFont = const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(savedFont) ? savedFont : 'Amiri';
+        selectedFont = supportedFontFamilies.contains(savedFont) ? savedFont : 'Amiri';
         final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
         selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
         final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
@@ -536,7 +538,7 @@ class _AshuraAppState extends State<AshuraApp> {
   }
 
   Future<void> changeFontFamily(String value) async {
-    if (!const ['Amiri', 'AmiriQuran', 'NotoNaskhArabic', 'Cairo', 'ArefRuqaa', 'Tajawal', 'NotoKufiArabic'].contains(value)) return;
+    if (!supportedFontFamilies.contains(value)) return;
     setState(() => selectedFont = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('ashura_font_family', value);
@@ -766,7 +768,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               maxLines: 1,
                               style: TextStyle(
                                 color: Colors.white,
-                                fontFamily: 'Amiri',
                                 fontSize: 23,
                                 fontWeight: FontWeight.bold,
                                 shadows: [
@@ -928,7 +929,6 @@ class _HomeScreenState extends State<HomeScreen> {
               maxLines: 1,
               style: TextStyle(
                 color: Colors.white,
-                fontFamily: 'NotoKufiArabic',
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
                 height: 1.1,
@@ -1098,7 +1098,7 @@ class SectionCard extends StatelessWidget {
               Text.rich(highlightImamHussein(title, const TextStyle(fontSize: 17, height: 1.35, fontWeight: FontWeight.bold, color: Color(0xFF8A5A00)))),
               const Divider(),
             ],
-            SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85, fontFamily: 'AmiriQuran'))),
+            SelectableText.rich(highlightImamHussein(persianContent(content), TextStyle(fontSize: fontSize, height: 1.85,))),
           ],
         ),
       ),
@@ -1130,7 +1130,7 @@ class NajahPoemCard extends StatelessWidget {
             Text.rich(
               highlightImamHussein(
                 persianContent(poem),
-                TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9, fontFamily: 'AmiriQuran'),
+                TextStyle(fontSize: fontSize.clamp(18.0, 28.0), height: 1.9,),
               ),
               textAlign: TextAlign.center,
               textDirection: TextDirection.rtl,
@@ -1785,7 +1785,6 @@ class _ListeningPageState extends State<ListeningPage> {
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
-                             fontFamily: 'Amiri',
                              fontWeight: FontWeight.bold,
                              shadows: const [
                                Shadow(color: Colors.black, blurRadius: 6, offset: Offset(1, 1)),
@@ -2645,7 +2644,7 @@ class _TasbeehPageState extends State<TasbeehPage> with SingleTickerProviderStat
                       SelectableText(
                         (appLanguage.value == 'fa' ? tasbeehHadithTextsFa[index] : vocalizeHadithText(tasbeehHadithTexts[index])),
                         textAlign: TextAlign.justify,
-                        style: TextStyle(fontSize: widget.fontSize, height: 1.8, fontFamily: 'AmiriQuran'),
+                        style: TextStyle(fontSize: widget.fontSize, height: 1.8,),
                       ),
                       const SizedBox(height: 9),
                       Text(trFormat(r'المصدر الأصلي: ${tasbeehHadithOriginalSources[index]}', {r'${tasbeehHadithOriginalSources[index]}': appLanguage.value == 'fa' ? tasbeehHadithOriginalSourcesFa[index] : tasbeehHadithOriginalSources[index]}),
@@ -2821,13 +2820,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     isExpanded: true,
                     decoration: const InputDecoration(border: OutlineInputBorder()),
                     items: [
-                      DropdownMenuItem<String>(value: 'Amiri', child: Text(tr('Amiri - خط النسخ'))),
-                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text(tr('Amiri Quran - الخط القرآني'))),
-                      DropdownMenuItem<String>(value: 'NotoNaskhArabic', child: Text(tr('Noto Naskh Arabic - النسخ العربي'))),
-                      DropdownMenuItem<String>(value: 'Cairo', child: Text(tr('Cairo - خط كايرو'))),
-                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text(tr('Aref Ruqaa - خط الرقعة'))),
-                      DropdownMenuItem<String>(value: 'Tajawal', child: Text(tr('Tajawal - خط تجوال الواضح'))),
-                      DropdownMenuItem<String>(value: 'NotoKufiArabic', child: Text(tr('Noto Kufi Arabic - الخط الكوفي الواضح'))),
+                      DropdownMenuItem<String>(value: 'Amiri', child: Text('أميري - النسخ')),
+                      DropdownMenuItem<String>(value: 'AmiriQuran', child: Text('أميري قرآن - الخط القرآني')),
+                      DropdownMenuItem<String>(value: 'ArefRuqaa', child: Text('عارف رقعة - الرقعة')),
+                      DropdownMenuItem<String>(value: 'Cairo', child: Text('كايرو')),
+                      DropdownMenuItem<String>(value: 'ReemKufi', child: Text('ريم كوفي')),
+                      DropdownMenuItem<String>(value: 'Tajawal', child: Text('تجوال')),
                     ],
                     onChanged: (value) {
                       unawaited(tapFeedback());
@@ -3690,7 +3688,6 @@ class AboutAppPage extends StatelessWidget {
                           fontSize: 17,
                           height: 1.48,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'AmiriQuran',
                         ),
                       ),
                     ),
