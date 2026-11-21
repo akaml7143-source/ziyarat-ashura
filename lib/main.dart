@@ -483,7 +483,7 @@ class _AshuraAppState extends State<AshuraApp> {
   bool entered = false;
   bool loaded = false;
   String selectedFont = 'Amiri';
-  String selectedColor = 'أخضر';
+  String selectedColor = 'فيروزي';
   String selectedLanguage = 'ar';
 
   @override
@@ -502,8 +502,8 @@ class _AshuraAppState extends State<AshuraApp> {
         entered = false;
         final savedFont = prefs.getString('ashura_font_family') ?? 'Amiri';
         selectedFont = supportedFontFamilies.contains(savedFont) ? savedFont : 'Amiri';
-        final savedColor = prefs.getString('ashura_theme_color') ?? 'أخضر';
-        selectedColor = appColors.containsKey(savedColor) ? savedColor : 'أخضر';
+        final savedColor = prefs.getString('ashura_theme_color') ?? 'فيروزي';
+        selectedColor = appColors.containsKey(savedColor) ? savedColor : 'فيروزي';
         final savedLanguage = prefs.getString('ashura_language') ?? 'ar';
         selectedLanguage = const ['ar', 'fa'].contains(savedLanguage) ? savedLanguage : 'ar';
         appLanguage.value = selectedLanguage;
@@ -921,7 +921,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 70),
               child: Image.asset(
                 'assets/ashura_top_banner.png',
-                height: 52,
+                height: 45,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
               ),
@@ -3413,30 +3413,8 @@ class _ReminderManagerPageState extends State<ReminderManagerPage> {
   }
 
   Future<void> load() async {
-    var saved = await migrateLegacyReminders();
-    final canSchedule = await ensurePermissions();
-    if (!canSchedule && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(tr('فعّل إشعارات التطبيق من إعدادات الهاتف حتى تظهر التنبيهات.'))),
-      );
-    }
-    if (!saved.any((item) => item.kind == 'visit')) {
-      final firstId = saved.isEmpty
-          ? 2000
-          : saved.map((item) => item.id).reduce((a, b) => a > b ? a : b);
-      saved = [
-        ...saved,
-        AshuraReminder(id: firstId + 1, hour: 8, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: firstId + 2, hour: 14, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-        AshuraReminder(id: firstId + 3, hour: 20, minute: 0, weekdays: const [1,2,3,4,5,6,7], enabled: canSchedule),
-      ];
-      await saveReminders(saved);
-    }
-    if (canSchedule) {
-      for (final reminder in saved.where((item) => item.enabled)) {
-        await scheduleReminder(reminder);
-      }
-    }
+    // لا ننشئ منبّهات تلقائياً؛ تظهر فقط المنبّهات التي أضافها المستخدم.
+    final saved = await migrateLegacyReminders();
     if (!mounted) return;
     setState(() {
       reminders = saved;
