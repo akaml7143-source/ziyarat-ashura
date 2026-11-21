@@ -1831,14 +1831,14 @@ class _ListeningPageState extends State<ListeningPage> {
                     final asset = 'assets/${reader['file']!}';
                     return InkWell(
                       onTap: () { unawaited(tapFeedback()); playReader(reader); },
-                      child: Align(
-                        alignment: AlignmentDirectional.centerEnd,
+                      child: SizedBox(
+                        width: double.infinity,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           child: Text(
                             reader['name']!,
                             textDirection: TextDirection.rtl,
-                            textAlign: TextAlign.end,
+                            textAlign: TextAlign.right,
                           style: TextStyle(
                             color: selectedAsset == asset ? Theme.of(context).colorScheme.primary : Colors.white,
                             fontSize: widget.fontSize,
