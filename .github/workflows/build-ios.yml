@@ -73,6 +73,11 @@ jobs:
       - name: Generate iOS platform files
         run: flutter create --platforms=ios .
 
+      - name: Set iOS app display name
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName زيارة عاشوراء" ios/Runner/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string زيارة عاشوراء" ios/Runner/Info.plist
+
       - name: Configure iOS audio background mode
         run: |
           /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" ios/Runner/Info.plist 2>/dev/null || true
