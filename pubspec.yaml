@@ -42,9 +42,6 @@ flutter:
     - family: AmiriQuran
       fonts:
         - asset: assets/AmiriQuran.ttf
-    - family: NotoNaskhArabic
-      fonts:
-        - asset: assets/NotoNaskhArabic.ttf
     - family: Cairo
       fonts:
         - asset: assets/Cairo.ttf
@@ -54,6 +51,3 @@ flutter:
     - family: Tajawal
       fonts:
         - asset: assets/Tajawal-Regular.ttf
-    - family: NotoKufiArabic
-      fonts:
-        - asset: assets/NotoKufiArabic.ttf
