@@ -1294,6 +1294,21 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
   }
 
   Future<void> _initializeCompass() async {
+    // Subscribe to the phone's compass immediately so heading updates are not
+    // delayed until the GPS position has been obtained.
+    final events = FlutterCompass.events;
+    if (events == null) {
+      _setUnavailable('مستشعر البوصلة غير متاح في هذا الهاتف');
+    } else {
+      _compassSubscription = events.listen((event) {
+        final heading = event.heading;
+        if (heading == null || !mounted) return;
+        _updateHeading(heading);
+      }, onError: (_) {
+        _setUnavailable('تعذّر قراءة مستشعر البوصلة');
+      });
+    }
+
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -1313,7 +1328,7 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.low,
+          accuracy: LocationAccuracy.medium,
         ),
       );
       if (!mounted) return;
@@ -1332,29 +1347,28 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
         _bearing = bearing;
         _loading = false;
       });
-
-      final events = FlutterCompass.events;
+      if (_heading != null) _updateHeading(_heading!);
       if (events == null) {
         _setUnavailable('مستشعر البوصلة غير متاح في هذا الهاتف');
-        return;
       }
-      _compassSubscription = events.listen((event) {
-        final heading = event.heading;
-        if (heading == null || !mounted || _bearing == null) return;
-        final difference = ((_bearing! - heading + 540) % 360) - 180;
-        final intensity = (1 - difference.abs() / 35).clamp(0.0, 1.0);
-        setState(() {
-          _heading = heading;
-          _previousIntensity = _intensity;
-          _intensity = intensity;
-          _message = null;
-        });
-      }, onError: (_) {
-        _setUnavailable('تعذّر قراءة مستشعر البوصلة');
-      });
     } catch (_) {
-      _setUnavailable('تعذّر تشغيل البوصلة؛ تحقق من أذونات الموقع');
+      _setUnavailable('تعذّر تحديد موقعك؛ تحقق من أذونات الموقع');
     }
+  }
+
+  void _updateHeading(double heading) {
+    if (!mounted) return;
+    final intensity = _bearing == null
+        ? _intensity
+        : (1 -
+                (((_bearing! - heading + 540) % 360) - 180).abs() / 45)
+            .clamp(0.0, 1.0);
+    setState(() {
+      _heading = heading;
+      _previousIntensity = _intensity;
+      _intensity = intensity;
+      if (_bearing != null) _message = null;
+    });
   }
 
   void _setUnavailable(String message) {
@@ -1380,10 +1394,10 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
               begin: _previousIntensity,
               end: _intensity,
             ),
-            duration: const Duration(milliseconds: 450),
+            duration: const Duration(milliseconds: 700),
             builder: (context, value, child) => Icon(
               Icons.favorite,
-              size: 19,
+              size: 31,
               color: Color.lerp(Colors.white, Colors.red, value),
             ),
           ),
@@ -1393,14 +1407,14 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 3),
           SizedBox(
-            width: 48,
-            height: 48,
+            width: 76,
+            height: 76,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -1414,7 +1428,7 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
                   ),
                 ),
                 CustomPaint(
-                  size: const Size(48, 48),
+                  size: const Size(76, 76),
                   painter: _CompassCrossPainter(),
                 ),
                 AnimatedRotation(
@@ -1423,7 +1437,7 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
                   curve: Curves.easeOut,
                   child: const Icon(
                     Icons.navigation,
-                    size: 28,
+                    size: 44,
                     color: gold,
                   ),
                 ),
