@@ -21,6 +21,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'messaging_page.dart';
+import 'group_khatma_page.dart';
 import 'app_localization.dart';
 import 'persian_content.dart';
 
@@ -54,6 +55,7 @@ String appText(String key, String language) {
     'visit_ashura': {'ar': 'زِيَارَةُ عَاشُورَاءَ', 'fa': 'زیارت عاشورا'},
     'visit_fadl': {'ar': 'فَضْلُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'فضیلت زیارت عاشورا'},
     'listen': {'ar': 'اِسْتِمَاعُ زِيَارَةِ عَاشُورَاءَ', 'fa': 'پخش زیارت'},
+    'dedication': {'ar': 'إِهْدَاءُ الزِّيَارَةِ', 'fa': 'اهدای زیارت'},
     'abbas': {'ar': 'زِيَارَةُ الإِمَامِ العَبَّاسِ (ع)', 'fa': 'زیارت امام عباس (ع)'},
     'tasbeeh': {'ar': 'إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ', 'fa': 'نیکی‌ها'},
   };
@@ -901,6 +903,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ZiyaratPage(fontSize: 18),
       FavorsPage(fontSize: 18),
       ListeningPage(fontSize: 18),
+      const GroupKhatmaPage(),
       AbbasVisitPage(fontSize: 18),
       TasbeehPage(fontSize: 18, selectedColor: widget.selectedColor),
     ];
@@ -908,6 +911,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appText('visit_ashura', widget.selectedLanguage),
       appText('visit_fadl', widget.selectedLanguage),
       appText('listen', widget.selectedLanguage),
+      appText('dedication', widget.selectedLanguage),
       appText('abbas', widget.selectedLanguage),
       appText('tasbeeh', widget.selectedLanguage),
     ];
@@ -1260,10 +1264,8 @@ class ZiyaratPage extends StatelessWidget {
   }
 }
 
-class KarbalaCompass extends StatefulWidget {
-  const KarbalaCompass({super.key});
-
-  @er.key});
+class CompletedVisitCounter extends StatefulWidget {
+  const CompletedVisitCounter({super.key});
 
   @override
   State<CompletedVisitCounter> createState() => _CompletedVisitCounterState();
