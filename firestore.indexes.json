@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "group_khatma_recent_reads",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "khatmaId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
