@@ -119,7 +119,7 @@ class _GroupKhatmaPageState extends State<GroupKhatmaPage> {
           const _GlobalStats(),
           const SizedBox(height:12),
           if(isOwner) SizedBox(width:double.infinity,child:ElevatedButton.icon(onPressed:_create,icon:const Icon(Icons.add),label:Text(_t('إضافة ختمة جديدة','افزودن ختم جدید'))))
-          else Align(alignment:AlignmentDirectional.centerEnd,child:TextButton.icon(onPressed:_login,icon:const Icon(Icons.admin_panel_settings),label:Text(_t('دخول الإدارة','ورود مدیریت'))),
+          else Align(alignment:AlignmentDirectional.centerEnd,child:TextButton.icon(onPressed:_login,icon:const Icon(Icons.admin_panel_settings),label:Text(_t('دخول الإدارة','ورود مدیریت')))),
           const SizedBox(height:10),
           Text(_t('الختمات الجماعية','ختم‌های گروهی'),style:const TextStyle(color:_gold,fontSize:20,fontWeight:FontWeight.bold)),
           if(docs.isEmpty)Text(_t('لا توجد ختمات مضافة حالياً.','هنوز ختمی افزوده نشده است.'),textAlign:TextAlign.center),
@@ -197,6 +197,9 @@ class KhatmaDetailPage extends StatefulWidget {
 }
 class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
   String? intention;bool busy=false;
+  final dedicationController = TextEditingController();
+  @override
+  void dispose(){dedicationController.dispose();super.dispose();}
   Future<void> _share(Map<String,dynamic>d,int count)async{
     final title=d['title'] as String? ?? _t('ختمة جماعية','ختم گروهی');
     final uri=Uri(scheme:'ziyaratashura',host:'khatma',path:widget.id);
@@ -205,7 +208,7 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
   Future<void> _record()async{
     if(intention==null||busy)return;setState(()=>busy=true);
     try{
-      await FirebaseFunctions.instance.httpsCallable('recordGroupKhatmaReading').call({'khatmaId':widget.id,'intention':intention});
+      await FirebaseFunctions.instance.httpsCallable('recordGroupKhatmaReading').call({'khatmaId':widget.id,'intention':intention,'dedication':dedicationController.text.trim()});
       if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_t('فِي مِيزَانِ حَسَنَاتِكُمْ إِنْ شَاءَ اللهُ','ان‌شاءالله در ترازوی حسنات شما باشد'))));
     }on FirebaseFunctionsException catch(e){
       final ms=e.details is Map?(e.details['retryAfterMs'] as num?)?.toInt():null;
@@ -238,6 +241,7 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
           ]),
           Text(_t('اختر نية الزيارة','نیت زیارت را انتخاب کنید'),style:const TextStyle(color:_gold,fontSize:18,fontWeight:FontWeight.bold)),
           ...ints.map((name)=>Card(child:RadioListTile<String>(value:name,groupValue:intention,onChanged:open?(x)=>setState(()=>intention=x):null,title:Text(name),secondary:Text('${counts[name]??0}',style:const TextStyle(color:_gold))))),
+          if(open) TextField(controller:dedicationController,maxLength:100,decoration:InputDecoration(labelText:_t('إهداء إلى شخص أو فئة (اختياري)','اهدا به شخص یا گروه (اختیاری)'),helperText:_t('سيظهر المُهدى إليه فقط، دون اسم المشارك.','فقط نام دریافت‌کننده نمایش داده می‌شود، نه نام شرکت‌کننده.'))),
           if(!open)Text(_t('المشاركة متوقفة مؤقتاً.','مشارکت متوقف است.'),textAlign:TextAlign.center)
           else ElevatedButton.icon(onPressed:intention==null||busy?null:_record,icon:busy?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.check_circle),label:Text(_t('أتممت قراءة الزيارة كاملة','قرائت کامل زیارت را انجام دادم'))),
           Text(_t('يجب الانتظار 15 دقيقة بين كل تسجيل وآخر.','بین هر ثبت قرائت باید ۱۵ دقیقه فاصله باشد.'),textAlign:TextAlign.center),
@@ -249,7 +253,9 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
               final read=doc.data();final stamp=read['createdAt'] as Timestamp?;
               final date=stamp?.toDate().toLocal();
               final dateText=date==null?'':'${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}  ${date.hour.toString().padLeft(2,'0')}:${date.minute.toString().padLeft(2,'0')}';
-              return ListTile(dense:true,title:Text(read['intention'] as String? ?? ''),subtitle:Text(dateText),leading:const Icon(Icons.check_circle_outline,color:_gold));
+              final recipient=(read['dedication'] as String? ?? '').trim();
+              final subtitle=recipient.isEmpty?dateText:'${_t('إهداء إلى','اهدا به')} $recipient\n$dateText';
+              return ListTile(dense:true,title:Text(read['intention'] as String? ?? ''),subtitle:Text(subtitle),leading:const Icon(Icons.check_circle_outline,color:_gold));
             }).toList());
           }),
         ]);
