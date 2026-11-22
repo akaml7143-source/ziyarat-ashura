@@ -1486,32 +1486,52 @@ class _KarbalaShrineCompassPainter extends CustomPainter {
     final c = Offset(size.width / 2, size.height / 2);
     final radius = size.shortestSide / 2 - 3;
 
+    // Green outer bezel and clean white compass dial.
     _paint
       ..style = PaintingStyle.fill
       ..shader = const RadialGradient(
-        colors: [Color(0xFF174A3B), Color(0xFF09251F), Color(0xFF061713)],
+        colors: [Color(0xFF18C66B), Color(0xFF00A85A), Color(0xFF008E4B)],
       ).createShader(Rect.fromCircle(center: c, radius: radius));
     canvas.drawCircle(c, radius, _paint);
-
-    _paint
-      ..shader = null
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..color = const Color(0xFFE5BD62);
-    canvas.drawCircle(c, radius, _paint);
-    _paint
-      ..strokeWidth = 1
-      ..color = const Color(0xFFFFE5A0);
+    _paint.shader = null;
+    _paint.color = Colors.white;
     canvas.drawCircle(c, radius - 7, _paint);
-    canvas.drawCircle(c, radius - 15, _paint);
 
-    for (var i = 0; i < 32; i++) {
-      final a = i * math.pi / 16 - math.pi / 2;
-      final outer = radius - 18;
-      final inner = i % 4 == 0 ? radius - 31 : radius - 24;
+    // Pale mint patterned center.
+    _paint.color = const Color(0xFFB8EAD7);
+    canvas.drawCircle(c, radius * 0.62, _paint);
+    canvas.save();
+    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: c, radius: radius * 0.62)));
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..color = const Color(0xFFD7F4E9);
+    for (var offset = -size.width; offset <= size.width; offset += 34) {
+      canvas.drawLine(
+        Offset(c.dx + offset, c.dy - radius),
+        Offset(c.dx + offset + radius * 1.3, c.dy + radius),
+        _paint,
+      );
+      canvas.drawLine(
+        Offset(c.dx + offset, c.dy + radius),
+        Offset(c.dx + offset + radius * 1.3, c.dy - radius),
+        _paint,
+      );
+    }
+    canvas.restore();
+
+    // Navy graduations around the white dial.
+    for (var i = 0; i < 64; i++) {
+      final a = i * math.pi / 32 - math.pi / 2;
+      final major = i % 8 == 0;
+      final medium = i % 4 == 0;
+      final outer = radius - 17;
+      final inner = outer - (major ? 19 : medium ? 13 : 8);
       _paint
-        ..strokeWidth = i % 4 == 0 ? 1.6 : 0.7
-        ..color = const Color(0xFFD9B65E).withOpacity(i % 4 == 0 ? 0.95 : 0.48);
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = major ? 2.5 : medium ? 1.8 : 1.2
+        ..strokeCap = StrokeCap.square
+        ..color = const Color(0xFF08294B);
       canvas.drawLine(
         Offset(c.dx + math.cos(a) * inner, c.dy + math.sin(a) * inner),
         Offset(c.dx + math.cos(a) * outer, c.dy + math.sin(a) * outer),
@@ -1519,174 +1539,138 @@ class _KarbalaShrineCompassPainter extends CustomPainter {
       );
     }
 
-    final star = Path();
-    for (var i = 0; i < 16; i++) {
-      final a = i * math.pi / 8 - math.pi / 2;
-      final r = i.isEven ? 65.0 : 24.0;
-      final p = Offset(c.dx + math.cos(a) * r, c.dy + math.sin(a) * r);
-      if (i == 0) {
-        star.moveTo(p.dx, p.dy);
-      } else {
-        star.lineTo(p.dx, p.dy);
-      }
-    }
-    star.close();
-    _paint
-      ..style = PaintingStyle.fill
-      ..color = const Color(0x44D7B45D);
-    canvas.drawPath(star, _paint);
-    _paint
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = const Color(0xFFD7B45D);
-    canvas.drawPath(star, _paint);
+    _drawDirection(canvas, 'N', Offset(c.dx, c.dy - radius + 39), 24);
+    _drawDirection(canvas, 'S', Offset(c.dx, c.dy + radius - 38), 24);
+    _drawDirection(canvas, 'W', Offset(c.dx - radius + 39, c.dy), 22);
+    _drawDirection(canvas, 'E', Offset(c.dx + radius - 39, c.dy), 22);
 
-    _drawKaaba(canvas, Offset(c.dx - 76, c.dy - 76));
-    _drawShrine(canvas, c);
-    _drawLabel(canvas, 'شمال', Offset(c.dx, c.dy - 91), 15);
-    _drawLabel(canvas, 'جنوب', Offset(c.dx, c.dy + 91), 15);
-    _drawLabel(canvas, 'شرق', Offset(c.dx + 91, c.dy), 13);
-    _drawLabel(canvas, 'غرب', Offset(c.dx - 91, c.dy), 13);
-
-    for (var i = 0; i < 8; i++) {
-      final a = i * math.pi / 4 - math.pi / 2;
-      final p = Offset(c.dx + math.cos(a) * (radius - 11), c.dy + math.sin(a) * (radius - 11));
-      final diamond = Path()
-        ..moveTo(p.dx, p.dy - 3)
-        ..lineTo(p.dx + 2.5, p.dy)
-        ..lineTo(p.dx, p.dy + 3)
-        ..lineTo(p.dx - 2.5, p.dy)
-        ..close();
-      _paint
-        ..style = PaintingStyle.fill
-        ..color = const Color(0xFFFFE2A0);
-      canvas.drawPath(diamond, _paint);
-    }
+    // Both holy sites are fixed decorations: they do not rotate with the needle.
+    _drawKaaba(canvas, Offset(c.dx - radius * 0.69, c.dy - radius * 0.69));
+    _drawKarbalaShrine(canvas, Offset(c.dx + radius * 0.66, c.dy + 2));
   }
 
+  void _drawDirection(Canvas canvas, String label, Offset center, double fontSize) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: const Color(0xFF08294B),
+          fontSize: fontSize,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    painter.paint(canvas, Offset(center.dx - painter.width / 2, center.dy - painter.height / 2));
+  }
 
   void _drawKaaba(Canvas canvas, Offset center) {
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(-math.pi / 7);
-    const side = 25.0;
+    const w = 23.0;
+    const h = 29.0;
     final body = Path()
-      ..moveTo(-side, -side * 0.55)
-      ..lineTo(side * 0.55, -side)
-      ..lineTo(side, -side * 0.55)
-      ..lineTo(side, side * 0.65)
-      ..lineTo(-side * 0.55, side)
-      ..lineTo(-side, side * 0.45)
+      ..moveTo(-w, -h * 0.52)
+      ..lineTo(w * 0.55, -h)
+      ..lineTo(w, -h * 0.52)
+      ..lineTo(w, h * 0.58)
+      ..lineTo(-w * 0.55, h)
+      ..lineTo(-w, h * 0.48)
       ..close();
     _paint
       ..style = PaintingStyle.fill
-      ..color = const Color(0xFF171512);
+      ..color = const Color(0xFF151515);
     canvas.drawPath(body, _paint);
     _paint
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.2
-      ..color = const Color(0xFFE6C65D);
+      ..color = const Color(0xFFFFD84D);
     canvas.drawPath(body, _paint);
 
-    final band = Path()
-      ..moveTo(-side + 1, -side * 0.15)
-      ..lineTo(side * 0.55 - 1, -side * 0.58)
-      ..lineTo(side - 1, -side * 0.18)
-      ..lineTo(side - 1, side * 0.02)
-      ..lineTo(side * 0.55 - 1, -side * 0.38)
-      ..lineTo(-side + 1, side * 0.05)
+    final kiswah = Path()
+      ..moveTo(-w + 1, -h * 0.2)
+      ..lineTo(w * 0.55 - 1, -h * 0.66)
+      ..lineTo(w - 1, -h * 0.2)
+      ..lineTo(w - 1, h * 0.02)
+      ..lineTo(w * 0.55 - 1, -h * 0.43)
+      ..lineTo(-w + 1, h * 0.22)
       ..close();
     _paint
       ..style = PaintingStyle.fill
       ..color = const Color(0xFFFFD84D);
-    canvas.drawPath(band, _paint);
+    canvas.drawPath(kiswah, _paint);
     _paint
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8
-      ..color = const Color(0xFF8C681B);
-    canvas.drawPath(band, _paint);
-
+      ..color = const Color(0xFF9C741A);
+    canvas.drawPath(kiswah, _paint);
     _paint
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..color = const Color(0xFFF2E8D5);
-    canvas.drawLine(Offset(-side, side * 0.45), Offset(-side * 0.55, side), _paint);
-    canvas.drawLine(Offset(-side * 0.55, side), Offset(side, side * 0.65), _paint);
+      ..strokeWidth = 1
+      ..color = const Color(0xFFF7EEDC);
+    canvas.drawLine(Offset(-w, h * 0.48), Offset(-w * 0.55, h), _paint);
+    canvas.drawLine(Offset(-w * 0.55, h), Offset(w, h * 0.58), _paint);
     canvas.restore();
   }
 
-  void _drawShrine(Canvas canvas, Offset c) {
+  void _drawKarbalaShrine(Canvas canvas, Offset center) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    // Base building and two golden minarets.
     _paint
       ..style = PaintingStyle.fill
-      ..color = const Color(0xFFB88A37);
-    final base = Rect.fromCenter(center: Offset(c.dx, c.dy + 25), width: 91, height: 30);
-    canvas.drawRRect(RRect.fromRectAndRadius(base, const Radius.circular(4)), _paint);
+      ..color = const Color(0xFFB47A25);
+    canvas.drawRect(const Rect.fromLTWH(-24, 12, 48, 19), _paint);
+    _paint.color = const Color(0xFF6C4720);
+    canvas.drawRect(const Rect.fromLTWH(-20, 18, 40, 13), _paint);
 
-    _paint.color = const Color(0xFF6B542E);
-    canvas.drawRect(Rect.fromLTWH(c.dx - 38, c.dy + 11, 76, 28), _paint);
-
-    for (final x in [c.dx - 42.0, c.dx + 42.0]) {
-      _paint.color = const Color(0xFFD8AA4C);
-      canvas.drawRect(Rect.fromLTWH(x - 5, c.dy - 37, 10, 49), _paint);
-      canvas.drawRect(Rect.fromLTWH(x - 8, c.dy - 23, 16, 5), _paint);
-      canvas.drawRect(Rect.fromLTWH(x - 7, c.dy - 11, 14, 4), _paint);
-      final cap = Path()
-        ..moveTo(x - 7, c.dy - 37)
-        ..lineTo(x, c.dy - 51)
-        ..lineTo(x + 7, c.dy - 37)
+    for (final x in [-20.0, 20.0]) {
+      _paint.color = const Color(0xFFE5B43D);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(x - 3.2, -25, 6.4, 40),
+          const Radius.circular(2),
+        ),
+        _paint,
+      );
+      canvas.drawRect(Rect.fromLTWH(x - 5, -17, 10, 3), _paint);
+      canvas.drawRect(Rect.fromLTWH(x - 4.5, -7, 9, 3), _paint);
+      final roof = Path()
+        ..moveTo(x - 4.5, -25)
+        ..lineTo(x, -34)
+        ..lineTo(x + 4.5, -25)
         ..close();
-      canvas.drawPath(cap, _paint);
-      canvas.drawCircle(Offset(x, c.dy - 54), 2.3, _paint);
+      canvas.drawPath(roof, _paint);
+      canvas.drawCircle(Offset(x, -36), 1.5, _paint);
     }
 
-    _paint.color = const Color(0xFFE4B83F);
+    _paint.color = const Color(0xFFE8B83E);
     final dome = Path()
-      ..moveTo(c.dx - 22, c.dy - 7)
-      ..cubicTo(c.dx - 23, c.dy - 34, c.dx + 23, c.dy - 34, c.dx + 22, c.dy - 7)
+      ..moveTo(-13, 13)
+      ..cubicTo(-15, -14, 15, -14, 13, 13)
       ..close();
     canvas.drawPath(dome, _paint);
-    _paint.color = const Color(0xFFFFD96A);
-    canvas.drawCircle(Offset(c.dx, c.dy - 34), 2.4, _paint);
     _paint
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.1
-      ..color = const Color(0xFFFFE5A0);
-    canvas.drawArc(
-      Rect.fromCenter(center: Offset(c.dx, c.dy - 7), width: 44, height: 54),
-      math.pi,
-      math.pi,
-      false,
-      _paint,
-    );
+      ..color = const Color(0xFFFFE6A0);
+    canvas.drawArc(const Rect.fromLTWH(-13, -13, 26, 28), math.pi, math.pi, false, _paint);
     _paint
       ..style = PaintingStyle.fill
-      ..color = const Color(0xFF241F18);
-    for (final x in [c.dx - 26.0, c.dx, c.dx + 26.0]) {
+      ..color = const Color(0xFFFFD96A);
+    canvas.drawCircle(const Offset(0, -15), 1.7, _paint);
+    _paint.color = const Color(0xFF302219);
+    for (final x in [-12.0, 0.0, 12.0]) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset(x, c.dy + 26), width: 8, height: 15),
-          const Radius.circular(4),
+          Rect.fromCenter(center: Offset(x, 24), width: 4, height: 10),
+          const Radius.circular(2),
         ),
         _paint,
       );
     }
-  }
-
-  void _drawLabel(Canvas canvas, String text, Offset center, double fontSize) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: const Color(0xFFFFE5A0),
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          shadows: const [Shadow(color: Colors.black87, blurRadius: 3)],
-        ),
-      ),
-      textDirection: TextDirection.rtl,
-      textAlign: TextAlign.center,
-    )..layout();
-    painter.paint(canvas, Offset(center.dx - painter.width / 2, center.dy - painter.height / 2));
+    canvas.restore();
   }
 
   @override
