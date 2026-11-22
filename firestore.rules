@@ -71,5 +71,35 @@ service cloud.firestore {
         allow update, delete: if false;
       }
     }
+
+    // Public read-only data for the group khatma counters and status.
+    // All writes are performed by trusted Cloud Functions.
+    match /group_khatmas/{khatmaId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /group_khatma_stats/{statsId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    match /group_khatma_recent_reads/{readId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+
+    // Per-user cooldowns and participation records are private and server-managed.
+    match /group_khatma_user_cooldowns/{userId} {
+      allow read, write: if false;
+    }
+
+    match /group_khatma_participants/{participantId} {
+      allow read, write: if false;
+    }
+
+    match /group_khatma_global_participants/{userId} {
+      allow read, write: if false;
+    }
   }
 }
