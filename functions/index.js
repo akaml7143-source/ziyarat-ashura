@@ -131,7 +131,10 @@ exports.updateGroupKhatma = onCall(async (request) => {
     const [khatmaSnap, statsSnap] = await Promise.all([tx.get(khatmaRef), tx.get(statsRef)]);
     if (!khatmaSnap.exists || !statsSnap.exists) throw new HttpsError("not-found", "الختمة غير موجودة.");
     const oldCounts = statsSnap.data()?.intentionCounts || {};
-    const nextCounts = Object.fromEntries(data.intentions.map((item) => [item, Number(oldCounts[item] || 0)]));
+    const nextCounts = { ...oldCounts };
+    for (const item of data.intentions) {
+      if (nextCounts[item] === undefined) nextCounts[item] = 0;
+    }
     tx.update(khatmaRef, { ...data, updatedAt: FieldValue.serverTimestamp() });
     tx.update(statsRef, { intentionCounts: nextCounts, updatedAt: FieldValue.serverTimestamp() });
   });
