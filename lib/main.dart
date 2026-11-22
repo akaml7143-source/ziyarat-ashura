@@ -1255,7 +1255,7 @@ class ZiyaratPage extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey)),
       ],
-    );
+    )
         ),
       ],
     );
