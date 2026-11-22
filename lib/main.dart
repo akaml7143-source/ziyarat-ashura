@@ -1541,6 +1541,7 @@ class _KarbalaShrineCompassPainter extends CustomPainter {
       ..color = const Color(0xFFD7B45D);
     canvas.drawPath(star, _paint);
 
+    _drawKaaba(canvas, Offset(c.dx - 76, c.dy - 76));
     _drawShrine(canvas, c);
     _drawLabel(canvas, 'شمال', Offset(c.dx, c.dy - 91), 15);
     _drawLabel(canvas, 'جنوب', Offset(c.dx, c.dy + 91), 15);
@@ -1561,6 +1562,57 @@ class _KarbalaShrineCompassPainter extends CustomPainter {
         ..color = const Color(0xFFFFE2A0);
       canvas.drawPath(diamond, _paint);
     }
+  }
+
+
+  void _drawKaaba(Canvas canvas, Offset center) {
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(-math.pi / 7);
+    const side = 25.0;
+    final body = Path()
+      ..moveTo(-side, -side * 0.55)
+      ..lineTo(side * 0.55, -side)
+      ..lineTo(side, -side * 0.55)
+      ..lineTo(side, side * 0.65)
+      ..lineTo(-side * 0.55, side)
+      ..lineTo(-side, side * 0.45)
+      ..close();
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFF171512);
+    canvas.drawPath(body, _paint);
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..color = const Color(0xFFE6C65D);
+    canvas.drawPath(body, _paint);
+
+    final band = Path()
+      ..moveTo(-side + 1, -side * 0.15)
+      ..lineTo(side * 0.55 - 1, -side * 0.58)
+      ..lineTo(side - 1, -side * 0.18)
+      ..lineTo(side - 1, side * 0.02)
+      ..lineTo(side * 0.55 - 1, -side * 0.38)
+      ..lineTo(-side + 1, side * 0.05)
+      ..close();
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFFFFD84D);
+    canvas.drawPath(band, _paint);
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8
+      ..color = const Color(0xFF8C681B);
+    canvas.drawPath(band, _paint);
+
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = const Color(0xFFF2E8D5);
+    canvas.drawLine(Offset(-side, side * 0.45), Offset(-side * 0.55, side), _paint);
+    canvas.drawLine(Offset(-side * 0.55, side), Offset(side, side * 0.65), _paint);
+    canvas.restore();
   }
 
   void _drawShrine(Canvas canvas, Offset c) {
