@@ -49,7 +49,7 @@ jobs:
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
-        run: firebase deploy --only functions,firestore:rules --project ziyarat-ashura-796c7 --non-interactive
+        run: firebase deploy --only functions,firestore:rules,firestore:indexes --project ziyarat-ashura-796c7 --non-interactive
 
       - name: Explain missing deployment credentials
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
