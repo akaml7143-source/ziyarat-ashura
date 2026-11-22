@@ -1272,12 +1272,15 @@ class KarbalaCompass extends StatefulWidget {
 class _KarbalaCompassState extends State<KarbalaCompass> {
   static const double _karbalaLatitude = 32.6160;
   static const double _karbalaLongitude = 44.0320;
+  static const double _fullRedDistanceMeters = 250000;
 
   StreamSubscription? _compassSubscription;
+  StreamSubscription<Position>? _positionSubscription;
   double? _bearing;
   double? _heading;
   double _previousIntensity = 0;
   double _intensity = 0;
+  double? _distanceMeters;
   String? _message;
   bool _loading = true;
 
@@ -1290,20 +1293,18 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
   @override
   void dispose() {
     _compassSubscription?.cancel();
+    _positionSubscription?.cancel();
     super.dispose();
   }
 
   Future<void> _initializeCompass() async {
-    // Subscribe to the phone's compass immediately so heading updates are not
-    // delayed until the GPS position has been obtained.
     final events = FlutterCompass.events;
     if (events == null) {
       _setUnavailable('مستشعر البوصلة غير متاح في هذا الهاتف');
     } else {
       _compassSubscription = events.listen((event) {
         final heading = event.heading;
-        if (heading == null || !mounted) return;
-        _updateHeading(heading);
+        if (heading != null && mounted) _updateHeading(heading);
       }, onError: (_) {
         _setUnavailable('تعذّر قراءة مستشعر البوصلة');
       });
@@ -1327,27 +1328,20 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-        ),
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
       if (!mounted) return;
+      _updatePosition(position);
 
-      final lat1 = position.latitude * math.pi / 180;
-      final lon1 = position.longitude * math.pi / 180;
-      final lat2 = _karbalaLatitude * math.pi / 180;
-      final lon2 = _karbalaLongitude * math.pi / 180;
-      final deltaLon = lon2 - lon1;
-      final y = math.sin(deltaLon) * math.cos(lat2);
-      final x = math.cos(lat1) * math.sin(lat2) -
-          math.sin(lat1) * math.cos(lat2) * math.cos(deltaLon);
-      final bearing = (math.atan2(y, x) * 180 / math.pi + 360) % 360;
-
-      setState(() {
-        _bearing = bearing;
-        _loading = false;
+      _positionSubscription = Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 250,
+        ),
+      ).listen(_updatePosition, onError: (_) {
+        if (mounted) _setUnavailable('تعذّر تحديث الموقع؛ تحقق من إعدادات GPS');
       });
-      if (_heading != null) _updateHeading(_heading!);
+
       if (events == null) {
         _setUnavailable('مستشعر البوصلة غير متاح في هذا الهاتف');
       }
@@ -1356,17 +1350,35 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
     }
   }
 
-  void _updateHeading(double heading) {
+  void _updatePosition(Position position) {
     if (!mounted) return;
-    final intensity = _bearing == null
-        ? _intensity
-        : (1 -
-                (((_bearing! - heading + 540) % 360) - 180).abs() / 45)
-            .clamp(0.0, 1.0);
+    final distance = Geolocator.distanceBetween(
+      position.latitude,
+      position.longitude,
+      _karbalaLatitude,
+      _karbalaLongitude,
+    );
+    final bearing = Geolocator.bearingBetween(
+      position.latitude,
+      position.longitude,
+      _karbalaLatitude,
+      _karbalaLongitude,
+    );
+    final intensity = (1 - distance / _fullRedDistanceMeters).clamp(0.0, 1.0);
     setState(() {
-      _heading = heading;
+      _distanceMeters = distance;
+      _bearing = (bearing + 360) % 360;
       _previousIntensity = _intensity;
       _intensity = intensity;
+      _loading = false;
+      _message = null;
+    });
+  }
+
+  void _updateHeading(double heading) {
+    if (!mounted) return;
+    setState(() {
+      _heading = heading;
       if (_bearing != null) _message = null;
     });
   }
@@ -1379,78 +1391,85 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
     });
   }
 
+  String _distanceLabel() {
+    final distance = _distanceMeters;
+    if (distance == null) return 'جارٍ تحديد المسافة إلى كربلاء…';
+    if (distance < 1000) return 'تبعد عن كربلاء ' + distance.round().toString() + ' متر';
+    return 'تبعد عن كربلاء ' + (distance / 1000).toStringAsFixed(1) + ' كم';
+  }
+
   @override
   Widget build(BuildContext context) {
     final angle = _bearing == null || _heading == null
         ? 0.0
         : ((_bearing! - _heading! + 540) % 360) - 180;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 5, bottom: 7),
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(
-              begin: _previousIntensity,
-              end: _intensity,
-            ),
-            duration: const Duration(milliseconds: 700),
-            builder: (context, value, child) => Icon(
-              Icons.favorite,
-              size: 31,
-              color: Color.lerp(Colors.white, Colors.red, value),
-            ),
-          ),
-          const SizedBox(height: 1),
-          Text(
-            'كربلاء الإمام الحسين (عليه السلام)',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 3),
           SizedBox(
-            width: 76,
-            height: 76,
+            width: 236,
+            height: 236,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: gold.withOpacity(0.8),
-                      width: 1.4,
-                    ),
-                  ),
-                ),
                 CustomPaint(
-                  size: const Size(76, 76),
-                  painter: _CompassCrossPainter(),
+                  size: const Size(236, 236),
+                  painter: _KarbalaShrineCompassPainter(),
                 ),
                 AnimatedRotation(
                   turns: angle / 360,
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOut,
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
                   child: const Icon(
                     Icons.navigation,
-                    size: 44,
-                    color: gold,
+                    size: 112,
+                    color: Color(0xFFB9D9E8),
+                    shadows: [
+                      Shadow(color: Colors.black87, blurRadius: 5, offset: Offset(1, 2)),
+                    ],
+                  ),
+                ),
+                TweenAnimationBuilder<double>(
+                  tween: Tween<double>(
+                    begin: _previousIntensity,
+                    end: _intensity,
+                  ),
+                  duration: const Duration(milliseconds: 1300),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) => Icon(
+                    Icons.favorite,
+                    size: 42,
+                    color: Color.lerp(Colors.white, const Color(0xFFE51B32), value),
+                    shadows: const [
+                      Shadow(color: Colors.black54, blurRadius: 5),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          if (_loading || _message != null)
+          const SizedBox(height: 4),
+          Text(
+            _distanceLabel(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (_loading || _message != null || _heading == null)
             Padding(
-              padding: const EdgeInsets.only(top: 2),
+              padding: const EdgeInsets.only(top: 3),
               child: Text(
-                _loading ? 'جارٍ تحديد الاتجاه…' : _message!,
+                _message ?? (_loading
+                    ? 'جارٍ تحديد اتجاه كربلاء…'
+                    : 'حرّك الهاتف لمعايرة البوصلة'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 9, color: Colors.grey),
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),
         ],
@@ -1459,22 +1478,168 @@ class _KarbalaCompassState extends State<KarbalaCompass> {
   }
 }
 
-class _CompassCrossPainter extends CustomPainter {
+class _KarbalaShrineCompassPainter extends CustomPainter {
+  final Paint _paint = Paint()..isAntiAlias = true;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = gold.withOpacity(0.35)
-      ..strokeWidth = 0.8;
-    final center = Offset(size.width / 2, size.height / 2);
-    canvas.drawLine(Offset(center.dx, 5), Offset(center.dx, size.height - 5), paint);
-    canvas.drawLine(Offset(5, center.dy), Offset(size.width - 5, center.dy), paint);
-    canvas.drawCircle(center, 2, paint..style = PaintingStyle.fill);
+    final c = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide / 2 - 3;
+
+    _paint
+      ..style = PaintingStyle.fill
+      ..shader = const RadialGradient(
+        colors: [Color(0xFF174A3B), Color(0xFF09251F), Color(0xFF061713)],
+      ).createShader(Rect.fromCircle(center: c, radius: radius));
+    canvas.drawCircle(c, radius, _paint);
+
+    _paint
+      ..shader = null
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2
+      ..color = const Color(0xFFE5BD62);
+    canvas.drawCircle(c, radius, _paint);
+    _paint
+      ..strokeWidth = 1
+      ..color = const Color(0xFFFFE5A0);
+    canvas.drawCircle(c, radius - 7, _paint);
+    canvas.drawCircle(c, radius - 15, _paint);
+
+    for (var i = 0; i < 32; i++) {
+      final a = i * math.pi / 16 - math.pi / 2;
+      final outer = radius - 18;
+      final inner = i % 4 == 0 ? radius - 31 : radius - 24;
+      _paint
+        ..strokeWidth = i % 4 == 0 ? 1.6 : 0.7
+        ..color = const Color(0xFFD9B65E).withOpacity(i % 4 == 0 ? 0.95 : 0.48);
+      canvas.drawLine(
+        Offset(c.dx + math.cos(a) * inner, c.dy + math.sin(a) * inner),
+        Offset(c.dx + math.cos(a) * outer, c.dy + math.sin(a) * outer),
+        _paint,
+      );
+    }
+
+    final star = Path();
+    for (var i = 0; i < 16; i++) {
+      final a = i * math.pi / 8 - math.pi / 2;
+      final r = i.isEven ? 65.0 : 24.0;
+      final p = Offset(c.dx + math.cos(a) * r, c.dy + math.sin(a) * r);
+      if (i == 0) {
+        star.moveTo(p.dx, p.dy);
+      } else {
+        star.lineTo(p.dx, p.dy);
+      }
+    }
+    star.close();
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0x44D7B45D);
+    canvas.drawPath(star, _paint);
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = const Color(0xFFD7B45D);
+    canvas.drawPath(star, _paint);
+
+    _drawShrine(canvas, c);
+    _drawLabel(canvas, 'شمال', Offset(c.dx, c.dy - 91), 15);
+    _drawLabel(canvas, 'جنوب', Offset(c.dx, c.dy + 91), 15);
+    _drawLabel(canvas, 'شرق', Offset(c.dx + 91, c.dy), 13);
+    _drawLabel(canvas, 'غرب', Offset(c.dx - 91, c.dy), 13);
+
+    for (var i = 0; i < 8; i++) {
+      final a = i * math.pi / 4 - math.pi / 2;
+      final p = Offset(c.dx + math.cos(a) * (radius - 11), c.dy + math.sin(a) * (radius - 11));
+      final diamond = Path()
+        ..moveTo(p.dx, p.dy - 3)
+        ..lineTo(p.dx + 2.5, p.dy)
+        ..lineTo(p.dx, p.dy + 3)
+        ..lineTo(p.dx - 2.5, p.dy)
+        ..close();
+      _paint
+        ..style = PaintingStyle.fill
+        ..color = const Color(0xFFFFE2A0);
+      canvas.drawPath(diamond, _paint);
+    }
+  }
+
+  void _drawShrine(Canvas canvas, Offset c) {
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFFB88A37);
+    final base = Rect.fromCenter(center: Offset(c.dx, c.dy + 25), width: 91, height: 30);
+    canvas.drawRRect(RRect.fromRectAndRadius(base, const Radius.circular(4)), _paint);
+
+    _paint.color = const Color(0xFF6B542E);
+    canvas.drawRect(Rect.fromLTWH(c.dx - 38, c.dy + 11, 76, 28), _paint);
+
+    for (final x in [c.dx - 42.0, c.dx + 42.0]) {
+      _paint.color = const Color(0xFFD8AA4C);
+      canvas.drawRect(Rect.fromLTWH(x - 5, c.dy - 37, 10, 49), _paint);
+      canvas.drawRect(Rect.fromLTWH(x - 8, c.dy - 23, 16, 5), _paint);
+      canvas.drawRect(Rect.fromLTWH(x - 7, c.dy - 11, 14, 4), _paint);
+      final cap = Path()
+        ..moveTo(x - 7, c.dy - 37)
+        ..lineTo(x, c.dy - 51)
+        ..lineTo(x + 7, c.dy - 37)
+        ..close();
+      canvas.drawPath(cap, _paint);
+      canvas.drawCircle(Offset(x, c.dy - 54), 2.3, _paint);
+    }
+
+    _paint.color = const Color(0xFFE4B83F);
+    final dome = Path()
+      ..moveTo(c.dx - 22, c.dy - 7)
+      ..cubicTo(c.dx - 23, c.dy - 34, c.dx + 23, c.dy - 34, c.dx + 22, c.dy - 7)
+      ..close();
+    canvas.drawPath(dome, _paint);
+    _paint.color = const Color(0xFFFFD96A);
+    canvas.drawCircle(Offset(c.dx, c.dy - 34), 2.4, _paint);
+    _paint
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = const Color(0xFFFFE5A0);
+    canvas.drawArc(
+      Rect.fromCenter(center: Offset(c.dx, c.dy - 7), width: 44, height: 54),
+      math.pi,
+      math.pi,
+      false,
+      _paint,
+    );
+    _paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFF241F18);
+    for (final x in [c.dx - 26.0, c.dx, c.dx + 26.0]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(x, c.dy + 26), width: 8, height: 15),
+          const Radius.circular(4),
+        ),
+        _paint,
+      );
+    }
+  }
+
+  void _drawLabel(Canvas canvas, String text, Offset center, double fontSize) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: const Color(0xFFFFE5A0),
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          shadows: const [Shadow(color: Colors.black87, blurRadius: 3)],
+        ),
+      ),
+      textDirection: TextDirection.rtl,
+      textAlign: TextAlign.center,
+    )..layout();
+    painter.paint(canvas, Offset(center.dx - painter.width / 2, center.dy - painter.height / 2));
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-
 
 class CompletedVisitCounter extends StatefulWidget {
   const CompletedVisitCounter({super.key});
