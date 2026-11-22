@@ -160,7 +160,9 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   if (!uid) throw new HttpsError("unauthenticated", "يلزم تهيئة هوية المشاركة أولاً.");
   const id = String(request.data?.khatmaId || "").trim();
   const intention = String(request.data?.intention || "").trim();
+  const dedication = String(request.data?.dedication || "").trim();
   if (!id || !intention) throw new HttpsError("invalid-argument", "اختر الختمة والنية أولاً.");
+  if (dedication.length > 100) throw new HttpsError("invalid-argument", "الإهداء يجب ألا يتجاوز 100 حرف.");
 
   const khatmaRef = db.collection("group_khatmas").doc(id);
   const statsRef = db.collection("group_khatma_stats").doc(id);
@@ -220,9 +222,49 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
     tx.create(recentRef, {
       khatmaId: id,
       intention,
+      dedication,
       createdAt: now,
     });
   });
 
   return { success: true };
 });
+
+
+exports.notifyNewGroupKhatma = onDocumentCreated(
+  { document: "group_khatmas/{khatmaId}", retry: true },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data || data.createdBy !== OWNER_UID) return;
+    const name = String(data.title || "ختمة جماعية");
+    const messages = {
+      ar: {
+        title: "ختمة جماعية جديدة",
+        body: "أُضيفت ختمة جديدة بعنوان: " + name + ". شاركوا في إهداء الزيارة.",
+      },
+      fa: {
+        title: "ختم گروهی جدید",
+        body: "ختم جدیدی با عنوان «" + name + "» افزوده شد. در اهدای زیارت مشارکت کنید.",
+      },
+    };
+    const results = await Promise.allSettled(["ar", "fa"].map((language) =>
+      getMessaging().send({
+        topic: "app_updates_" + language,
+        notification: messages[language],
+        data: {
+          kind: "group_khatma",
+          khatmaId: String(event.params.khatmaId),
+        },
+        android: {
+          priority: "high",
+          notification: { channelId: "app_updates_v1" },
+        },
+      })
+    ));
+    const failures = results.filter((result) => result.status === "rejected");
+    if (failures.length) {
+      logger.error("New group khatma notification failed.", failures);
+      throw new Error("Could not notify all subscribed users about the new khatma.");
+    }
+  }
+);
