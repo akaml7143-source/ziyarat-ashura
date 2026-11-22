@@ -229,6 +229,22 @@ jobs:
                   activity_tag = activity_tag[:-1] + f' {attribute}="true">'
           s = s[:match.start()] + activity_tag + s[match.end():]
 
+          # Deep links let a shared khatma open directly inside the app.
+          if 'android:scheme="ziyaratashura"' not in s:
+              activity_start = s.find(activity_tag)
+              activity_end = s.find("</activity>", activity_start)
+              if activity_start < 0 or activity_end < 0:
+                  raise SystemExit("AudioServiceActivity closing tag not found for khatma deep links")
+              deep_link_filter = '''
+                  <intent-filter>
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="ziyaratashura" android:host="khatma" />
+                  </intent-filter>
+              '''
+              s = s[:activity_end] + deep_link_filter + s[activity_end:]
+
           # إضافة خدمة تشغيل الصوت بالخلفية
           if 'android:name="com.ryanheise.audioservice.AudioService"' not in s:
               audio_components = '''
