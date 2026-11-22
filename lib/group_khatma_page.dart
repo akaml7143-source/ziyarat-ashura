@@ -5,6 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'app_localization.dart';
 import 'package:share_plus/share_plus.dart';
 
 const _ownerUid = 'WvoTCtdUdYhbMluOwfwmBg6CJSL2';
@@ -167,11 +168,11 @@ class _KhatmaTile extends StatelessWidget {
   const _KhatmaTile({required this.id,required this.data,required this.admin,required this.open,required this.edit,required this.status});
   @override
   Widget build(BuildContext context){
-    final state=data['status'] as String???'open';
+    final state=data['status'] as String? ?? 'open';
     final count=(data['intentions'] as List?)?.length??0;
-    return Card(child:ListTile(onTap:open,title:Text(data['title'] as String???'',style:const TextStyle(color:_gold,fontWeight:FontWeight.bold)),
+    return Card(child:ListTile(onTap:open,title:Text(data['title'] as String? ?? '',style:const TextStyle(color:_gold,fontWeight:FontWeight.bold)),
       subtitle:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        if((data['description'] as String???'').isNotEmpty)Text(data['description'] as String),
+        if((data['description'] as String? ?? '').isNotEmpty)Text(data['description'] as String),
         Text(_t(state=='open'?'مفتوحة':state=='paused'?'متوقفة مؤقتاً':'مؤرشفة',state=='open'?'باز':state=='paused'?'متوقف':'بایگانی')),
         Text(_t('$count نيات','$count نیت')),
         StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_stats').doc(id).snapshots(),builder:(context,s){
@@ -197,7 +198,7 @@ class KhatmaDetailPage extends StatefulWidget {
 class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
   String? intention;bool busy=false;
   Future<void> _share(Map<String,dynamic>d,int count)async{
-    final title=d['title'] as String???_t('ختمة جماعية','ختم گروهی');
+    final title=d['title'] as String? ?? _t('ختمة جماعية','ختم گروهی');
     final uri=Uri(scheme:'ziyaratashura',host:'khatma',path:widget.id);
     await Share.share(_t('أدعوكم للمشاركة في ختمة "$title" ضمن تطبيق زيارة عاشوراء.\nعدد القراءات: $count\nافتحوا التطبيق واختاروا إهداء الزيارة.\n$uri','برای شرکت در ختم "$title" در برنامه زیارت عاشورا دعوتید.\nتعداد قرائت‌ها: $count\n$uri'));
   }
@@ -227,9 +228,9 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
       final open=(d['status'] as String? ??'open')=='open';
       if(intention!=null&&!ints.contains(intention))intention=null;
       return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_stats').doc(widget.id).snapshots(),builder:(context,s){
-        final v=s.data?.data()??const <String,dynamic>{};final counts=Map<String,dynamic>.from(v['intentionCounts'] as Map???const {});
+        final v=s.data?.data()??const <String,dynamic>{};final counts=Map<String,dynamic>.from(v['intentionCounts'] as Map? ?? const {});
         return ListView(padding:const EdgeInsets.all(16),children:[
-          Text(d['title'] as String???'',textAlign:TextAlign.center,style:const TextStyle(color:_gold,fontSize:23,fontWeight:FontWeight.bold)),
+          Text(d['title'] as String? ?? '',textAlign:TextAlign.center,style:const TextStyle(color:_gold,fontSize:23,fontWeight:FontWeight.bold)),
           if((d['description'] as String? ??'').isNotEmpty)Text(d['description'] as String,textAlign:TextAlign.center),
           Row(children:[
             Expanded(child:_Number(label:_t('قراءات الختمة','قرائت‌های ختم'),value:(v['totalReadings'] as num?)?.toInt()??0)),
@@ -248,7 +249,7 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
               final read=doc.data();final stamp=read['createdAt'] as Timestamp?;
               final date=stamp?.toDate().toLocal();
               final dateText=date==null?'':'${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}  ${date.hour.toString().padLeft(2,'0')}:${date.minute.toString().padLeft(2,'0')}';
-              return ListTile(dense:true,title:Text(read['intention'] as String???''),subtitle:Text(dateText),leading:const Icon(Icons.check_circle_outline,color:_gold));
+              return ListTile(dense:true,title:Text(read['intention'] as String? ?? ''),subtitle:Text(dateText),leading:const Icon(Icons.check_circle_outline,color:_gold));
             }).toList());
           }),
         ]);
