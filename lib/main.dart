@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -1212,7 +1214,11 @@ class ZiyaratPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return Column(
+      children: [
+        const KarbalaCompass(),
+        Expanded(
+          child: ListView(
       padding: const EdgeInsets.all(16),
       children: [
         NajahPoemCard(fontSize: fontSize),
@@ -1250,7 +1256,209 @@ class ZiyaratPage extends StatelessWidget {
             style: TextStyle(color: Colors.grey)),
       ],
     );
+        ),
+      ],
+    );
   }
+}
+
+class KarbalaCompass extends StatefulWidget {
+  const KarbalaCompass({super.key});
+
+  @override
+  State<KarbalaCompass> createState() => _KarbalaCompassState();
+}
+
+class _KarbalaCompassState extends State<KarbalaCompass> {
+  static const double _karbalaLatitude = 32.6160;
+  static const double _karbalaLongitude = 44.0320;
+
+  StreamSubscription? _compassSubscription;
+  double? _bearing;
+  double? _heading;
+  double _previousIntensity = 0;
+  double _intensity = 0;
+  String? _message;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCompass();
+  }
+
+  @override
+  void dispose() {
+    _compassSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeCompass() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _setUnavailable('فعّل خدمة الموقع لتحديد اتجاه كربلاء');
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _setUnavailable('اسمح للتطبيق بالوصول إلى الموقع لتشغيل البوصلة');
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+        ),
+      );
+      if (!mounted) return;
+
+      final lat1 = position.latitude * math.pi / 180;
+      final lon1 = position.longitude * math.pi / 180;
+      final lat2 = _karbalaLatitude * math.pi / 180;
+      final lon2 = _karbalaLongitude * math.pi / 180;
+      final deltaLon = lon2 - lon1;
+      final y = math.sin(deltaLon) * math.cos(lat2);
+      final x = math.cos(lat1) * math.sin(lat2) -
+          math.sin(lat1) * math.cos(lat2) * math.cos(deltaLon);
+      final bearing = (math.atan2(y, x) * 180 / math.pi + 360) % 360;
+
+      setState(() {
+        _bearing = bearing;
+        _loading = false;
+      });
+
+      final events = FlutterCompass.events;
+      if (events == null) {
+        _setUnavailable('مستشعر البوصلة غير متاح في هذا الهاتف');
+        return;
+      }
+      _compassSubscription = events.listen((event) {
+        final heading = event.heading;
+        if (heading == null || !mounted || _bearing == null) return;
+        final difference = ((_bearing! - heading + 540) % 360) - 180;
+        final intensity = (1 - difference.abs() / 35).clamp(0.0, 1.0);
+        setState(() {
+          _heading = heading;
+          _previousIntensity = _intensity;
+          _intensity = intensity;
+          _message = null;
+        });
+      }, onError: (_) {
+        _setUnavailable('تعذّر قراءة مستشعر البوصلة');
+      });
+    } catch (_) {
+      _setUnavailable('تعذّر تشغيل البوصلة؛ تحقق من أذونات الموقع');
+    }
+  }
+
+  void _setUnavailable(String message) {
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _message = message;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final angle = _bearing == null || _heading == null
+        ? 0.0
+        : ((_bearing! - _heading! + 540) % 360) - 180;
+    return Padding(
+      padding: const EdgeInsets.only(top: 5, bottom: 7),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(
+              begin: _previousIntensity,
+              end: _intensity,
+            ),
+            duration: const Duration(milliseconds: 450),
+            builder: (context, value, child) => Icon(
+              Icons.favorite,
+              size: 19,
+              color: Color.lerp(Colors.white, Colors.red, value),
+            ),
+          ),
+          const SizedBox(height: 1),
+          Text(
+            'كربلاء الإمام الحسين (عليه السلام)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 3),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: gold.withOpacity(0.8),
+                      width: 1.4,
+                    ),
+                  ),
+                ),
+                CustomPaint(
+                  size: const Size(48, 48),
+                  painter: _CompassCrossPainter(),
+                ),
+                AnimatedRotation(
+                  turns: angle / 360,
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOut,
+                  child: const Icon(
+                    Icons.navigation,
+                    size: 28,
+                    color: gold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_loading || _message != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                _loading ? 'جارٍ تحديد الاتجاه…' : _message!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 9, color: Colors.grey),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompassCrossPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = gold.withOpacity(0.35)
+      ..strokeWidth = 0.8;
+    final center = Offset(size.width / 2, size.height / 2);
+    canvas.drawLine(Offset(center.dx, 5), Offset(center.dx, size.height - 5), paint);
+    canvas.drawLine(Offset(5, center.dy), Offset(size.width - 5, center.dy), paint);
+    canvas.drawCircle(center, 2, paint..style = PaintingStyle.fill);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 
