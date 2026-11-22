@@ -23,6 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate Cloud Functions JavaScript
+        run: node --check functions/index.js
+
       - name: Authenticate with Firebase service account
         id: auth
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON != '' }}
@@ -53,4 +56,4 @@ jobs:
 
       - name: Explain missing deployment credentials
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
-        run: echo "::warning::Set FIREBASE_SERVICE_ACCOUNT_JSON with Firebase deployment permissions to activate announcement push notifications."
+        run: echo "::warning::Set FIREBASE_SERVICE_ACCOUNT_JSON with Firebase deployment permissions to activate group khatma functions, Firestore rules/indexes, and announcement notifications."
