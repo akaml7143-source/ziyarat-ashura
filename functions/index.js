@@ -161,8 +161,10 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const id = String(request.data?.khatmaId || "").trim();
   const intention = String(request.data?.intention || "").trim();
   const dedication = String(request.data?.dedication || "").trim();
+  const requestId = String(request.data?.requestId || "").trim();
   if (!id || !intention) throw new HttpsError("invalid-argument", "اختر الختمة والنية أولاً.");
   if (dedication.length > 100) throw new HttpsError("invalid-argument", "الإهداء يجب ألا يتجاوز 100 حرف.");
+  if (!/^[A-Za-z0-9_-]{16,80}$/.test(requestId)) throw new HttpsError("invalid-argument", "معرّف طلب التسجيل غير صالح.");
 
   const khatmaRef = db.collection("group_khatmas").doc(id);
   const statsRef = db.collection("group_khatma_stats").doc(id);
@@ -171,14 +173,18 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const khatmaParticipantRef = db.collection("group_khatma_participants").doc(id + "_" + uid);
   const globalParticipantRef = db.collection("group_khatma_global_participants").doc(uid);
   const recentRef = db.collection("group_khatma_recent_reads").doc();
+  const privateReadRef = db.collection("group_khatma_private_reads").doc(recentRef.id);
+  const idempotencyRef = db.collection("group_khatma_idempotency").doc(uid + "_" + requestId);
   const now = Timestamp.now();
 
-  await db.runTransaction(async (tx) => {
-    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap] =
+  const transactionResult = await db.runTransaction(async (tx) => {
+    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap, idempotencySnap] =
       await Promise.all([
         tx.get(khatmaRef), tx.get(statsRef), tx.get(globalRef),
         tx.get(cooldownRef), tx.get(khatmaParticipantRef), tx.get(globalParticipantRef),
+        tx.get(idempotencyRef),
       ]);
+    if (idempotencySnap.exists) return { alreadyRecorded: true };
     if (!khatmaSnap.exists || !statsSnap.exists || !globalSnap.exists) {
       throw new HttpsError("not-found", "الختمة غير موجودة أو لم تجهز بعد.");
     }
@@ -219,15 +225,27 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
     tx.set(cooldownRef, { lastRegisteredAt: now });
     if (!kpSnap.exists) tx.create(khatmaParticipantRef, { joinedAt: now });
     if (!gpSnap.exists) tx.create(globalParticipantRef, { joinedAt: now });
+    // Public activity feed contains only the timestamp and khatma ID.
     tx.create(recentRef, {
       khatmaId: id,
+      createdAt: now,
+    });
+    // Recipient and intention details remain in a private server-only record.
+    tx.create(privateReadRef, {
+      khatmaId: id,
+      uid,
       intention,
       dedication,
       createdAt: now,
     });
+    tx.create(idempotencyRef, {
+      khatmaId: id,
+      createdAt: now,
+    });
+    return { alreadyRecorded: false };
   });
 
-  return { success: true };
+  return { success: true, alreadyRecorded: transactionResult.alreadyRecorded };
 });
 
 
