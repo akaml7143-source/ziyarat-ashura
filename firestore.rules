@@ -101,5 +101,14 @@ service cloud.firestore {
     match /group_khatma_global_participants/{userId} {
       allow read, write: if false;
     }
+
+    // Idempotency keys and full dedication details are never exposed to clients.
+    match /group_khatma_idempotency/{requestKey} {
+      allow read, write: if false;
+    }
+
+    match /group_khatma_private_reads/{readId} {
+      allow read, write: if false;
+    }
   }
 }
