@@ -84,7 +84,13 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // Legacy records may contain intention/dedication fields; keep them private.
     match /group_khatma_recent_reads/{readId} {
+      allow read, write: if false;
+    }
+
+    // Public activity feed exposes only khatma ID and registration timestamp.
+    match /group_khatma_recent_activity/{readId} {
       allow read: if true;
       allow create, update, delete: if false;
     }
