@@ -172,8 +172,8 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const cooldownRef = db.collection("group_khatma_user_cooldowns").doc(uid);
   const khatmaParticipantRef = db.collection("group_khatma_participants").doc(id + "_" + uid);
   const globalParticipantRef = db.collection("group_khatma_global_participants").doc(uid);
-  const recentRef = db.collection("group_khatma_recent_reads").doc();
-  const privateReadRef = db.collection("group_khatma_private_reads").doc(recentRef.id);
+  const publicRecentRef = db.collection("group_khatma_recent_activity").doc();
+  const privateReadRef = db.collection("group_khatma_private_reads").doc(publicRecentRef.id);
   const idempotencyRef = db.collection("group_khatma_idempotency").doc(uid + "_" + requestId);
   const now = Timestamp.now();
 
@@ -226,7 +226,7 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
     if (!kpSnap.exists) tx.create(khatmaParticipantRef, { joinedAt: now });
     if (!gpSnap.exists) tx.create(globalParticipantRef, { joinedAt: now });
     // Public activity feed contains only the timestamp and khatma ID.
-    tx.create(recentRef, {
+    tx.create(publicRecentRef, {
       khatmaId: id,
       createdAt: now,
     });
