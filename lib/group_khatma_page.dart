@@ -304,7 +304,7 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
           Text(_t('يجب الانتظار 15 دقيقة بين كل تسجيل وآخر.','بین هر ثبت قرائت باید ۱۵ دقیقه فاصله باشد.'),textAlign:TextAlign.center),
           const SizedBox(height:15),
           Text(_t('آخر القراءات المسجلة','آخرین قرائت‌ها'),style:const TextStyle(color:_gold,fontWeight:FontWeight.bold)),
-          StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_recent_reads').where('khatmaId',isEqualTo:widget.id).orderBy('createdAt',descending:true).limit(10).snapshots(),builder:(context,r){
+          StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_recent_activity').where('khatmaId',isEqualTo:widget.id).orderBy('createdAt',descending:true).limit(10).snapshots(),builder:(context,r){
             if(!r.hasData||r.data!.docs.isEmpty)return Text(_t('لا توجد قراءات مسجلة بعد.','هنوز قرائتی ثبت نشده است.'));
             return Column(children:r.data!.docs.map((doc){
               final read=doc.data();final stamp=read['createdAt'] as Timestamp?;
