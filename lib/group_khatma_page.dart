@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app_links/app_links.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -198,6 +201,34 @@ class KhatmaDetailPage extends StatefulWidget {
 class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
   String? intention;bool busy=false;
   final dedicationController = TextEditingController();
+
+  String get _pendingRequestKey => 'group_khatma_pending_${widget.id}';
+
+  Future<String> _getRequestId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final fingerprint = jsonEncode({
+      'intention': intention,
+      'dedication': dedicationController.text.trim(),
+    });
+    final stored = prefs.getString(_pendingRequestKey);
+    if (stored != null) {
+      try {
+        final data = jsonDecode(stored) as Map<String, dynamic>;
+        if (data['fingerprint'] == fingerprint && data['requestId'] is String) {
+          return data['requestId'] as String;
+        }
+      } catch (_) {}
+    }
+    final requestId = List.generate(
+      32, (_) => Random.secure().nextInt(16).toRadixString(16),
+    ).join();
+    await prefs.setString(_pendingRequestKey, jsonEncode({
+      'fingerprint': fingerprint,
+      'requestId': requestId,
+    }));
+    return requestId;
+  }
+
   @override
   void dispose(){dedicationController.dispose();super.dispose();}
   Future<void> _share(Map<String,dynamic>d,int count)async{
@@ -208,8 +239,21 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
   Future<void> _record()async{
     if(intention==null||busy)return;setState(()=>busy=true);
     try{
-      await FirebaseFunctions.instance.httpsCallable('recordGroupKhatmaReading').call({'khatmaId':widget.id,'intention':intention,'dedication':dedicationController.text.trim()});
-      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(_t('فِي مِيزَانِ حَسَنَاتِكُمْ إِنْ شَاءَ اللهُ','ان‌شاءالله در ترازوی حسنات شما باشد'))));
+      final requestId = await _getRequestId();
+      final result = await FirebaseFunctions.instance.httpsCallable('recordGroupKhatmaReading').call({
+        'khatmaId':widget.id,
+        'intention':intention,
+        'dedication':dedicationController.text.trim(),
+        'requestId':requestId,
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_pendingRequestKey);
+      final alreadyRecorded = result.data is Map && result.data['alreadyRecorded'] == true;
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(
+        alreadyRecorded
+          ? _t('هذه القراءة مسجلة مسبقاً، ولم يُضف العداد مرة أخرى.','این قرائت قبلاً ثبت شده و شمارنده دوباره افزایش نیافت.')
+          : _t('فِي مِيزَانِ حَسَنَاتِكُمْ إِنْ شَاءَ اللهُ','ان‌شاءالله در ترازوی حسنات شما باشد'),
+      )));
     }on FirebaseFunctionsException catch(e){
       final ms=e.details is Map?(e.details['retryAfterMs'] as num?)?.toInt():null;
       final msg=ms!=null&&ms>0?_t('يمكنك تسجيل قراءة جديدة بعد ${(ms/60000).ceil()} دقيقة.','پس از ${(ms/60000).ceil()} دقیقه می‌توانید قرائت دیگری ثبت کنید.'):(e.message??e.code);
@@ -230,32 +274,51 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
       final d=k.data!.data()!;final ints=(d['intentions'] as List?)?.whereType<String>().toList()??<String>[];
       final open=(d['status'] as String? ??'open')=='open';
       if(intention!=null&&!ints.contains(intention))intention=null;
+      final createdAt = d['createdAt'] as Timestamp?;
+      final createdDate = createdAt?.toDate().toLocal();
+      final createdText = createdDate == null ? '' : '${createdDate.year}/${createdDate.month.toString().padLeft(2,'0')}/${createdDate.day.toString().padLeft(2,'0')}';
+      final status = d['status'] as String? ?? 'open';
       return StreamBuilder<DocumentSnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_stats').doc(widget.id).snapshots(),builder:(context,s){
         final v=s.data?.data()??const <String,dynamic>{};final counts=Map<String,dynamic>.from(v['intentionCounts'] as Map? ?? const {});
         return ListView(padding:const EdgeInsets.all(16),children:[
           Text(d['title'] as String? ?? '',textAlign:TextAlign.center,style:const TextStyle(color:_gold,fontSize:23,fontWeight:FontWeight.bold)),
           if((d['description'] as String? ??'').isNotEmpty)Text(d['description'] as String,textAlign:TextAlign.center),
+          if(createdText.isNotEmpty)Padding(
+            padding:const EdgeInsets.symmetric(vertical:8),
+            child:Text(_t('تاريخ إنشاء الختمة: $createdText','تاریخ ایجاد ختم: $createdText'),textAlign:TextAlign.center,style:TextStyle(color:Theme.of(context).textTheme.bodySmall?.color)),
+          ),
+          Text(
+            _t(status=='open'?'الحالة: مفتوحة':status=='paused'?'الحالة: متوقفة مؤقتاً':'الحالة: مؤرشفة',status=='open'?'وضعیت: باز':status=='paused'?'وضعیت: متوقف موقت':'وضعیت: بایگانی شده'),
+            textAlign:TextAlign.center,
+            style:TextStyle(color:status=='open'?Colors.green:Theme.of(context).textTheme.bodySmall?.color,fontWeight:FontWeight.w600),
+          ),
           Row(children:[
             Expanded(child:_Number(label:_t('قراءات الختمة','قرائت‌های ختم'),value:(v['totalReadings'] as num?)?.toInt()??0)),
             Expanded(child:_Number(label:_t('المشاركون','شرکت‌کنندگان'),value:(v['totalParticipants'] as num?)?.toInt()??0)),
           ]),
           Text(_t('اختر نية الزيارة','نیت زیارت را انتخاب کنید'),style:const TextStyle(color:_gold,fontSize:18,fontWeight:FontWeight.bold)),
           ...ints.map((name)=>Card(child:RadioListTile<String>(value:name,groupValue:intention,onChanged:open?(x)=>setState(()=>intention=x):null,title:Text(name),secondary:Text('${counts[name]??0}',style:const TextStyle(color:_gold))))),
-          if(open) TextField(controller:dedicationController,maxLength:100,decoration:InputDecoration(labelText:_t('إهداء إلى شخص أو فئة (اختياري)','اهدا به شخص یا گروه (اختیاری)'),helperText:_t('سيظهر المُهدى إليه فقط، دون اسم المشارك.','فقط نام دریافت‌کننده نمایش داده می‌شود، نه نام شرکت‌کننده.'))),
-          if(!open)Text(_t('المشاركة متوقفة مؤقتاً.','مشارکت متوقف است.'),textAlign:TextAlign.center)
+          if(open) TextField(controller:dedicationController,maxLength:100,decoration:InputDecoration(labelText:_t('إهداء إلى شخص أو فئة (اختياري)','اهدا به شخص یا گروه (اختیاری)'),helperText:_t('يُحفظ اسم المُهدى إليه ضمن الإهداء الخاص، دون إظهار هوية المشارك.','نام دریافت‌کننده در اطلاعات خصوصی اهدا نگهداری می‌شود و هویت شرکت‌کننده نمایش داده نمی‌شود.'))),
+          if(!open)Text(
+            status == 'archived'
+              ? _t('هذه الختمة مؤرشفة للعرض فقط، وأعدادها محفوظة.','این ختم فقط برای مشاهده بایگانی شده و آمار آن محفوظ است.')
+              : _t('المشاركة متوقفة مؤقتاً.','مشارکت موقتاً متوقف است.'),
+            textAlign:TextAlign.center,
+          )
           else ElevatedButton.icon(onPressed:intention==null||busy?null:_record,icon:busy?const SizedBox(width:18,height:18,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.check_circle),label:Text(_t('أتممت قراءة الزيارة كاملة','قرائت کامل زیارت را انجام دادم'))),
           Text(_t('يجب الانتظار 15 دقيقة بين كل تسجيل وآخر.','بین هر ثبت قرائت باید ۱۵ دقیقه فاصله باشد.'),textAlign:TextAlign.center),
           const SizedBox(height:15),
           Text(_t('آخر القراءات المسجلة','آخرین قرائت‌ها'),style:const TextStyle(color:_gold,fontWeight:FontWeight.bold)),
-          StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_recent_reads').where('khatmaId',isEqualTo:widget.id).orderBy('createdAt',descending:true).limit(10).snapshots(),builder:(context,r){
+          StreamBuilder<QuerySnapshot<Map<String,dynamic>>>(stream:FirebaseFirestore.instance.collection('group_khatma_recent_activity').where('khatmaId',isEqualTo:widget.id).orderBy('createdAt',descending:true).limit(10).snapshots(),builder:(context,r){
             if(!r.hasData||r.data!.docs.isEmpty)return Text(_t('لا توجد قراءات مسجلة بعد.','هنوز قرائتی ثبت نشده است.'));
             return Column(children:r.data!.docs.map((doc){
               final read=doc.data();final stamp=read['createdAt'] as Timestamp?;
               final date=stamp?.toDate().toLocal();
               final dateText=date==null?'':'${date.year}/${date.month.toString().padLeft(2,'0')}/${date.day.toString().padLeft(2,'0')}  ${date.hour.toString().padLeft(2,'0')}:${date.minute.toString().padLeft(2,'0')}';
-              final recipient=(read['dedication'] as String? ?? '').trim();
-              final subtitle=recipient.isEmpty?dateText:'${_t('إهداء إلى','اهدا به')} $recipient\n$dateText';
-              return ListTile(dense:true,title:Text(read['intention'] as String? ?? ''),subtitle:Text(subtitle),leading:const Icon(Icons.check_circle_outline,color:_gold));
+              return ListTile(
+                dense:true,
+                title:Text(dateText.isEmpty ? _t('وقت التسجيل غير متاح','زمان ثبت در دسترس نیست') : dateText,textAlign:TextAlign.end),
+              );
             }).toList());
           }),
         ]);

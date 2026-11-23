@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "group_khatma_recent_reads",
+      "collectionGroup": "group_khatma_recent_activity",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "khatmaId", "order": "ASCENDING" },

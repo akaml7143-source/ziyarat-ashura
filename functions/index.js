@@ -161,8 +161,11 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const id = String(request.data?.khatmaId || "").trim();
   const intention = String(request.data?.intention || "").trim();
   const dedication = String(request.data?.dedication || "").trim();
+  const requestId = String(request.data?.requestId || "").trim();
   if (!id || !intention) throw new HttpsError("invalid-argument", "اختر الختمة والنية أولاً.");
   if (dedication.length > 100) throw new HttpsError("invalid-argument", "الإهداء يجب ألا يتجاوز 100 حرف.");
+  // Older installed app versions do not send requestId; retain their cooldown-based flow.
+  if (requestId && !/^[A-Za-z0-9_-]{16,80}$/.test(requestId)) throw new HttpsError("invalid-argument", "معرّف طلب التسجيل غير صالح.");
 
   const khatmaRef = db.collection("group_khatmas").doc(id);
   const statsRef = db.collection("group_khatma_stats").doc(id);
@@ -170,15 +173,23 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const cooldownRef = db.collection("group_khatma_user_cooldowns").doc(uid);
   const khatmaParticipantRef = db.collection("group_khatma_participants").doc(id + "_" + uid);
   const globalParticipantRef = db.collection("group_khatma_global_participants").doc(uid);
-  const recentRef = db.collection("group_khatma_recent_reads").doc();
+  const publicRecentRef = db.collection("group_khatma_recent_activity").doc();
+  const privateReadRef = db.collection("group_khatma_private_reads").doc(publicRecentRef.id);
+  const idempotencyRef = requestId
+    ? db.collection("group_khatma_idempotency").doc(uid + "_" + requestId)
+    : null;
   const now = Timestamp.now();
 
-  await db.runTransaction(async (tx) => {
-    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap] =
-      await Promise.all([
-        tx.get(khatmaRef), tx.get(statsRef), tx.get(globalRef),
-        tx.get(cooldownRef), tx.get(khatmaParticipantRef), tx.get(globalParticipantRef),
-      ]);
+  const transactionResult = await db.runTransaction(async (tx) => {
+    const reads = [
+      tx.get(khatmaRef), tx.get(statsRef), tx.get(globalRef),
+      tx.get(cooldownRef), tx.get(khatmaParticipantRef), tx.get(globalParticipantRef),
+    ];
+    if (idempotencyRef) reads.push(tx.get(idempotencyRef));
+    const snapshots = await Promise.all(reads);
+    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap] = snapshots;
+    const idempotencySnap = idempotencyRef ? snapshots[6] : null;
+    if (idempotencySnap?.exists) return { alreadyRecorded: true };
     if (!khatmaSnap.exists || !statsSnap.exists || !globalSnap.exists) {
       throw new HttpsError("not-found", "الختمة غير موجودة أو لم تجهز بعد.");
     }
@@ -219,15 +230,29 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
     tx.set(cooldownRef, { lastRegisteredAt: now });
     if (!kpSnap.exists) tx.create(khatmaParticipantRef, { joinedAt: now });
     if (!gpSnap.exists) tx.create(globalParticipantRef, { joinedAt: now });
-    tx.create(recentRef, {
+    // Public activity feed contains only the timestamp and khatma ID.
+    tx.create(publicRecentRef, {
       khatmaId: id,
+      createdAt: now,
+    });
+    // Recipient and intention details remain in a private server-only record.
+    tx.create(privateReadRef, {
+      khatmaId: id,
+      uid,
       intention,
       dedication,
       createdAt: now,
     });
+    if (idempotencyRef) {
+      tx.create(idempotencyRef, {
+        khatmaId: id,
+        createdAt: now,
+      });
+    }
+    return { alreadyRecorded: false };
   });
 
-  return { success: true };
+  return { success: true, alreadyRecorded: transactionResult.alreadyRecorded };
 });
 
 
