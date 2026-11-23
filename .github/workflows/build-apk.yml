@@ -22,6 +22,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate Firebase Functions and Firestore index JSON
+        run: |
+          node --check functions/index.js
+          python3 -m json.tool firestore.indexes.json > /dev/null
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
