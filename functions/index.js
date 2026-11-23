@@ -164,7 +164,8 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const requestId = String(request.data?.requestId || "").trim();
   if (!id || !intention) throw new HttpsError("invalid-argument", "اختر الختمة والنية أولاً.");
   if (dedication.length > 100) throw new HttpsError("invalid-argument", "الإهداء يجب ألا يتجاوز 100 حرف.");
-  if (!/^[A-Za-z0-9_-]{16,80}$/.test(requestId)) throw new HttpsError("invalid-argument", "معرّف طلب التسجيل غير صالح.");
+  // Older installed app versions do not send requestId; retain their cooldown-based flow.
+  if (requestId && !/^[A-Za-z0-9_-]{16,80}$/.test(requestId)) throw new HttpsError("invalid-argument", "معرّف طلب التسجيل غير صالح.");
 
   const khatmaRef = db.collection("group_khatmas").doc(id);
   const statsRef = db.collection("group_khatma_stats").doc(id);
@@ -174,17 +175,21 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
   const globalParticipantRef = db.collection("group_khatma_global_participants").doc(uid);
   const publicRecentRef = db.collection("group_khatma_recent_activity").doc();
   const privateReadRef = db.collection("group_khatma_private_reads").doc(publicRecentRef.id);
-  const idempotencyRef = db.collection("group_khatma_idempotency").doc(uid + "_" + requestId);
+  const idempotencyRef = requestId
+    ? db.collection("group_khatma_idempotency").doc(uid + "_" + requestId)
+    : null;
   const now = Timestamp.now();
 
   const transactionResult = await db.runTransaction(async (tx) => {
-    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap, idempotencySnap] =
-      await Promise.all([
-        tx.get(khatmaRef), tx.get(statsRef), tx.get(globalRef),
-        tx.get(cooldownRef), tx.get(khatmaParticipantRef), tx.get(globalParticipantRef),
-        tx.get(idempotencyRef),
-      ]);
-    if (idempotencySnap.exists) return { alreadyRecorded: true };
+    const reads = [
+      tx.get(khatmaRef), tx.get(statsRef), tx.get(globalRef),
+      tx.get(cooldownRef), tx.get(khatmaParticipantRef), tx.get(globalParticipantRef),
+    ];
+    if (idempotencyRef) reads.push(tx.get(idempotencyRef));
+    const snapshots = await Promise.all(reads);
+    const [khatmaSnap, statsSnap, globalSnap, cooldownSnap, kpSnap, gpSnap] = snapshots;
+    const idempotencySnap = idempotencyRef ? snapshots[6] : null;
+    if (idempotencySnap?.exists) return { alreadyRecorded: true };
     if (!khatmaSnap.exists || !statsSnap.exists || !globalSnap.exists) {
       throw new HttpsError("not-found", "الختمة غير موجودة أو لم تجهز بعد.");
     }
@@ -238,10 +243,12 @@ exports.recordGroupKhatmaReading = onCall(async (request) => {
       dedication,
       createdAt: now,
     });
-    tx.create(idempotencyRef, {
-      khatmaId: id,
-      createdAt: now,
-    });
+    if (idempotencyRef) {
+      tx.create(idempotencyRef, {
+        khatmaId: id,
+        createdAt: now,
+      });
+    }
     return { alreadyRecorded: false };
   });
 
