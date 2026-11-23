@@ -54,6 +54,8 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
         run: firebase deploy --only functions,firestore:rules,firestore:indexes --project ziyarat-ashura-796c7 --non-interactive
 
-      - name: Explain missing deployment credentials
+      - name: Fail when deployment credentials are missing
         if: ${{ env.FIREBASE_SERVICE_ACCOUNT_JSON == '' }}
-        run: echo "::warning::Set FIREBASE_SERVICE_ACCOUNT_JSON with Firebase deployment permissions to activate group khatma functions, Firestore rules/indexes, and announcement notifications."
+        run: |
+          echo "::error::Firebase deployment was not performed. Set FIREBASE_SERVICE_ACCOUNT_JSON with a service account that can enable required Google Cloud APIs and deploy Cloud Functions, Firestore rules, and indexes."
+          exit 1
