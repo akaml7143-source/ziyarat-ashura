@@ -287,13 +287,18 @@ class _KhatmaDetailPageState extends State<KhatmaDetailPage>{
             padding:const EdgeInsets.symmetric(vertical:8),
             child:Text(_t('تاريخ إنشاء الختمة: $createdText','تاریخ ایجاد ختم: $createdText'),textAlign:TextAlign.center,style:TextStyle(color:Theme.of(context).textTheme.bodySmall?.color)),
           ),
+          Text(
+            _t(status=='open'?'الحالة: مفتوحة':status=='paused'?'الحالة: متوقفة مؤقتاً':'الحالة: مؤرشفة',status=='open'?'وضعیت: باز':status=='paused'?'وضعیت: متوقف موقت':'وضعیت: بایگانی شده'),
+            textAlign:TextAlign.center,
+            style:TextStyle(color:status=='open'?Colors.green:Theme.of(context).textTheme.bodySmall?.color,fontWeight:FontWeight.w600),
+          ),
           Row(children:[
             Expanded(child:_Number(label:_t('قراءات الختمة','قرائت‌های ختم'),value:(v['totalReadings'] as num?)?.toInt()??0)),
             Expanded(child:_Number(label:_t('المشاركون','شرکت‌کنندگان'),value:(v['totalParticipants'] as num?)?.toInt()??0)),
           ]),
           Text(_t('اختر نية الزيارة','نیت زیارت را انتخاب کنید'),style:const TextStyle(color:_gold,fontSize:18,fontWeight:FontWeight.bold)),
           ...ints.map((name)=>Card(child:RadioListTile<String>(value:name,groupValue:intention,onChanged:open?(x)=>setState(()=>intention=x):null,title:Text(name),secondary:Text('${counts[name]??0}',style:const TextStyle(color:_gold))))),
-          if(open) TextField(controller:dedicationController,maxLength:100,decoration:InputDecoration(labelText:_t('إهداء إلى شخص أو فئة (اختياري)','اهدا به شخص یا گروه (اختیاری)'),helperText:_t('سيظهر المُهدى إليه فقط، دون اسم المشارك.','فقط نام دریافت‌کننده نمایش داده می‌شود، نه نام شرکت‌کننده.'))),
+          if(open) TextField(controller:dedicationController,maxLength:100,decoration:InputDecoration(labelText:_t('إهداء إلى شخص أو فئة (اختياري)','اهدا به شخص یا گروه (اختیاری)'),helperText:_t('يُحفظ اسم المُهدى إليه ضمن الإهداء الخاص، دون إظهار هوية المشارك.','نام دریافت‌کننده در اطلاعات خصوصی اهدا نگهداری می‌شود و هویت شرکت‌کننده نمایش داده نمی‌شود.'))),
           if(!open)Text(
             status == 'archived'
               ? _t('هذه الختمة مؤرشفة للعرض فقط، وأعدادها محفوظة.','این ختم فقط برای مشاهده بایگانی شده و آمار آن محفوظ است.')
